@@ -47,7 +47,7 @@ static const char *vert_src =
  */
 static const char *frag_src =
     "#extension GL_OES_standard_derivatives : enable\n"
-    "precision mediump float;\n"
+    "precision highp float;\n"
     "varying vec2 v_uv;\n"
     "uniform vec4  u_color;\n"
     "uniform vec2  u_quad;\n"
@@ -87,7 +87,7 @@ static const char *frag_src =
     "    if (u_thickness > 0.0 && u_shape < 1.5) {\n"
     "        d = abs(d) - u_thickness * 0.5;\n"
     "    }\n"
-    "    float aa = fwidth(d);\n"
+    "    float aa = max(fwidth(d), 0.5);\n"
     "    float alpha = 1.0 - smoothstep(-aa, aa, d);\n"
     "    gl_FragColor = u_color * alpha;\n"
     "}\n";
@@ -296,7 +296,7 @@ static void draw_shape(int x, int y, int w, int h,
 {
     if (!gl.prog) return;
 
-    float pad = (thickness > 0.0f ? thickness * 0.5f : 0.0f) + 1.5f;
+    float pad = (thickness > 0.0f ? thickness * 0.5f : 0.0f) + 2.5f;
     float fx = (float)x - pad;
     float fy = (float)y - pad;
     float fw = (float)w + pad * 2.0f;
