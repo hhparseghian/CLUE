@@ -30,6 +30,7 @@ set(CLUE_CORE_SOURCES
     src/widgets/image.c
     src/widgets/checkbox.c
     src/widgets/radio.c
+    src/widgets/separator.c
     src/widgets/slider.c
     src/widgets/dropdown.c
     src/widgets/theme.c
