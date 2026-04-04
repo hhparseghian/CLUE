@@ -287,6 +287,8 @@
   <a href="#style">Style</a>
   <a href="#theme">Theme</a>
   <a href="#signal">Signal</a>
+  <a href="#shortcut">Shortcut</a>
+  <a href="#clipboard">Clipboard</a>
 </nav>
 
 <div class="main" id="content">
@@ -1154,6 +1156,34 @@
   <div class="fn-block">
     <div class="fn-sig"><span class="type">void</span> <span class="name">clue_signal_disconnect_all</span>(<span class="param">void *widget</span>)</div>
     <div class="fn-desc">Disconnect all signal handlers from a widget.</div>
+  </div>
+
+  <h2 id="shortcut">Shortcut</h2>
+  <p class="description">Register global keyboard shortcuts. Shortcuts are checked before widget event dispatch.</p>
+
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_shortcut_add</span>(<span class="param">const char *shortcut</span>, <span class="param">ClueSignalCallback callback</span>, <span class="param">void *user_data</span>)</div>
+    <div class="fn-desc">Register a keyboard shortcut. Format: <code>"Ctrl+S"</code>, <code>"Ctrl+Shift+Z"</code>, <code>"F5"</code>, etc. Supports Ctrl, Shift, Alt, Super modifiers and letter keys, F1-F12, Delete, Escape, Return, Tab, Space, Backspace, Home, End, PageUp, PageDown.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_shortcut_remove</span>(<span class="param">ClueSignalCallback callback</span>)</div>
+    <div class="fn-desc">Remove all shortcuts registered with the given callback.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_shortcut_clear</span>(<span class="param">void</span>)</div>
+    <div class="fn-desc">Remove all registered shortcuts.</div>
+  </div>
+
+  <h2 id="clipboard">Clipboard</h2>
+  <p class="description">System clipboard access. Uses wl-copy/xclip/xsel when available, with an internal fallback.</p>
+
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_clipboard_set</span>(<span class="param">const char *text</span>)</div>
+    <div class="fn-desc">Copy text to the clipboard.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">char *</span><span class="name">clue_clipboard_get</span>(<span class="param">void</span>)</div>
+    <div class="fn-desc">Get the clipboard text. Caller must <code>free()</code> the returned string. Returns NULL if empty.</div>
   </div>
 
 </div>
