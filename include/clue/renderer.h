@@ -34,6 +34,7 @@ typedef struct {
 
     /* Primitives */
     void  (*fill_rect)(int x, int y, int w, int h, UIColor color);
+    void  (*fill_rect_solid)(int x, int y, int w, int h, UIColor color);
     void  (*fill_rounded_rect)(int x, int y, int w, int h,
                                float radius, UIColor color);
     void  (*draw_rect)(int x, int y, int w, int h,

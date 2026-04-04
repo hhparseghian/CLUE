@@ -87,7 +87,7 @@ static const char *frag_src =
     "    if (u_thickness > 0.0 && u_shape < 1.5) {\n"
     "        d = abs(d) - u_thickness * 0.5;\n"
     "    }\n"
-    "    float aa = max(fwidth(d), 0.5);\n"
+    "    float aa = (u_shape > 0.5) ? max(fwidth(d), 0.5) : fwidth(d);\n"
     "    float alpha = 1.0 - smoothstep(-aa, aa, d);\n"
     "    gl_FragColor = u_color * alpha;\n"
     "}\n";
@@ -110,6 +110,24 @@ static const char *img_frag_src =
     "uniform sampler2D u_tex;\n"
     "void main() {\n"
     "    gl_FragColor = texture2D(u_tex, v_uv);\n"
+    "}\n";
+
+/* Flat color vertex shader -- no UV needed */
+static const char *flat_vert_src =
+    "attribute vec2 a_pos;\n"
+    "uniform   vec2 u_resolution;\n"
+    "void main() {\n"
+    "    vec2 ndc = (a_pos / u_resolution) * 2.0 - 1.0;\n"
+    "    ndc.y = -ndc.y;\n"
+    "    gl_Position = vec4(ndc, 0.0, 1.0);\n"
+    "}\n";
+
+/* Flat color fragment shader -- solid color, no SDF, no AA */
+static const char *flat_frag_src =
+    "precision mediump float;\n"
+    "uniform vec4 u_color;\n"
+    "void main() {\n"
+    "    gl_FragColor = u_color;\n"
     "}\n";
 
 /* ------------------------------------------------------------------ */
@@ -135,6 +153,11 @@ static struct {
     GLint  line_a_uv;
     GLint  line_u_resolution;
     GLint  line_u_color;
+    /* Flat color shader (no SDF, no AA) */
+    GLuint flat_prog;
+    GLint  flat_a_pos;
+    GLint  flat_u_resolution;
+    GLint  flat_u_color;
     /* Image shader (textured quad, reuses line_frag but samples texture) */
     GLuint img_prog;
     GLint  img_a_pos;
@@ -256,6 +279,32 @@ static int build_program(void)
     gl.img_u_resolution = glGetUniformLocation(gl.img_prog, "u_resolution");
     gl.img_u_tex        = glGetUniformLocation(gl.img_prog, "u_tex");
 
+    /* --- Flat color shader --- */
+    GLuint flat_vs2 = compile_shader(GL_VERTEX_SHADER, flat_vert_src);
+    GLuint flat_fs2 = compile_shader(GL_FRAGMENT_SHADER, flat_frag_src);
+    if (!flat_vs2 || !flat_fs2) return -1;
+
+    gl.flat_prog = glCreateProgram();
+    glAttachShader(gl.flat_prog, flat_vs2);
+    glAttachShader(gl.flat_prog, flat_fs2);
+    glLinkProgram(gl.flat_prog);
+
+    glGetProgramiv(gl.flat_prog, GL_LINK_STATUS, &ok);
+    if (!ok) {
+        char log[512];
+        glGetProgramInfoLog(gl.flat_prog, sizeof(log), NULL, log);
+        fprintf(stderr, "clue-gl: flat shader link error:\n%s\n", log);
+        glDeleteProgram(gl.flat_prog);
+        gl.flat_prog = 0;
+    }
+    glDeleteShader(flat_vs2);
+    glDeleteShader(flat_fs2);
+    if (!gl.flat_prog) return -1;
+
+    gl.flat_a_pos        = glGetAttribLocation(gl.flat_prog,  "a_pos");
+    gl.flat_u_resolution = glGetUniformLocation(gl.flat_prog, "u_resolution");
+    gl.flat_u_color      = glGetUniformLocation(gl.flat_prog, "u_color");
+
     return 0;
 }
 
@@ -323,6 +372,24 @@ static void draw_shape(int x, int y, int w, int h,
 static void gl_fill_rect(int x, int y, int w, int h, UIColor color)
 {
     draw_shape(x, y, w, h, 0.0f, 0.0f, 0, color);
+}
+
+static void gl_fill_rect_solid(int x, int y, int w, int h, UIColor color)
+{
+    if (!gl.flat_prog) return;
+    glUseProgram(gl.flat_prog);
+    glUniform2f(gl.flat_u_resolution, (float)gl.vp_w, (float)gl.vp_h);
+    glUniform4f(gl.flat_u_color, color.r, color.g, color.b, color.a);
+
+    float x0 = (float)x, y0 = (float)y;
+    float x1 = x0 + (float)w, y1 = y0 + (float)h;
+    GLfloat verts[] = {
+        x0, y0,  x1, y0,  x0, y1,
+        x1, y0,  x1, y1,  x0, y1,
+    };
+    glVertexAttribPointer(gl.flat_a_pos, 2, GL_FLOAT, GL_FALSE, 0, verts);
+    glEnableVertexAttribArray(gl.flat_a_pos);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
 static void gl_fill_rounded_rect(int x, int y, int w, int h,
@@ -562,6 +629,7 @@ static UIRenderer g_gl_renderer = {
     .end_frame         = gl_end_frame,
     .clear             = gl_clear,
     .fill_rect         = gl_fill_rect,
+    .fill_rect_solid   = gl_fill_rect_solid,
     .fill_rounded_rect = gl_fill_rounded_rect,
     .draw_rect         = gl_draw_rect,
     .draw_rounded_rect = gl_draw_rounded_rect,
