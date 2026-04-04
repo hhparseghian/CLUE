@@ -84,10 +84,10 @@ static const char *frag_src =
     "    } else {\n"
     "        d = sdf_rounded_rect(p, u_size * 0.5, u_radius);\n"
     "    }\n"
+    "    float aa = (u_shape > 0.5) ? max(fwidth(d), 0.5) : fwidth(d);\n"
     "    if (u_thickness > 0.0 && u_shape < 1.5) {\n"
     "        d = abs(d) - u_thickness * 0.5;\n"
     "    }\n"
-    "    float aa = (u_shape > 0.5) ? max(fwidth(d), 0.5) : fwidth(d);\n"
     "    float alpha = 1.0 - smoothstep(-aa, aa, d);\n"
     "    gl_FragColor = u_color * alpha;\n"
     "}\n";
