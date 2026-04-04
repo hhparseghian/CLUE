@@ -59,11 +59,19 @@ static void listview_draw(ClueWidget *w)
             clue_fill_rect(x + 1, iy, bw - 2, lv->item_height, th->list.stripe);
         }
 
+        int text_offset = LV_PAD;
+
+        /* Draw optional icon */
+        if (lv->icon_cb) {
+            text_offset += lv->icon_cb(i, x + LV_PAD, iy, lv->item_height,
+                                       lv->item_data);
+        }
+
         const char *text = lv->item_cb(i, lv->item_data);
         if (text) {
             UIColor fg = (i == lv->selected) ? th->list.selected_fg : th->list.fg;
             int ty = iy + (lv->item_height - clue_font_line_height(font)) / 2;
-            clue_draw_text(x + LV_PAD, ty, text, font, fg);
+            clue_draw_text(x + text_offset, ty, text, font, fg);
         }
     }
 
