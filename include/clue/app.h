@@ -17,6 +17,7 @@ typedef struct ClueApp {
     ClueWidget      *root;
     UIWidget        *focused_widget;  /* currently focused widget */
     UIWidget        *captured_widget; /* receives all mouse events while set */
+    ClueWidget      *modal_widget;   /* when set, only this widget receives events */
     bool             running;
 } ClueApp;
 

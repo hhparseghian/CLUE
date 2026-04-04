@@ -7,6 +7,12 @@
 #include "clue/font.h"
 #include "clue/theme.h"
 
+static void menubar_set_modal(ClueMenuBar *bar, bool on)
+{
+    ClueApp *app = clue_app_get();
+    if (app) app->modal_widget = on ? (ClueWidget *)bar : NULL;
+}
+
 #define MENU_PAD_H    12
 #define MENU_PAD_V    6
 #define MENU_ITEM_H   28
@@ -269,9 +275,10 @@ static int menubar_handle_event(ClueWidget *w, UIEvent *event)
         bar->menus[bar->active]->open) {
         int r = menu_handle_event(&bar->menus[bar->active]->base, event);
         if (r) {
-            /* Menu consumed the event (item clicked) -- close */
-            if (!bar->menus[bar->active]->open)
+            if (!bar->menus[bar->active]->open) {
                 bar->active = -1;
+                menubar_set_modal(bar, false);
+            }
             return 1;
         }
         /* Menu didn't consume -- it closed on outside click.
@@ -320,12 +327,13 @@ static int menubar_handle_event(ClueWidget *w, UIEvent *event)
                         if (bar->menus[i]->open)
                             bar->menus[i]->open = false;
                         bar->active = -1;
+                        menubar_set_modal(bar, false);
                     } else {
-                        /* Close any previously active menu */
                         if (bar->active >= 0)
                             bar->menus[bar->active]->open = false;
                         bar->active = i;
                         clue_menu_popup(bar->menus[i], tx, y + bh);
+                        menubar_set_modal(bar, true);
                     }
                     return 1;
                 }
@@ -333,11 +341,22 @@ static int menubar_handle_event(ClueWidget *w, UIEvent *event)
             }
         }
 
-        /* Click outside: close */
+        /* Click outside: close menu and consume the event */
         if (bar->active >= 0) {
             bar->menus[bar->active]->open = false;
             bar->active = -1;
+            menubar_set_modal(bar, false);
+            return 1;
         }
+    }
+
+    /* While a menu is open, consume all mouse events */
+    if (bar->active >= 0 && bar->menus[bar->active] &&
+        bar->menus[bar->active]->open &&
+        (event->type == UI_EVENT_MOUSE_BUTTON ||
+         event->type == UI_EVENT_MOUSE_MOVE ||
+         event->type == UI_EVENT_MOUSE_SCROLL)) {
+        return 1;
     }
 
     return 0;

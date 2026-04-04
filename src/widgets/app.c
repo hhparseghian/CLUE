@@ -137,6 +137,9 @@ void clue_app_run(ClueApp *app)
                  events[i].type == UI_EVENT_MOUSE_BUTTON)) {
                 if (app->captured_widget->on_event)
                     app->captured_widget->on_event(app->captured_widget, &events[i]);
+            } else if (app->modal_widget) {
+                /* Modal mode: only the modal widget receives events */
+                clue_widget_dispatch_event(&app->modal_widget->base, &events[i]);
             } else if (app->root) {
                 int consumed = clue_widget_dispatch_event(&app->root->base, &events[i]);
                 /* Click on empty space clears focus */
