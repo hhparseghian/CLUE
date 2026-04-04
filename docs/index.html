@@ -1197,11 +1197,18 @@ make
   </div>
 
   <h2 id="signal">Signal</h2>
-  <p class="description">GTK-style signal/callback system for widget events.</p>
+  <p class="description">GTK-style signal/callback system for widget events. Callbacks can use the concrete widget type as their first parameter &mdash; the cast is handled automatically.</p>
+
+  <pre><code><span style="color:#3fb950">static void</span> <span style="color:#58a6ff">on_clicked</span>(<span style="color:#bc8cff">ClueButton</span> *button, <span style="color:#3fb950">void</span> *data)
+{
+    clue_label_set_text(data, <span style="color:#a5d6ff">"Clicked!"</span>);
+}
+
+clue_signal_connect(btn, <span style="color:#a5d6ff">"clicked"</span>, on_clicked, label);</code></pre>
 
   <div class="fn-block">
-    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_signal_connect</span>(<span class="param">void *widget</span>, <span class="param">const char *signal_name</span>, <span class="param">ClueSignalCallback callback</span>, <span class="param">void *user_data</span>)</div>
-    <div class="fn-desc">Connect a callback to a widget's signal (e.g. <code>"clicked"</code>, <code>"changed"</code>, <code>"toggled"</code>).</div>
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_signal_connect</span>(<span class="param">void *widget</span>, <span class="param">const char *signal_name</span>, <span class="param">callback</span>, <span class="param">void *user_data</span>)</div>
+    <div class="fn-desc">Connect a callback to a widget's signal (e.g. <code>"clicked"</code>, <code>"changed"</code>, <code>"toggled"</code>). The callback's first parameter can be the concrete widget type (e.g. <code>ClueButton *</code>) instead of <code>void *</code>.</div>
   </div>
   <div class="fn-block">
     <div class="fn-sig"><span class="type">void</span> <span class="name">clue_signal_emit</span>(<span class="param">void *widget</span>, <span class="param">const char *signal_name</span>)</div>
