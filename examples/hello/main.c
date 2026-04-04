@@ -75,6 +75,15 @@ static void on_checkbox(void *w, void *d)
         ? "Checkbox: ON" : "Checkbox: OFF");
 }
 
+static void on_radio(void *w, void *d)
+{
+    (void)d;
+    ClueRadio *r = (ClueRadio *)w;
+    char buf[64];
+    snprintf(buf, sizeof(buf), "Radio: %s", r->label);
+    clue_label_set_text(g_status, buf);
+}
+
 static void on_slider(void *w, void *d)
 {
     (void)d;
@@ -222,6 +231,20 @@ static ClueWidget *build_widgets_page(ClueApp *app)
     ClueCheckbox *cb = clue_checkbox_new("Enable feature");
     clue_signal_connect(cb, "toggled", on_checkbox, NULL);
 
+    /* Radio buttons */
+    ClueRadioGroup *rg = clue_radio_group_new();
+    ClueRadio *r1 = clue_radio_new("Small", rg);
+    ClueRadio *r2 = clue_radio_new("Medium", rg);
+    ClueRadio *r3 = clue_radio_new("Large", rg);
+    clue_radio_set_selected(r2);
+    clue_signal_connect(r1, "changed", on_radio, NULL);
+    clue_signal_connect(r2, "changed", on_radio, NULL);
+    clue_signal_connect(r3, "changed", on_radio, NULL);
+    ClueBox *radio_row = clue_box_new(CLUE_HORIZONTAL, 16);
+    clue_container_add((ClueWidget *)radio_row, (ClueWidget *)r1);
+    clue_container_add((ClueWidget *)radio_row, (ClueWidget *)r2);
+    clue_container_add((ClueWidget *)radio_row, (ClueWidget *)r3);
+
     /* Slider */
     ClueBox *slider_row = clue_box_new(CLUE_HORIZONTAL, 8);
     ClueLabel *sl = clue_label_new("Volume:");
@@ -268,6 +291,7 @@ static ClueWidget *build_widgets_page(ClueApp *app)
     clue_container_add((ClueWidget *)page, (ClueWidget *)btn_row);
     clue_container_add((ClueWidget *)page, (ClueWidget *)input);
     clue_container_add((ClueWidget *)page, (ClueWidget *)cb);
+    clue_container_add((ClueWidget *)page, (ClueWidget *)radio_row);
     clue_container_add((ClueWidget *)page, (ClueWidget *)slider_row);
     clue_container_add((ClueWidget *)page, (ClueWidget *)dd);
     clue_container_add((ClueWidget *)page, (ClueWidget *)progress_row);
