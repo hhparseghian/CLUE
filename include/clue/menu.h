@@ -64,4 +64,14 @@ void clue_menubar_add(ClueMenuBar *bar, const char *label, ClueMenu *menu);
 /* Draw the active menu dropdown overlay (called after all widgets) */
 void clue_menubar_draw_overlay(ClueMenuBar *bar);
 
+/* Context menu -- show a popup menu at a position.
+ * Only one context menu can be open at a time.
+ * It auto-closes when an item is clicked or the user clicks outside. */
+void clue_context_menu_show(ClueMenu *menu, int x, int y);
+void clue_context_menu_close(void);
+
+/* Called internally by the app loop */
+void clue_context_menu_draw(void);
+int  clue_context_menu_dispatch(UIEvent *event);
+
 #endif /* CLUE_MENU_H */

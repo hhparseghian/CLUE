@@ -11,8 +11,74 @@
 #include "clue/clipboard.h"
 #include <xkbcommon/xkbcommon-keysyms.h>
 
+#include "clue/menu.h"
 #include <time.h>
 #include <ctype.h>
+
+/* Forward declarations for context menu */
+static bool has_selection(ClueTextInput *inp);
+static void delete_selection(ClueTextInput *inp);
+static void copy_selection(ClueTextInput *inp);
+
+/* Context menu for text input */
+static ClueTextInput *g_ctx_target = NULL;
+
+static void ctx_cut(void *widget, void *data)
+{
+    ClueTextInput *inp = g_ctx_target;
+    if (!inp || !has_selection(inp)) return;
+    copy_selection(inp);
+    delete_selection(inp);
+    clue_signal_emit(inp, "changed");
+}
+
+static void ctx_copy(void *widget, void *data)
+{
+    if (g_ctx_target) copy_selection(g_ctx_target);
+}
+
+static void ctx_paste(void *widget, void *data)
+{
+    ClueTextInput *inp = g_ctx_target;
+    if (!inp) return;
+    char *clip = clue_clipboard_get();
+    if (clip) {
+        if (has_selection(inp)) delete_selection(inp);
+        int len = (int)strlen(inp->text);
+        int clen = (int)strlen(clip);
+        if (len + clen < CLUE_TEXT_INPUT_MAX - 1) {
+            memmove(&inp->text[inp->cursor + clen],
+                    &inp->text[inp->cursor], len - inp->cursor + 1);
+            memcpy(&inp->text[inp->cursor], clip, clen);
+            inp->cursor += clen;
+            clue_signal_emit(inp, "changed");
+        }
+        free(clip);
+    }
+}
+
+static void ctx_select_all(void *widget, void *data)
+{
+    ClueTextInput *inp = g_ctx_target;
+    if (!inp) return;
+    inp->sel_start = 0;
+    inp->sel_end = (int)strlen(inp->text);
+    inp->cursor = inp->sel_end;
+}
+
+static ClueMenu *get_input_context_menu(void)
+{
+    static ClueMenu *menu = NULL;
+    if (!menu) {
+        menu = clue_menu_new();
+        clue_menu_add_item(menu, "Cut", ctx_cut, NULL);
+        clue_menu_add_item(menu, "Copy", ctx_copy, NULL);
+        clue_menu_add_item(menu, "Paste", ctx_paste, NULL);
+        clue_menu_add_separator(menu);
+        clue_menu_add_item(menu, "Select All", ctx_select_all, NULL);
+    }
+    return menu;
+}
 
 #define INPUT_PAD_H 10
 #define INPUT_PAD_V 8
@@ -247,6 +313,14 @@ static int text_input_handle_event(ClueWidget *w, UIEvent *event)
         int mx = event->mouse_button.x;
         int my = event->mouse_button.y;
         bool inside = mx >= x && mx < x + bw && my >= y && my < y + bh;
+
+        /* Right-click: context menu */
+        if (event->mouse_button.pressed && event->mouse_button.btn == 1 && inside) {
+            clue_focus_widget(&w->base);
+            g_ctx_target = inp;
+            clue_context_menu_show(get_input_context_menu(), mx, my);
+            return 1;
+        }
 
         if (event->mouse_button.pressed && event->mouse_button.btn == 0 && inside) {
             clue_focus_widget(&w->base);

@@ -12,8 +12,85 @@
 #include "clue/clipboard.h"
 #include <xkbcommon/xkbcommon-keysyms.h>
 
+#include "clue/menu.h"
 #include <time.h>
 #include <ctype.h>
+
+/* Forward declarations for context menu */
+static bool has_sel(ClueTextEditor *ed);
+static void delete_sel(ClueTextEditor *ed);
+static void copy_sel(ClueTextEditor *ed);
+static void clear_sel(ClueTextEditor *ed);
+static void ensure_cursor_visible(ClueTextEditor *ed);
+static void undo_push(ClueTextEditor *ed);
+
+/* Context menu for text editor */
+static ClueTextEditor *g_ed_ctx_target = NULL;
+
+static void ed_ctx_cut(void *widget, void *data)
+{
+    ClueTextEditor *ed = g_ed_ctx_target;
+    if (!ed || !has_sel(ed)) return;
+    undo_push(ed);
+    copy_sel(ed);
+    delete_sel(ed);
+    clue_signal_emit(ed, "changed");
+}
+
+static void ed_ctx_copy(void *widget, void *data)
+{
+    if (g_ed_ctx_target) copy_sel(g_ed_ctx_target);
+}
+
+static void ed_ctx_paste(void *widget, void *data)
+{
+    ClueTextEditor *ed = g_ed_ctx_target;
+    if (!ed) return;
+    char *clip = clue_clipboard_get();
+    if (clip) {
+        undo_push(ed);
+        if (has_sel(ed)) delete_sel(ed);
+        int clen = (int)strlen(clip);
+        /* ensure_grow is static, inline the realloc */
+        if (ed->text_len + clen + 1 > ed->text_cap) {
+            int new_cap = ed->text_cap * 2;
+            if (new_cap < ed->text_len + clen + 256) new_cap = ed->text_len + clen + 256;
+            char *buf = realloc(ed->text, new_cap);
+            if (buf) { ed->text = buf; ed->text_cap = new_cap; }
+        }
+        memmove(&ed->text[ed->cursor + clen], &ed->text[ed->cursor],
+                ed->text_len - ed->cursor + 1);
+        memcpy(&ed->text[ed->cursor], clip, clen);
+        ed->cursor += clen;
+        ed->text_len += clen;
+        ensure_cursor_visible(ed);
+        clue_signal_emit(ed, "changed");
+        free(clip);
+    }
+}
+
+static void ed_ctx_select_all(void *widget, void *data)
+{
+    ClueTextEditor *ed = g_ed_ctx_target;
+    if (!ed) return;
+    ed->sel_start = 0;
+    ed->sel_end = ed->text_len;
+    ed->cursor = ed->text_len;
+}
+
+static ClueMenu *get_editor_context_menu(void)
+{
+    static ClueMenu *menu = NULL;
+    if (!menu) {
+        menu = clue_menu_new();
+        clue_menu_add_item(menu, "Cut", ed_ctx_cut, NULL);
+        clue_menu_add_item(menu, "Copy", ed_ctx_copy, NULL);
+        clue_menu_add_item(menu, "Paste", ed_ctx_paste, NULL);
+        clue_menu_add_separator(menu);
+        clue_menu_add_item(menu, "Select All", ed_ctx_select_all, NULL);
+    }
+    return menu;
+}
 
 #define PAD       8
 #define GUTTER_W  40
@@ -422,10 +499,19 @@ static int text_editor_handle_event(ClueWidget *w, UIEvent *event)
         return 0;
     }
 
-    if (event->type == UI_EVENT_MOUSE_BUTTON && event->mouse_button.btn == 0) {
+    if (event->type == UI_EVENT_MOUSE_BUTTON) {
         int mx = event->mouse_button.x, my = event->mouse_button.y;
         bool inside = mx >= x && mx < x + bw && my >= y && my < y + bh;
-        if (event->mouse_button.pressed && inside) {
+
+        /* Right-click: context menu */
+        if (event->mouse_button.pressed && event->mouse_button.btn == 1 && inside) {
+            clue_focus_widget(&w->base);
+            g_ed_ctx_target = ed;
+            clue_context_menu_show(get_editor_context_menu(), mx, my);
+            return 1;
+        }
+
+        if (event->mouse_button.pressed && event->mouse_button.btn == 0 && inside) {
             clue_focus_widget(&w->base);
             start_blink(ed);
             ed->cursor = cursor_from_xy(ed, mx, my);

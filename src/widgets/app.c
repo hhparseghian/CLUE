@@ -142,6 +142,10 @@ void clue_app_run(ClueApp *app)
                     continue;
             }
 
+            /* Context menu gets first crack at events */
+            if (clue_context_menu_dispatch(&events[i]))
+                continue;
+
             /* If a widget has captured the mouse, send mouse events to it */
             if (app->captured_widget &&
                 (events[i].type == UI_EVENT_MOUSE_MOVE ||
@@ -190,6 +194,9 @@ void clue_app_run(ClueApp *app)
         if (app->root) {
             draw_overlays(app->root);
         }
+
+        /* Context menu (drawn on top of overlays) */
+        clue_context_menu_draw();
 
         /* Tooltip (drawn last, on top of everything) */
         if (app->root) {

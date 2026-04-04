@@ -406,3 +406,39 @@ void clue_menubar_draw_overlay(ClueMenuBar *bar)
     menu_draw(&bar->menus[bar->active]->base);
 }
 
+/* --- Context menu (global popup) --- */
+
+static ClueMenu *g_context_menu = NULL;
+
+void clue_context_menu_show(ClueMenu *menu, int x, int y)
+{
+    if (g_context_menu && g_context_menu != menu)
+        clue_menu_close(g_context_menu);
+    clue_menu_popup(menu, x, y);
+    g_context_menu = menu;
+}
+
+void clue_context_menu_close(void)
+{
+    if (g_context_menu) {
+        clue_menu_close(g_context_menu);
+        g_context_menu = NULL;
+    }
+}
+
+void clue_context_menu_draw(void)
+{
+    if (g_context_menu && g_context_menu->open)
+        menu_draw(&g_context_menu->base);
+}
+
+int clue_context_menu_dispatch(UIEvent *event)
+{
+    if (!g_context_menu || !g_context_menu->open) return 0;
+    int r = menu_handle_event(&g_context_menu->base, event);
+    /* Menu closed itself after item click */
+    if (!g_context_menu->open)
+        g_context_menu = NULL;
+    return r;
+}
+
