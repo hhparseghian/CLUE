@@ -40,6 +40,13 @@
 #include "table.h"
 #include "timer.h"
 #include "file_dialog.h"
+#include "toggle.h"
+#include "spinbox.h"
+#include "statusbar.h"
+#include "toolbar.h"
+#include "canvas.h"
+#include "splitter.h"
+#include "text_editor.h"
 #include "app.h"
 
 /* Initialise CLUE: selects a backend and sets up the window manager.
@@ -83,7 +90,14 @@ UIRenderer *clue_get_renderer(void);
     ClueTabs      *: (ClueWidget *)(x),           \
     ClueSeparator *: (ClueWidget *)(x),           \
     ClueMenu      *: (ClueWidget *)(x),           \
-    ClueMenuBar   *: (ClueWidget *)(x)            \
+    ClueMenuBar   *: (ClueWidget *)(x),           \
+    ClueToggle    *: (ClueWidget *)(x),           \
+    ClueSpinbox   *: (ClueWidget *)(x),           \
+    ClueStatusbar *: (ClueWidget *)(x),           \
+    ClueToolbar   *: (ClueWidget *)(x),           \
+    ClueCanvas    *: (ClueWidget *)(x),           \
+    ClueSplitter  *: (ClueWidget *)(x),           \
+    ClueTextEditor *: (ClueWidget *)(x)           \
 )
 
 /* Wrapper macros -- shadow the real functions so call sites need no casts.

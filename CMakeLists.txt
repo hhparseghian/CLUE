@@ -45,6 +45,13 @@ set(CLUE_CORE_SOURCES
     src/widgets/table.c
     src/widgets/timer.c
     src/widgets/file_dialog.c
+    src/widgets/toggle.c
+    src/widgets/spinbox.c
+    src/widgets/statusbar.c
+    src/widgets/toolbar.c
+    src/widgets/canvas.c
+    src/widgets/splitter.c
+    src/widgets/text_editor.c
     src/widgets/app.c
     src/third_party/stb_image_impl.c
 )

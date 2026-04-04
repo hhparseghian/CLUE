@@ -242,6 +242,33 @@ static void on_show_free(void *w, void *d)
     clue_dialog_destroy(dlg);
 }
 
+/* --- Widget callbacks --- */
+
+static void on_toggle(void *w, void *d)
+{
+    (void)d;
+    ClueToggle *t = (ClueToggle *)w;
+    clue_label_set_text(g_status, clue_toggle_is_on(t)
+        ? "Toggle: ON" : "Toggle: OFF");
+}
+
+static void on_spinner(void *w, void *d)
+{
+    (void)d;
+    char buf[64];
+    snprintf(buf, sizeof(buf), "Spinner: %.1f", clue_spinbox_get_value(w));
+    clue_label_set_text(g_status, buf);
+}
+
+static void canvas_draw_cb(int x, int y, int w, int h, void *data)
+{
+    (void)data;
+    clue_fill_circle(x + w / 4, y + h / 2, 30, UI_RGB(220, 80, 80));
+    clue_fill_circle(x + w / 2, y + h / 2, 30, UI_RGB(80, 200, 80));
+    clue_fill_circle(x + 3 * w / 4, y + h / 2, 30, UI_RGB(80, 120, 220));
+    clue_draw_line(x + 10, y + 10, x + w - 10, y + h - 10, 2.0f, UI_RGB(255, 255, 100));
+}
+
 /* --- Build tab pages --- */
 
 static ClueBox *build_widgets_page(ClueApp *app)
@@ -349,18 +376,38 @@ static ClueBox *build_widgets_page(ClueApp *app)
     g_timer_label->base.style.margin_top = 8;
     dlg_row->base.style.margin_top = 8;
 
+    /* Toggle switch */
+    ClueToggle *toggle = clue_toggle_new("Dark mode");
+    clue_signal_connect(toggle, "toggled", on_toggle, NULL);
+
+    /* Spinner */
+    ClueBox *spin_row = clue_box_new(CLUE_HORIZONTAL, 8);
+    ClueLabel *spin_lbl = clue_label_new("Quantity:");
+    spin_lbl->base.style.fg_color = UI_RGB(180, 180, 190);
+    ClueSpinbox *spinner = clue_spinbox_new(0, 100, 1, 5);
+    spinner->base.base.w = 130;
+    clue_signal_connect(spinner, "changed", on_spinner, NULL);
+    clue_container_add(spin_row, spin_lbl);
+    clue_container_add(spin_row, spinner);
+
+    toggle->base.style.margin_top = 4;
+    spin_row->base.style.margin_top = 4;
+
     ClueSeparator *sep1 = clue_separator_new(CLUE_HORIZONTAL);
     ClueSeparator *sep2 = clue_separator_new(CLUE_HORIZONTAL);
     ClueSeparator *sep3 = clue_separator_new(CLUE_HORIZONTAL);
+    ClueSeparator *sep4 = clue_separator_new(CLUE_HORIZONTAL);
 
     clue_container_add(page, btn_row);
     clue_container_add(page, input);
     clue_container_add(page, sep1);
     clue_container_add(page, cb);
+    clue_container_add(page, toggle);
     clue_container_add(page, radio_row);
     clue_container_add(page, slider_row);
     clue_container_add(page, dd);
     clue_container_add(page, sep2);
+    clue_container_add(page, spin_row);
     clue_container_add(page, progress_row);
     clue_container_add(page, g_timer_label);
     clue_container_add(page, sep3);
@@ -543,6 +590,64 @@ static ClueBox *build_table_page(void)
     return page;
 }
 
+/* --- Editor page --- */
+
+static ClueBox *build_editor_page(void)
+{
+    ClueBox *page = clue_box_new(CLUE_VERTICAL, 10);
+    clue_style_set_padding(&page->base.style, 12);
+    page->base.style.corner_radius = 0;
+    page->base.style.hexpand = true;
+    page->base.style.vexpand = true;
+
+    ClueLabel *lbl = clue_label_new("Multi-line text editor:");
+    lbl->base.style.fg_color = UI_RGB(180, 180, 190);
+
+    ClueTextEditor *ed = clue_text_editor_new();
+    ed->base.base.w = 500;
+    ed->base.base.h = 300;
+    ed->base.style.hexpand = true;
+    ed->base.style.vexpand = true;
+    clue_text_editor_set_line_numbers(ed, true);
+    clue_text_editor_set_text(ed,
+        "// Welcome to the CLUE text editor\n"
+        "#include <stdio.h>\n"
+        "\n"
+        "int main(void) {\n"
+        "    printf(\"Hello, world!\\n\");\n"
+        "    return 0;\n"
+        "}\n");
+
+    clue_container_add(page, lbl);
+    clue_container_add(page, ed);
+
+    return page;
+}
+
+/* --- Canvas page --- */
+
+static ClueBox *build_canvas_page(void)
+{
+    ClueBox *page = clue_box_new(CLUE_VERTICAL, 10);
+    clue_style_set_padding(&page->base.style, 12);
+    page->base.style.corner_radius = 0;
+    page->base.style.hexpand = true;
+    page->base.style.vexpand = true;
+
+    ClueLabel *lbl = clue_label_new("Canvas (custom drawing area):");
+    lbl->base.style.fg_color = UI_RGB(180, 180, 190);
+
+    ClueCanvas *canvas = clue_canvas_new(500, 300);
+    canvas->base.style.hexpand = true;
+    canvas->base.style.vexpand = true;
+    clue_canvas_set_draw(canvas, canvas_draw_cb, NULL);
+
+    clue_container_add(page, lbl);
+    clue_container_add(page, canvas);
+
+    return page;
+}
+
 /* --- Menu callbacks --- */
 static void on_menu_open(void *w, void *d)
 {
@@ -596,7 +701,7 @@ static void on_menu_quit(void *w, void *d)
 
 int main(void)
 {
-    ClueApp *app = clue_app_new("CLUE Demo", 650, 700);
+    ClueApp *app = clue_app_new("CLUE Demo", 750, 800);
     if (!app) return 1;
 
     /* Main layout */
@@ -649,6 +754,8 @@ int main(void)
     clue_tabs_add(tabs, "Form", build_grid_page());
     clue_tabs_add(tabs, "Tree", build_tree_page());
     clue_tabs_add(tabs, "Table", build_table_page());
+    clue_tabs_add(tabs, "Editor", build_editor_page());
+    clue_tabs_add(tabs, "Canvas", build_canvas_page());
 
     clue_container_add(root, menubar);
     clue_container_add(root, header);

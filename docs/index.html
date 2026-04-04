@@ -258,13 +258,20 @@
   <a href="#separator">Separator</a>
   <a href="#dropdown">Dropdown</a>
   <a href="#progress">Progress</a>
+  <a href="#toggle">Toggle</a>
+  <a href="#spinbox">Spinbox</a>
   <a href="#image">Image</a>
   <a href="#tooltip">Tooltip</a>
+  <a href="#canvas">Canvas</a>
+  <a href="#text_editor">Text Editor</a>
   <div class="sidebar-section">Containers</div>
   <a href="#box">Box</a>
   <a href="#grid">Grid</a>
   <a href="#scroll">Scroll</a>
   <a href="#tabs">Tabs</a>
+  <a href="#splitter">Splitter</a>
+  <a href="#toolbar">Toolbar</a>
+  <a href="#statusbar">Statusbar</a>
   <div class="sidebar-section">Data Views</div>
   <a href="#listview">List View</a>
   <a href="#table">Table</a>
@@ -617,6 +624,82 @@
     <div class="fn-desc">Enable or disable indeterminate (spinner) mode.</div>
   </div>
 
+  <h2 id="toggle">Toggle</h2>
+  <p class="description">An on/off pill-shaped switch with smooth animation.</p>
+
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">ClueToggle *</span><span class="name">clue_toggle_new</span>(<span class="param">const char *label</span>)</div>
+    <div class="fn-desc">Create a new toggle switch with a label.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">bool</span> <span class="name">clue_toggle_is_on</span>(<span class="param">ClueToggle *t</span>)</div>
+    <div class="fn-desc">Get the toggle state.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_toggle_set_on</span>(<span class="param">ClueToggle *t</span>, <span class="param">bool on</span>)</div>
+    <div class="fn-desc">Set the toggle state programmatically.</div>
+  </div>
+  <div class="signal-tag">Signal: "toggled"</div>
+
+  <h2 id="spinbox">Spinbox</h2>
+  <p class="description">A numeric input with increment/decrement buttons. Supports hold-to-repeat and scroll wheel.</p>
+
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">ClueSpinbox *</span><span class="name">clue_spinbox_new</span>(<span class="param">double min_val</span>, <span class="param">double max_val</span>, <span class="param">double step</span>, <span class="param">double value</span>)</div>
+    <div class="fn-desc">Create a new spinbox with range, step, and initial value.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">double</span> <span class="name">clue_spinbox_get_value</span>(<span class="param">ClueSpinbox *s</span>)</div>
+    <div class="fn-desc">Get the current value.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_spinbox_set_value</span>(<span class="param">ClueSpinbox *s</span>, <span class="param">double value</span>)</div>
+    <div class="fn-desc">Set the value (clamped to range).</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_spinbox_set_decimals</span>(<span class="param">ClueSpinbox *s</span>, <span class="param">int decimals</span>)</div>
+    <div class="fn-desc">Set decimal places to display (0 = integer mode, default).</div>
+  </div>
+  <div class="signal-tag">Signal: "changed"</div>
+
+  <h2 id="canvas">Canvas</h2>
+  <p class="description">A user-drawable area. Register a draw callback to render custom content each frame.</p>
+
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">ClueCanvas *</span><span class="name">clue_canvas_new</span>(<span class="param">int w</span>, <span class="param">int h</span>)</div>
+    <div class="fn-desc">Create a canvas with the given size.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_canvas_set_draw</span>(<span class="param">ClueCanvas *c</span>, <span class="param">ClueCanvasDrawCb cb</span>, <span class="param">void *user_data</span>)</div>
+    <div class="fn-desc">Set the draw callback. Called each frame with canvas bounds (x, y, w, h) and user data.</div>
+  </div>
+  <div class="signal-tag">Signal: "clicked"</div>
+
+  <h2 id="text_editor">Text Editor</h2>
+  <p class="description">A multi-line text editor with cursor navigation, scrolling, optional line numbers, and tab support.</p>
+
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">ClueTextEditor *</span><span class="name">clue_text_editor_new</span>(<span class="param">void</span>)</div>
+    <div class="fn-desc">Create a new text editor.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">const char *</span><span class="name">clue_text_editor_get_text</span>(<span class="param">ClueTextEditor *ed</span>)</div>
+    <div class="fn-desc">Get the current text content.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_text_editor_set_text</span>(<span class="param">ClueTextEditor *ed</span>, <span class="param">const char *text</span>)</div>
+    <div class="fn-desc">Set the text content.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_text_editor_set_line_numbers</span>(<span class="param">ClueTextEditor *ed</span>, <span class="param">bool show</span>)</div>
+    <div class="fn-desc">Enable or disable line numbers in the gutter.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_text_editor_set_word_wrap</span>(<span class="param">ClueTextEditor *ed</span>, <span class="param">bool wrap</span>)</div>
+    <div class="fn-desc">Enable or disable word wrapping.</div>
+  </div>
+  <div class="signal-tag">Signal: "changed"</div>
+
   <h2 id="image">Image</h2>
   <p class="description">Display an image from a file or texture.</p>
 
@@ -704,6 +787,47 @@
   </div>
   <div class="signal-tag">Signal: "changed"</div>
   <p>Set <code>tabs-&gt;page_bg</code> to a <code>UIColor</code> to give the tab content area a background color. The active tab blends seamlessly into the page.</p>
+
+  <h2 id="splitter">Splitter</h2>
+  <p class="description">A two-pane resizable container with a draggable divider. Add exactly two children.</p>
+
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">ClueSplitter *</span><span class="name">clue_splitter_new</span>(<span class="param">ClueBoxOrientation orientation</span>)</div>
+    <div class="fn-desc">Create a splitter. CLUE_HORIZONTAL = side-by-side panes, CLUE_VERTICAL = top/bottom.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_splitter_set_ratio</span>(<span class="param">ClueSplitter *s</span>, <span class="param">float ratio</span>)</div>
+    <div class="fn-desc">Set the split ratio (0.05 to 0.95).</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">float</span> <span class="name">clue_splitter_get_ratio</span>(<span class="param">ClueSplitter *s</span>)</div>
+    <div class="fn-desc">Get the current split ratio.</div>
+  </div>
+  <div class="signal-tag">Signal: "changed"</div>
+
+  <h2 id="toolbar">Toolbar</h2>
+  <p class="description">A horizontal bar for buttons and controls. Add children with <code>clue_container_add()</code>.</p>
+
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">ClueToolbar *</span><span class="name">clue_toolbar_new</span>(<span class="param">int spacing</span>)</div>
+    <div class="fn-desc">Create a new toolbar with the given spacing between items.</div>
+  </div>
+
+  <h2 id="statusbar">Statusbar</h2>
+  <p class="description">A thin bar with text sections, typically placed at the bottom of the window.</p>
+
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">ClueStatusbar *</span><span class="name">clue_statusbar_new</span>(<span class="param">void</span>)</div>
+    <div class="fn-desc">Create a new statusbar.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_statusbar_set_text</span>(<span class="param">ClueStatusbar *sb</span>, <span class="param">int index</span>, <span class="param">const char *text</span>)</div>
+    <div class="fn-desc">Set the text of a section. Creates the section if index equals the current count.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">const char *</span><span class="name">clue_statusbar_get_text</span>(<span class="param">ClueStatusbar *sb</span>, <span class="param">int index</span>)</div>
+    <div class="fn-desc">Get the text of a section.</div>
+  </div>
 
   <!-- ===================== DATA VIEWS ===================== -->
 
