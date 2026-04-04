@@ -241,6 +241,7 @@
   </div>
   <div class="sidebar-section">Getting Started</div>
   <a href="#overview">Overview</a>
+  <a href="#building">Building &amp; Installing</a>
   <a href="#quickstart">Quick Start</a>
   <div class="sidebar-section">Application</div>
   <a href="#app">App</a>
@@ -308,6 +309,28 @@
   <h2 id="overview">Overview</h2>
   <p>CLUE is a retained-mode widget toolkit written in C99. It renders with OpenGL ES 2 via EGL and supports Wayland, X11, and DRM/KMS display backends. Include <code>&lt;clue/clue.h&gt;</code> to access the full API.</p>
 
+  <h2 id="building">Building &amp; Installing</h2>
+
+  <h3>Install dependencies</h3>
+  <pre><code>./build.sh --install-deps</code></pre>
+
+  <h3>Build</h3>
+  <pre><code>./build.sh</code></pre>
+  <p>Options: <code>--wayland-only</code>, <code>--x11-only</code>, <code>--drm-only</code>, <code>--no-wayland</code>, <code>--no-x11</code>, <code>--no-drm</code>, <code>--clean</code>, <code>-j N</code></p>
+
+  <h3>Install</h3>
+  <pre><code>./build.sh --install</code></pre>
+  <p>Installs <code>libclue.a</code>, headers, <code>clue.pc</code>, and demo sources. Flags can be combined:</p>
+  <pre><code>./build.sh --clean --x11-only --install</code></pre>
+
+  <h3>Run the demo</h3>
+  <pre><code>cd /usr/local/share/clue/examples/demo
+make
+./clue_demo</code></pre>
+
+  <h3>Compile your own program</h3>
+  <pre><code>cc main.c $(pkg-config --cflags --libs clue) -o myapp</code></pre>
+
   <h2 id="quickstart">Quick Start</h2>
   <pre><code><span style="color:#3fb950">#include</span> <span style="color:#a5d6ff">&lt;clue/clue.h&gt;</span>
 
@@ -326,10 +349,10 @@
     <span style="color:#bc8cff">ClueButton</span> *btn = clue_button_new(<span style="color:#a5d6ff">"Click Me"</span>);
     clue_signal_connect(btn, <span style="color:#a5d6ff">"clicked"</span>, on_clicked, label);
 
-    clue_container_add((<span style="color:#bc8cff">ClueWidget</span> *)vbox, (<span style="color:#bc8cff">ClueWidget</span> *)label);
-    clue_container_add((<span style="color:#bc8cff">ClueWidget</span> *)vbox, (<span style="color:#bc8cff">ClueWidget</span> *)btn);
+    clue_container_add(vbox, label);
+    clue_container_add(vbox, btn);
 
-    clue_app_set_root(app, (<span style="color:#bc8cff">ClueWidget</span> *)vbox);
+    clue_app_set_root(app, vbox);
     clue_app_run(app);
     clue_app_destroy(app);
     <span style="color:#3fb950">return</span> <span style="color:#d29922">0</span>;
