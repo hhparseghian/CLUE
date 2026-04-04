@@ -35,7 +35,7 @@ static void canvas_event_cb(const ClueCanvasEvent *ev, void *data)
     (void)data;
     if (ev->type == CLUE_CANVAS_PRESS) {
         if (g_paint_count > 0 && g_paint_count < PAINT_MAX) {
-            g_paint_points[g_paint_count] = (PaintPoint){-1, -1, {0}};
+            g_paint_points[g_paint_count] = (PaintPoint){-1, -1, {0, 0, 0, 0}};
             g_paint_count++;
         }
         if (g_paint_count < PAINT_MAX) {
