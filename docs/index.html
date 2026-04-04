@@ -482,7 +482,7 @@ make
   </div>
 
   <h2 id="label">Label</h2>
-  <p class="description">A simple text display widget.</p>
+  <p class="description">A text display widget. Supports newlines (<code>\n</code>) and optional word wrapping.</p>
 
   <div class="fn-block">
     <div class="fn-sig"><span class="type">ClueLabel *</span><span class="name">clue_label_new</span>(<span class="param">const char *text</span>)</div>
@@ -495,6 +495,10 @@ make
   <div class="fn-block">
     <div class="fn-sig"><span class="type">const char *</span><span class="name">clue_label_get_text</span>(<span class="param">ClueLabel *label</span>)</div>
     <div class="fn-desc">Get the label's current text.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_label_set_wrap</span>(<span class="param">ClueLabel *label</span>, <span class="param">bool wrap</span>)</div>
+    <div class="fn-desc">Enable word wrapping. The label must have a fixed width set (e.g. <code>label-&gt;base.base.w = 200</code>).</div>
   </div>
 
   <h2 id="button">Button</h2>
