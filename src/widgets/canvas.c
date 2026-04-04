@@ -57,13 +57,13 @@ static void canvas_draw(ClueWidget *w)
     /* User draw callback */
     if (c->draw_cb) {
         GLSavedState saved;
-        if (c->save_gl) gl_save(&saved);
+        gl_save(&saved);
 
         clue_set_clip_rect(x, y, bw, bh);
         c->draw_cb(x, y, bw, bh, c->draw_data);
         clue_reset_clip_rect();
 
-        if (c->save_gl) gl_restore(&saved);
+        gl_restore(&saved);
     }
 }
 
@@ -184,7 +184,6 @@ ClueCanvas *clue_canvas_new(int w, int h)
     c->base.type_id = CLUE_WIDGET_CANVAS;
     c->base.base.w = w;
     c->base.base.h = h;
-    c->save_gl = true;
     c->last_mx = -1;
     c->last_my = -1;
 
@@ -212,7 +211,3 @@ void clue_canvas_set_focusable(ClueCanvas *c, bool focusable)
     c->base.base.focusable = focusable;
 }
 
-void clue_canvas_set_save_gl(ClueCanvas *c, bool save)
-{
-    if (c) c->save_gl = save;
-}

@@ -41,7 +41,6 @@ typedef struct {
     bool              painting;   /* mouse button held */
     int               last_mx;    /* for delta tracking */
     int               last_my;
-    bool              save_gl;    /* save/restore GL state around draw (default true) */
     bool              focusable_canvas; /* receive keyboard events (default false) */
 } ClueCanvas;
 
@@ -56,8 +55,5 @@ void clue_canvas_set_event(ClueCanvas *c, ClueCanvasEventCb cb, void *user_data)
 
 /* Enable keyboard events on the canvas (makes it focusable, click to focus) */
 void clue_canvas_set_focusable(ClueCanvas *c, bool focusable);
-
-/* Enable/disable GL state save/restore around draw callback (default: true) */
-void clue_canvas_set_save_gl(ClueCanvas *c, bool save);
 
 #endif /* CLUE_CANVAS_H */

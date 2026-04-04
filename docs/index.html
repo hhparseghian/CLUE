@@ -685,10 +685,7 @@
     <div class="fn-sig"><span class="type">void</span> <span class="name">clue_canvas_set_focusable</span>(<span class="param">ClueCanvas *c</span>, <span class="param">bool focusable</span>)</div>
     <div class="fn-desc">Enable keyboard events on the canvas (click to focus). Required for WASD camera controls etc.</div>
   </div>
-  <div class="fn-block">
-    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_canvas_set_save_gl</span>(<span class="param">ClueCanvas *c</span>, <span class="param">bool save</span>)</div>
-    <div class="fn-desc">Enable/disable GL state save/restore around the draw callback (default: true).</div>
-  </div>
+  <p>GL state is automatically saved and restored around the draw callback, so raw OpenGL ES 2 calls won't break CLUE's rendering.</p>
   <p>Event types: <code>CLUE_CANVAS_PRESS</code>, <code>CLUE_CANVAS_RELEASE</code>, <code>CLUE_CANVAS_MOTION</code> (with dx/dy deltas), <code>CLUE_CANVAS_SCROLL</code> (with scroll_x/scroll_y), <code>CLUE_CANVAS_KEY</code> (with keycode/modifiers, when focusable).</p>
 
   <h2 id="colorpicker">Color Picker</h2>
