@@ -44,6 +44,7 @@ set(CLUE_CORE_SOURCES
     src/widgets/treeview.c
     src/widgets/table.c
     src/widgets/timer.c
+    src/widgets/file_dialog.c
     src/widgets/app.c
     src/third_party/stb_image_impl.c
 )
@@ -176,5 +177,5 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/clue.pc
 )
 
 # ---------- Hello example ----------
-add_executable(clue_hello examples/hello/main.c)
-target_link_libraries(clue_hello PRIVATE clue)
+add_executable(clue_demo examples/demo/main.c)
+target_link_libraries(clue_demo PRIVATE clue)

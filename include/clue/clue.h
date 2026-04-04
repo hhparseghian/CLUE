@@ -39,6 +39,7 @@
 #include "treeview.h"
 #include "table.h"
 #include "timer.h"
+#include "file_dialog.h"
 #include "app.h"
 
 /* Initialise CLUE: selects a backend and sets up the window manager.
