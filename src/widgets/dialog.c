@@ -18,6 +18,7 @@
 #include "clue/label.h"
 #include "clue/box.h"
 #include "clue/clue_widget.h"
+#include "clue/timer.h"
 #include "clue/clue.h"
 
 #define TITLE_PAD 12
@@ -223,6 +224,9 @@ ClueDialogResult clue_dialog_run(ClueDialog *dlg)
                 clue_widget_dispatch_event(&app->root->base, &events[i]);
             }
         }
+
+        /* Timers (keep main-window timers alive during dialog) */
+        clue_timer_tick();
 
         /* Render the main app window (keep it alive) */
         if (app->root) {
