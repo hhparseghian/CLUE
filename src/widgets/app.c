@@ -134,7 +134,8 @@ void clue_app_run(ClueApp *app)
             /* If a widget has captured the mouse, send mouse events to it */
             if (app->captured_widget &&
                 (events[i].type == UI_EVENT_MOUSE_MOVE ||
-                 events[i].type == UI_EVENT_MOUSE_BUTTON)) {
+                 events[i].type == UI_EVENT_MOUSE_BUTTON ||
+                 events[i].type == UI_EVENT_MOUSE_SCROLL)) {
                 if (app->captured_widget->on_event)
                     app->captured_widget->on_event(app->captured_widget, &events[i]);
             } else if (app->modal_widget) {
