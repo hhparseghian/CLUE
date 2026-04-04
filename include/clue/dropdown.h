@@ -13,6 +13,8 @@ typedef struct {
     int         selected;   /* -1 = none */
     int         hovered;    /* -1 = none */
     bool        open;       /* dropdown list visible */
+    int         scroll_y;  /* scroll offset in popup list */
+    int         max_visible; /* max visible items before scrolling (0 = 6) */
     char       *placeholder;
 } ClueDropdown;
 
