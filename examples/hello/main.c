@@ -348,14 +348,21 @@ static ClueWidget *build_widgets_page(ClueApp *app)
     g_timer_label->base.style.margin_top = 8;
     dlg_row->base.style.margin_top = 8;
 
+    ClueSeparator *sep1 = clue_separator_new(CLUE_HORIZONTAL);
+    ClueSeparator *sep2 = clue_separator_new(CLUE_HORIZONTAL);
+    ClueSeparator *sep3 = clue_separator_new(CLUE_HORIZONTAL);
+
     clue_container_add((ClueWidget *)page, (ClueWidget *)btn_row);
     clue_container_add((ClueWidget *)page, (ClueWidget *)input);
+    clue_container_add((ClueWidget *)page, (ClueWidget *)sep1);
     clue_container_add((ClueWidget *)page, (ClueWidget *)cb);
     clue_container_add((ClueWidget *)page, (ClueWidget *)radio_row);
     clue_container_add((ClueWidget *)page, (ClueWidget *)slider_row);
     clue_container_add((ClueWidget *)page, (ClueWidget *)dd);
+    clue_container_add((ClueWidget *)page, (ClueWidget *)sep2);
     clue_container_add((ClueWidget *)page, (ClueWidget *)progress_row);
     clue_container_add((ClueWidget *)page, (ClueWidget *)g_timer_label);
+    clue_container_add((ClueWidget *)page, (ClueWidget *)sep3);
     clue_container_add((ClueWidget *)page, (ClueWidget *)dlg_row);
 
     return (ClueWidget *)page;
@@ -550,7 +557,7 @@ static void on_menu_quit(void *w, void *d)
 
 int main(void)
 {
-    ClueApp *app = clue_app_new("CLUE Demo", 600, 560);
+    ClueApp *app = clue_app_new("CLUE Demo", 650, 700);
     if (!app) return 1;
 
     /* Main layout */
