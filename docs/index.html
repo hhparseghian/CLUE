@@ -802,8 +802,21 @@
     <div class="fn-desc">Add a button to the dialog that returns the given result.</div>
   </div>
   <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_dialog_set_flags</span>(<span class="param">ClueDialog *dlg</span>, <span class="param">int flags</span>)</div>
+    <div class="fn-desc">Set dialog behaviour flags. Combine with <code>|</code>.</div>
+  </div>
+  <div class="struct-block">
+    <div class="struct-name">ClueDialogFlags</div>
+    <div class="enum-values">CLUE_DIALOG_FLAG_MODAL | CLUE_DIALOG_FLAG_ON_TOP</div>
+    <div class="struct-desc"><code>MODAL</code> blocks input to the parent window. <code>ON_TOP</code> keeps the dialog above the parent. Default is both.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_dialog_set_position</span>(<span class="param">ClueDialog *dlg</span>, <span class="param">int x</span>, <span class="param">int y</span>)</div>
+    <div class="fn-desc">Set dialog position on screen. Use (-1, -1) to let the window manager decide (default).</div>
+  </div>
+  <div class="fn-block">
     <div class="fn-sig"><span class="type">ClueDialogResult</span> <span class="name">clue_dialog_run</span>(<span class="param">ClueDialog *dlg</span>)</div>
-    <div class="fn-desc">Show the dialog modally and return the result.</div>
+    <div class="fn-desc">Show the dialog and run its event loop. Blocks until closed. Returns the result code.</div>
   </div>
 
   <h2 id="menu">Menu</h2>
