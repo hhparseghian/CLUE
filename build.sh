@@ -7,6 +7,7 @@ BACKEND_WAYLAND=ON
 BACKEND_X11=ON
 BACKEND_DRM=ON
 CLEAN=0
+INSTALL=0
 JOBS=$(nproc 2>/dev/null || echo 4)
 
 usage() {
@@ -21,6 +22,7 @@ usage() {
     echo "  --no-drm         Disable DRM backend"
     echo "  --clean          Remove build directory before building"
     echo "  --install-deps   Install build dependencies (requires sudo)"
+    echo "  --install        Build, install, and build demo"
     echo "  -j N             Parallel jobs (default: $(nproc 2>/dev/null || echo 4))"
     echo "  -h, --help       Show this help"
 }
@@ -51,6 +53,7 @@ while [ $# -gt 0 ]; do
         --no-x11)       BACKEND_X11=OFF ;;
         --no-drm)       BACKEND_DRM=OFF ;;
         --clean)        CLEAN=1 ;;
+        --install)      INSTALL=1 ;;
         --install-deps) install_deps; exit 0 ;;
         -j)             JOBS="$2"; shift ;;
         -h|--help)      usage; exit 0 ;;
@@ -76,6 +79,20 @@ cmake "$SCRIPT_DIR" \
 echo "--- Building (jobs=$JOBS) ---"
 make -j"$JOBS"
 
-echo ""
-echo "Build complete. Run the hello example with:"
-echo "  $BUILD_DIR/clue_demo"
+if [ "$INSTALL" -eq 1 ]; then
+    echo "--- Installing ---"
+    sudo make install
+    echo "--- Building demo ---"
+    DEMO_DIR="${CMAKE_INSTALL_PREFIX:-/usr/local}/share/clue/examples/demo"
+    if [ -d "$DEMO_DIR" ]; then
+        cd "$DEMO_DIR"
+        sudo make
+        echo ""
+        echo "Install complete. Run the demo with:"
+        echo "  $DEMO_DIR/clue_demo"
+    fi
+else
+    echo ""
+    echo "Build complete. To install:"
+    echo "  $0 --install"
+fi

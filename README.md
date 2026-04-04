@@ -52,6 +52,17 @@ This installs:
 - `libclue.a` to `/usr/local/lib/`
 - Headers to `/usr/local/include/clue/`
 - `clue.pc` to `/usr/local/lib/pkgconfig/`
+- Demo sources to `/usr/local/share/clue/examples/demo/`
+
+### Run the demo
+
+After installing, build and run the demo:
+
+```bash
+cd /usr/local/share/clue/examples/demo
+make
+./clue_demo
+```
 
 ## Quick start
 
@@ -86,7 +97,7 @@ int main(void)
 }
 ```
 
-### Standalone project
+### Compile your own project
 
 Link against the installed library with pkg-config:
 

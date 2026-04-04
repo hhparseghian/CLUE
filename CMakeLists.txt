@@ -187,17 +187,27 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/clue.pc
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig
 )
 
-# ---------- Hello example ----------
-add_executable(clue_demo
-    examples/demo/main.c
-    examples/demo/page_widgets.c
-    examples/demo/page_list.c
-    examples/demo/page_form.c
-    examples/demo/page_tree.c
-    examples/demo/page_table.c
-    examples/demo/page_editor.c
-    examples/demo/page_canvas.c
-    examples/demo/page_3d.c
-    examples/demo/page_splitter.c
+# ---------- Demo example ----------
+option(CLUE_BUILD_DEMO "Build the demo during development" ON)
+
+if(CLUE_BUILD_DEMO)
+    add_executable(clue_demo
+        examples/demo/main.c
+        examples/demo/page_widgets.c
+        examples/demo/page_list.c
+        examples/demo/page_form.c
+        examples/demo/page_tree.c
+        examples/demo/page_table.c
+        examples/demo/page_editor.c
+        examples/demo/page_canvas.c
+        examples/demo/page_3d.c
+        examples/demo/page_splitter.c
+    )
+    target_link_libraries(clue_demo PRIVATE clue)
+endif()
+
+# Install demo sources for building after install
+install(DIRECTORY examples/demo/
+    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/clue/examples/demo
+    FILES_MATCHING PATTERN "*.c" PATTERN "*.h" PATTERN "Makefile"
 )
-target_link_libraries(clue_demo PRIVATE clue)
