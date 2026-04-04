@@ -29,87 +29,88 @@ static bool on_tick_progress(void *data)
     return true;
 }
 
-static void on_reset_progress(void *w, void *d)
+static void on_reset_progress(void *widget, void *data)
 {
-    (void)w; (void)d;
+    (void)widget; (void)data;
     g_progress_ms = 0;
     clue_progress_set_value(g_progress, 0.0f);
     clue_timer_repeat(16, on_tick_progress, NULL);
 }
 
-static void on_hello(void *w, void *d)
+static void on_hello(void *widget, void *data)
 {
-    (void)w; (void)d;
+    (void)widget; (void)data;
     clue_label_set_text(g_status, "Hello button clicked!");
 }
 
-static void on_quit(void *w, void *d)
+static void on_quit(void *widget, void *data)
 {
-    (void)w;
-    clue_app_quit((ClueApp *)d);
+    (void)widget;
+    ClueApp *app = data;
+    clue_app_quit(app);
 }
 
-static void on_checkbox(void *w, void *d)
+static void on_checkbox(void *widget, void *data)
 {
-    (void)d;
-    ClueCheckbox *cb = (ClueCheckbox *)w;
+    (void)data;
+    ClueCheckbox *cb = widget;
     clue_label_set_text(g_status, clue_checkbox_is_checked(cb)
         ? "Checkbox: ON" : "Checkbox: OFF");
 }
 
-static void on_radio(void *w, void *d)
+static void on_radio(void *widget, void *data)
 {
-    (void)d;
-    ClueRadio *r = (ClueRadio *)w;
+    (void)data;
+    ClueRadio *r = widget;
     char buf[64];
     snprintf(buf, sizeof(buf), "Radio: %s", r->label);
     clue_label_set_text(g_status, buf);
 }
 
-static void on_slider(void *w, void *d)
+static void on_slider(void *widget, void *data)
 {
-    (void)d;
+    (void)data;
     char buf[64];
-    snprintf(buf, sizeof(buf), "Slider: %.0f%%", clue_slider_get_value(w));
+    snprintf(buf, sizeof(buf), "Slider: %.0f%%", clue_slider_get_value(widget));
     clue_label_set_text(g_status, buf);
 }
 
-static void on_dropdown(void *w, void *d)
+static void on_dropdown(void *widget, void *data)
 {
-    (void)d;
-    const char *s = clue_dropdown_get_selected_text(w);
+    (void)data;
+    const char *s = clue_dropdown_get_selected_text(widget);
     char buf[64];
     snprintf(buf, sizeof(buf), "Selected: %s", s ? s : "none");
     clue_label_set_text(g_status, buf);
 }
 
-static void on_input(void *w, void *d)
+static void on_input(void *widget, void *data)
 {
-    (void)d;
+    (void)data;
     char buf[300];
-    snprintf(buf, sizeof(buf), "Input: %s", clue_text_input_get_text(w));
+    snprintf(buf, sizeof(buf), "Input: %s", clue_text_input_get_text(widget));
     clue_label_set_text(g_status, buf);
 }
 
-static void on_toggle(void *w, void *d)
+static void on_toggle(void *widget, void *data)
 {
-    (void)d;
-    ClueToggle *t = (ClueToggle *)w;
+    (void)data;
+    ClueToggle *t = widget;
     clue_label_set_text(g_status, clue_toggle_is_on(t)
         ? "Toggle: ON" : "Toggle: OFF");
 }
 
-static void on_spinner(void *w, void *d)
+static void on_spinner(void *widget, void *data)
 {
-    (void)d;
+    (void)data;
     char buf[64];
-    snprintf(buf, sizeof(buf), "Spinner: %.1f", clue_spinbox_get_value(w));
+    snprintf(buf, sizeof(buf), "Spinner: %.1f", clue_spinbox_get_value(widget));
     clue_label_set_text(g_status, buf);
 }
 
-static void on_show_modal(void *w, void *d)
+static void on_show_modal(void *widget, void *data)
 {
-    (void)w; (void)d;
+    (void)widget; (void)data;
     ClueDialog *dlg = clue_dialog_new("Modal + On Top", 380, 160);
     ClueLabel *lbl = clue_label_new("Blocks parent, stays on top.");
     lbl->base.style.fg_color = clue_theme_get()->fg;
@@ -125,9 +126,9 @@ static void on_show_modal(void *w, void *d)
     clue_dialog_destroy(dlg);
 }
 
-static void on_show_ontop(void *w, void *d)
+static void on_show_ontop(void *widget, void *data)
 {
-    (void)w; (void)d;
+    (void)widget; (void)data;
     ClueDialog *dlg = clue_dialog_new("On Top Only", 380, 160);
     ClueLabel *lbl = clue_label_new("Stays on top, parent is usable.");
     lbl->base.style.fg_color = clue_theme_get()->fg;
@@ -139,9 +140,9 @@ static void on_show_ontop(void *w, void *d)
     clue_dialog_destroy(dlg);
 }
 
-static void on_show_free(void *w, void *d)
+static void on_show_free(void *widget, void *data)
 {
-    (void)w; (void)d;
+    (void)widget; (void)data;
     ClueDialog *dlg = clue_dialog_new("Free Dialog", 380, 160);
     ClueLabel *lbl = clue_label_new("Independent window, no blocking.");
     lbl->base.style.fg_color = clue_theme_get()->fg;

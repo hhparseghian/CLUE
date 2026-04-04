@@ -57,17 +57,18 @@ static void canvas_event_cb(const ClueCanvasEvent *ev, void *data)
     }
 }
 
-static void on_canvas_clear(void *w, void *d)
+static void on_canvas_clear(void *widget, void *data)
 {
-    (void)w; (void)d;
+    (void)widget; (void)data;
     g_paint_count = 0;
     clue_label_set_text(g_status, "Canvas cleared");
 }
 
-static void on_color_changed(void *w, void *d)
+static void on_color_changed(void *widget, void *data)
 {
-    (void)d;
-    g_paint_color = clue_colorpicker_get_color((ClueColorPicker *)w);
+    (void)data;
+    ClueColorPicker *cp = widget;
+    g_paint_color = clue_colorpicker_get_color(cp);
 }
 
 ClueBox *build_canvas_page(void)

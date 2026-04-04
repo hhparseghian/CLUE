@@ -18,10 +18,10 @@ static const char *table_cell(int row, int col, void *user_data)
     return people[row][col];
 }
 
-static void on_table_selected(void *w, void *d)
+static void on_table_selected(void *widget, void *data)
 {
-    (void)d;
-    int row = clue_table_get_selected(w);
+    (void)data;
+    int row = clue_table_get_selected(widget);
     if (row >= 0 && row < 8) {
         char buf[128];
         snprintf(buf, sizeof(buf), "Table: %s (%s)", people[row][0], people[row][2]);

@@ -1,9 +1,9 @@
 #include "demo.h"
 
-static void on_tree_selected(void *w, void *d)
+static void on_tree_selected(void *widget, void *data)
 {
-    (void)d;
-    ClueTreeNode *node = clue_treeview_get_selected(w);
+    (void)data;
+    ClueTreeNode *node = clue_treeview_get_selected(widget);
     if (node && node->label) {
         char buf[128];
         snprintf(buf, sizeof(buf), "Tree: %s", node->label);
