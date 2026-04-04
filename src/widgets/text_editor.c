@@ -222,11 +222,10 @@ static int text_editor_handle_event(ClueWidget *w, UIEvent *event)
 
     if (event->type == UI_EVENT_MOUSE_MOVE) {
         int mx = event->mouse_move.x, my = event->mouse_move.y;
-        bool inside = mx >= x && mx < x + bw && my >= y && my < y + bh;
-        ClueApp *app = clue_app_get();
-        if (app && app->window)
-            clue_window_set_cursor(app->window,
-                inside ? UI_CURSOR_TEXT : UI_CURSOR_DEFAULT);
+        if (mx >= x && mx < x + bw && my >= y && my < y + bh) {
+            if (event->window)
+                clue_window_set_cursor(event->window, UI_CURSOR_TEXT);
+        }
         return 0;
     }
 

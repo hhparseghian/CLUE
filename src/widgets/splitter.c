@@ -121,7 +121,7 @@ static int splitter_handle_event(ClueWidget *w, UIEvent *event)
             return 1;
         }
         /* Update cursor when hovering over divider */
-        set_resize_cursor(s, on_divider(s, mx, my));
+        set_resize_cursor(s,on_divider(s, mx, my));
         return 0;
     }
 
@@ -130,13 +130,13 @@ static int splitter_handle_event(ClueWidget *w, UIEvent *event)
         if (event->mouse_button.pressed) {
             if (on_divider(s, mx, my)) {
                 s->dragging = true;
-                set_resize_cursor(s, true);
+                set_resize_cursor(s,true);
                 clue_capture_mouse(&w->base);
                 return 1;
             }
         } else if (s->dragging) {
             s->dragging = false;
-            set_resize_cursor(s, on_divider(s, mx, my));
+            set_resize_cursor(s,on_divider(s, mx, my));
             clue_release_mouse();
             return 1;
         }

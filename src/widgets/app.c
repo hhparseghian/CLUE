@@ -131,6 +131,8 @@ void clue_app_run(ClueApp *app)
             if (events[i].type == UI_EVENT_MOUSE_MOVE) {
                 mouse_x = events[i].mouse_move.x;
                 mouse_y = events[i].mouse_move.y;
+                /* Reset cursor before dispatch; widgets override if needed */
+                clue_window_set_cursor(app->window, UI_CURSOR_DEFAULT);
             }
             /* If a widget has captured the mouse, send mouse events to it */
             if (app->captured_widget &&
