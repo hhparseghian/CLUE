@@ -1,1 +1,0 @@
-/usr/bin/cc CMakeFiles/clue_hello.dir/examples/hello/main.c.o -o clue_hello  libclue.a -lEGL -lGLESv2 -lfreetype -lm -lwayland-egl -lwayland-client -lxkbcommon -lX11 -ldrm -lgbm -linput -ludev -lEGL -lGLESv2 -lfreetype -lm -lwayland-egl -lwayland-client -lxkbcommon -lX11 -ldrm -lgbm -linput -ludev 
