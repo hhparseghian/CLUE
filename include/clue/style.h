@@ -6,6 +6,13 @@
 /* Forward declaration */
 struct UIFont;
 
+/* Alignment for positioning children within their parent */
+typedef enum {
+    CLUE_ALIGN_START  = 0,  /* left / top (default) */
+    CLUE_ALIGN_CENTER = 1,
+    CLUE_ALIGN_END    = 2,  /* right / bottom */
+} ClueAlign;
+
 /* Style properties for widgets */
 typedef struct {
     int      padding_top, padding_right, padding_bottom, padding_left;
@@ -14,6 +21,10 @@ typedef struct {
     UIColor  fg_color;
     float    corner_radius;
     struct UIFont *font;   /* NULL = use app default */
+    ClueAlign     h_align; /* horizontal alignment of children */
+    ClueAlign     v_align; /* vertical alignment of children */
+    bool          hexpand; /* expand to fill parent width */
+    bool          vexpand; /* expand to fill parent height */
 } ClueStyle;
 
 /* Default style: transparent bg, white fg, no padding/margin */
@@ -23,7 +34,9 @@ typedef struct {
     {0.0f, 0.0f, 0.0f, 0.0f}, \
     {1.0f, 1.0f, 1.0f, 1.0f}, \
     0.0f, \
-    NULL  \
+    NULL, \
+    CLUE_ALIGN_START, CLUE_ALIGN_START, \
+    false, false \
 })
 
 /* Set uniform padding on all sides */
