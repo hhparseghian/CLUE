@@ -41,20 +41,10 @@ static void dialog_render(ClueDialog *d, UIWindow *win, UIRenderer *r)
 
     int w = win->w, h = win->h;
 
-    /* Title */
-    if (font && d->title) {
-        r->draw_text(TITLE_PAD, TITLE_PAD, d->title, font, th->fg_bright);
-    }
-
-    int title_h = font ? clue_font_line_height(font) + TITLE_PAD * 2 : 40;
-
-    /* Separator line */
-    r->draw_line(0, title_h, w, title_h, 1.0f, th->surface_border);
-
     /* Content */
     if (d->content) {
         d->content->base.x = BODY_PAD;
-        d->content->base.y = title_h + BODY_PAD;
+        d->content->base.y = BODY_PAD;
         d->content->base.w = w - BODY_PAD * 2;
         clue_cwidget_layout_tree(d->content);
         clue_cwidget_draw_tree(d->content);
@@ -108,8 +98,21 @@ ClueDialog *clue_dialog_new(const char *title, int w, int h)
     d->dialog_h = h;
     d->result   = CLUE_DIALOG_NONE;
     d->running  = false;
+    d->flags    = CLUE_DIALOG_FLAG_MODAL | CLUE_DIALOG_FLAG_ON_TOP;
+    d->pos_x    = -1;
+    d->pos_y    = -1;
 
     return d;
+}
+
+void clue_dialog_set_flags(ClueDialog *dlg, int flags)
+{
+    if (dlg) dlg->flags = flags;
+}
+
+void clue_dialog_set_position(ClueDialog *dlg, int x, int y)
+{
+    if (dlg) { dlg->pos_x = x; dlg->pos_y = y; }
 }
 
 void clue_dialog_destroy(ClueDialog *dlg)
@@ -164,8 +167,16 @@ ClueDialogResult clue_dialog_run(ClueDialog *dlg)
                                        dlg->title ? dlg->title : "Dialog");
     if (!win) return CLUE_DIALOG_NONE;
 
-    clue_window_set_type(win, UI_WINDOW_DIALOG);
-    clue_window_set_parent(win, app->window);
+    if (dlg->flags & CLUE_DIALOG_FLAG_ON_TOP) {
+        clue_window_set_type(win, UI_WINDOW_DIALOG);
+        clue_window_set_parent(win, app->window);
+    }
+
+    /* Position the window if explicitly set */
+    if (dlg->pos_x >= 0 && dlg->pos_y >= 0) {
+        clue_window_set_position(win, dlg->pos_x, dlg->pos_y);
+    }
+
 
     dlg->result  = CLUE_DIALOG_NONE;
     dlg->running = true;
@@ -204,6 +215,12 @@ ClueDialogResult clue_dialog_run(ClueDialog *dlg)
                     clue_widget_dispatch_event(
                         &dlg->content->base, &events[i]);
                 }
+            }
+
+            /* Non-modal: forward parent window events to app widgets */
+            if (!(dlg->flags & CLUE_DIALOG_FLAG_MODAL) &&
+                events[i].window == app->window && app->root) {
+                clue_widget_dispatch_event(&app->root->base, &events[i]);
             }
         }
 

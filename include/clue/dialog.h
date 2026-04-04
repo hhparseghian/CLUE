@@ -14,6 +14,12 @@ struct UIWindow;
 
 #define CLUE_DIALOG_MAX_BUTTONS 4
 
+/* Dialog flags */
+typedef enum {
+    CLUE_DIALOG_FLAG_MODAL     = 1 << 0,  /* blocks input to parent window */
+    CLUE_DIALOG_FLAG_ON_TOP    = 1 << 1,  /* stays above the parent window */
+} ClueDialogFlags;
+
 /* Dialog result */
 typedef enum {
     CLUE_DIALOG_NONE = -1,
@@ -39,6 +45,9 @@ typedef struct ClueDialog {
     ClueDialogCallback      callback;
     void                   *callback_data;
     bool                    running;    /* nested event loop flag */
+    int                     flags;     /* ClueDialogFlags bitmask */
+    int                     pos_x;     /* window position (-1 = center on parent) */
+    int                     pos_y;
 } ClueDialog;
 
 /* Create a dialog with a title and size */
@@ -53,6 +62,12 @@ void clue_dialog_set_content(ClueDialog *dlg, ClueWidget *content);
 /* Add a button with a result code */
 void clue_dialog_add_button(ClueDialog *dlg, const char *label,
                             ClueDialogResult result);
+
+/* Set dialog flags (combine with |, e.g. CLUE_DIALOG_FLAG_MODAL | CLUE_DIALOG_FLAG_ON_TOP) */
+void clue_dialog_set_flags(ClueDialog *dlg, int flags);
+
+/* Set dialog position (-1, -1 = center on parent, which is the default) */
+void clue_dialog_set_position(ClueDialog *dlg, int x, int y);
 
 /* Set callback for when dialog closes */
 void clue_dialog_set_callback(ClueDialog *dlg, ClueDialogCallback cb,
