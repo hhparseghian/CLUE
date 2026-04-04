@@ -8,6 +8,7 @@
 #include "clue/theme.h"
 #include "clue/font.h"
 #include "clue/timer.h"
+#include "clue/window.h"
 #include <xkbcommon/xkbcommon-keysyms.h>
 
 #define INPUT_PAD_H 10
@@ -135,6 +136,16 @@ static int text_input_handle_event(ClueWidget *w, UIEvent *event)
     int bw = w->base.w, bh = w->base.h;
 
     switch (event->type) {
+    case UI_EVENT_MOUSE_MOVE: {
+        int mx = event->mouse_move.x;
+        int my = event->mouse_move.y;
+        bool inside = mx >= x && mx < x + bw && my >= y && my < y + bh;
+        ClueApp *app = clue_app_get();
+        if (app && app->window)
+            clue_window_set_cursor(app->window,
+                inside ? UI_CURSOR_TEXT : UI_CURSOR_DEFAULT);
+        return 0;
+    }
     case UI_EVENT_MOUSE_BUTTON: {
         int mx = event->mouse_button.x;
         int my = event->mouse_button.y;

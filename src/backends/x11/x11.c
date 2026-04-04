@@ -546,6 +546,39 @@ static int x11_poll_events(UIEvent *events, int max)
 }
 
 /* ------------------------------------------------------------------ */
+/* Cursor                                                              */
+/* ------------------------------------------------------------------ */
+
+#include <X11/cursorfont.h>
+
+static void x11_set_cursor(UIWindow *win, int shape)
+{
+    if (!win || !x11.display) return;
+    X11WindowData *wd = win->backend_data;
+    if (!wd) return;
+
+    unsigned int xfont;
+    switch (shape) {
+    case 1:  xfont = XC_hand2;            break; /* UI_CURSOR_POINTER */
+    case 2:  xfont = XC_xterm;            break; /* UI_CURSOR_TEXT */
+    case 3:  xfont = XC_sb_h_double_arrow; break; /* UI_CURSOR_RESIZE_H */
+    case 4:  xfont = XC_sb_v_double_arrow; break; /* UI_CURSOR_RESIZE_V */
+    case 5:  xfont = XC_fleur;            break; /* UI_CURSOR_MOVE */
+    case 6:  xfont = XC_crosshair;        break; /* UI_CURSOR_CROSSHAIR */
+    default: xfont = 0; break;
+    }
+
+    if (xfont) {
+        Cursor c = XCreateFontCursor(x11.display, xfont);
+        XDefineCursor(x11.display, wd->xwin, c);
+        XFreeCursor(x11.display, c);
+    } else {
+        XUndefineCursor(x11.display, wd->xwin);
+    }
+    XFlush(x11.display);
+}
+
+/* ------------------------------------------------------------------ */
 /* Exported backend instance                                           */
 /* ------------------------------------------------------------------ */
 
@@ -560,6 +593,7 @@ UIBackend x11_backend = {
     .make_current       = x11_make_current,
     .swap_buffers   = x11_swap_buffers,
     .poll_events    = x11_poll_events,
+    .set_cursor     = x11_set_cursor,
     .native_display = NULL,
     .native_window  = NULL,
 };

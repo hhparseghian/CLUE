@@ -152,6 +152,14 @@ void clue_window_swap_buffers(UIWindow *win)
     }
 }
 
+/* Set the mouse cursor shape */
+void clue_window_set_cursor(UIWindow *win, UICursorShape cursor)
+{
+    UIWindowManager *wm = &g_wm;
+    if (win && wm->backend && wm->backend->set_cursor)
+        wm->backend->set_cursor(win, (int)cursor);
+}
+
 /* Initialise CLUE: selects a backend and sets up the window manager.
  * Returns 0 on success, -1 on failure. */
 int clue_init(void)

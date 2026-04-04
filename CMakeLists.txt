@@ -75,6 +75,7 @@ if(UI_BACKEND_WAYLAND)
     find_package(PkgConfig REQUIRED)
     pkg_check_modules(WAYLAND REQUIRED
         wayland-client
+        wayland-cursor
         wayland-egl
         egl
         glesv2
@@ -161,7 +162,7 @@ if(UI_BACKEND_X11)
     string(APPEND CLUE_PC_LIBS " -lX11")
 endif()
 if(UI_BACKEND_WAYLAND)
-    string(APPEND CLUE_PC_LIBS " -lwayland-client -lwayland-egl")
+    string(APPEND CLUE_PC_LIBS " -lwayland-client -lwayland-cursor -lwayland-egl")
 endif()
 if(UI_BACKEND_DRM)
     string(APPEND CLUE_PC_LIBS " -ldrm -lgbm -linput -ludev")

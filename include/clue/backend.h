@@ -18,6 +18,7 @@ typedef struct {
     void  (*make_current)(struct UIWindow *win);
     void  (*swap_buffers)(struct UIWindow *win);
     int   (*poll_events)(UIEvent *events, int max);
+    void  (*set_cursor)(struct UIWindow *win, int cursor_shape);
     void  *native_display;
     void  *native_window;
 } UIBackend;

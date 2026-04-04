@@ -138,7 +138,11 @@ static int tabs_handle_event(ClueWidget *w, UIEvent *event)
                 tx += tw;
             }
         }
-        /* Let children also handle the event */
+        /* Forward to active page so children see mouse moves */
+        if (t->active >= 0 && t->active < t->tab_count && t->tab_pages[t->active]) {
+            clue_widget_dispatch_event(
+                &t->tab_pages[t->active]->base, event);
+        }
         return 0;
     }
 

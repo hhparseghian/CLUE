@@ -283,6 +283,7 @@
   <div class="sidebar-section">Rendering</div>
   <a href="#draw">Draw</a>
   <a href="#font">Font</a>
+  <a href="#cursor">Cursor</a>
   <a href="#style">Style</a>
   <a href="#theme">Theme</a>
   <a href="#signal">Signal</a>
@@ -1081,6 +1082,18 @@
   <div class="fn-block">
     <div class="fn-sig"><span class="type">int</span> <span class="name">clue_font_ascent</span>(<span class="param">UIFont *font</span>)</div>
     <div class="fn-desc">Get the font ascent (baseline to top) in pixels.</div>
+  </div>
+
+  <h2 id="cursor">Cursor</h2>
+  <p class="description">Change the mouse cursor shape for a window. Supported on X11 and Wayland.</p>
+
+  <div class="struct-block">
+    <div class="struct-name">UICursorShape</div>
+    <div class="enum-values">UI_CURSOR_DEFAULT | UI_CURSOR_POINTER | UI_CURSOR_TEXT | UI_CURSOR_RESIZE_H | UI_CURSOR_RESIZE_V | UI_CURSOR_MOVE | UI_CURSOR_CROSSHAIR</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_window_set_cursor</span>(<span class="param">UIWindow *win</span>, <span class="param">UICursorShape cursor</span>)</div>
+    <div class="fn-desc">Set the mouse cursor shape for a window. Use <code>UI_CURSOR_DEFAULT</code> to restore the normal arrow.</div>
   </div>
 
   <h2 id="style">Style</h2>

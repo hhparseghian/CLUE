@@ -4,6 +4,17 @@
 #include <stdbool.h>
 #include "backend.h"
 
+/* Cursor shapes */
+typedef enum {
+    UI_CURSOR_DEFAULT = 0,
+    UI_CURSOR_POINTER,       /* hand, for clickable items */
+    UI_CURSOR_TEXT,           /* I-beam, for text fields */
+    UI_CURSOR_RESIZE_H,      /* horizontal resize (left-right) */
+    UI_CURSOR_RESIZE_V,      /* vertical resize (up-down) */
+    UI_CURSOR_MOVE,          /* move/drag */
+    UI_CURSOR_CROSSHAIR,
+} UICursorShape;
+
 /* Window types */
 typedef enum {
     UI_WINDOW_NORMAL = 0,
@@ -62,5 +73,8 @@ void clue_window_make_current(UIWindow *win);
 
 /* Swap the front/back buffers for a window */
 void clue_window_swap_buffers(UIWindow *win);
+
+/* Set the mouse cursor shape for a window */
+void clue_window_set_cursor(UIWindow *win, UICursorShape cursor);
 
 #endif /* CLUE_WINDOW_H */

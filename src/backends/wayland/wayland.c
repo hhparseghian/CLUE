@@ -13,6 +13,7 @@
 #include <sys/mman.h>
 
 #include <wayland-client.h>
+#include <wayland-cursor.h>
 #include <wayland-egl.h>
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
@@ -49,6 +50,7 @@ typedef struct {
     struct wl_registry     *registry;
     struct wl_compositor   *compositor;
     struct wl_seat         *seat;
+    struct wl_shm          *shm;
     struct wl_pointer      *pointer;
     struct wl_keyboard     *keyboard;
     struct xdg_wm_base     *xdg_wm_base;
@@ -67,6 +69,11 @@ typedef struct {
     UIWindow               *pointer_window;
     int                     pointer_x;
     int                     pointer_y;
+
+    /* Cursor */
+    struct wl_cursor_theme  *cursor_theme;
+    struct wl_surface       *cursor_surface;
+    uint32_t                 pointer_serial;
 
     /* Circular event queue: written by listeners, drained by poll_events */
     UIEvent                 event_queue[EVENT_QUEUE_SIZE];
@@ -155,7 +162,8 @@ static void pointer_handle_enter(void *data, struct wl_pointer *pointer,
                                  uint32_t serial, struct wl_surface *surface,
                                  wl_fixed_t sx, wl_fixed_t sy)
 {
-    (void)data; (void)pointer; (void)serial;
+    (void)data; (void)pointer;
+    wl.pointer_serial = serial;
     wl.pointer_window = find_window_by_surface(surface);
     wl.pointer_x = wl_fixed_to_int(sx);
     wl.pointer_y = wl_fixed_to_int(sy);
@@ -564,6 +572,10 @@ static void registry_handle_global(void *data, struct wl_registry *registry,
                                            &xdg_wm_base_interface,
                                            version < 2 ? version : 2);
         xdg_wm_base_add_listener(wl.xdg_wm_base, &xdg_wm_base_listener, NULL);
+    } else if (strcmp(interface, wl_shm_interface.name) == 0) {
+        wl.shm = wl_registry_bind(registry, name,
+                                   &wl_shm_interface,
+                                   version < 1 ? version : 1);
     } else if (strcmp(interface, wl_seat_interface.name) == 0) {
         wl.seat = wl_registry_bind(registry, name,
                                    &wl_seat_interface,
@@ -674,6 +686,14 @@ static int wayland_init(void)
     /* Second roundtrip: processes seat capabilities, gets pointer/keyboard */
     wl_display_roundtrip(wl.display);
 
+    /* Cursor theme */
+    if (wl.shm) {
+        wl.cursor_theme = wl_cursor_theme_load(NULL, 24, wl.shm);
+        if (wl.cursor_theme) {
+            wl.cursor_surface = wl_compositor_create_surface(wl.compositor);
+        }
+    }
+
     /* --- EGL --- */
     if (init_egl() != 0) {
         return -1;
@@ -706,7 +726,12 @@ static void wayland_shutdown(void)
         eglTerminate(wl.egl_display);
     }
 
+    /* --- Cursor cleanup --- */
+    if (wl.cursor_surface) wl_surface_destroy(wl.cursor_surface);
+    if (wl.cursor_theme)   wl_cursor_theme_destroy(wl.cursor_theme);
+
     /* --- Wayland cleanup --- */
+    if (wl.shm)         wl_shm_destroy(wl.shm);
     if (wl.pointer)     wl_pointer_destroy(wl.pointer);
     if (wl.keyboard)    wl_keyboard_destroy(wl.keyboard);
     if (wl.seat)        wl_seat_destroy(wl.seat);
@@ -907,6 +932,44 @@ static int wayland_poll_events(UIEvent *events, int max)
  *       and wp_viewporter when needed
  */
 
+static void wayland_set_cursor(UIWindow *win, int shape)
+{
+    (void)win;
+    if (!wl.cursor_theme || !wl.cursor_surface || !wl.pointer) return;
+
+    const char *name;
+    switch (shape) {
+    case 1:  name = "pointer";       break; /* UI_CURSOR_POINTER */
+    case 2:  name = "text";          break; /* UI_CURSOR_TEXT */
+    case 3:  name = "col-resize";    break; /* UI_CURSOR_RESIZE_H */
+    case 4:  name = "row-resize";    break; /* UI_CURSOR_RESIZE_V */
+    case 5:  name = "move";          break; /* UI_CURSOR_MOVE */
+    case 6:  name = "crosshair";     break; /* UI_CURSOR_CROSSHAIR */
+    default: name = "default";       break;
+    }
+
+    struct wl_cursor *cursor = wl_cursor_theme_get_cursor(wl.cursor_theme, name);
+    if (!cursor && shape != 0) {
+        /* Fallback names */
+        switch (shape) {
+        case 3: cursor = wl_cursor_theme_get_cursor(wl.cursor_theme, "sb_h_double_arrow"); break;
+        case 4: cursor = wl_cursor_theme_get_cursor(wl.cursor_theme, "sb_v_double_arrow"); break;
+        case 5: cursor = wl_cursor_theme_get_cursor(wl.cursor_theme, "grabbing"); break;
+        default: cursor = wl_cursor_theme_get_cursor(wl.cursor_theme, "left_ptr"); break;
+        }
+    }
+    if (!cursor) cursor = wl_cursor_theme_get_cursor(wl.cursor_theme, "left_ptr");
+    if (!cursor) return;
+
+    struct wl_cursor_image *img = cursor->images[0];
+    struct wl_buffer *buf = wl_cursor_image_get_buffer(img);
+    wl_surface_attach(wl.cursor_surface, buf, 0, 0);
+    wl_surface_damage(wl.cursor_surface, 0, 0, img->width, img->height);
+    wl_surface_commit(wl.cursor_surface);
+    wl_pointer_set_cursor(wl.pointer, wl.pointer_serial,
+                          wl.cursor_surface, img->hotspot_x, img->hotspot_y);
+}
+
 UIBackend wayland_backend = {
     .init           = wayland_init,
     .shutdown       = wayland_shutdown,
@@ -915,6 +978,7 @@ UIBackend wayland_backend = {
     .make_current   = wayland_make_current,
     .swap_buffers   = wayland_swap_buffers,
     .poll_events    = wayland_poll_events,
+    .set_cursor     = wayland_set_cursor,
     .native_display = NULL,
     .native_window  = NULL,
 };

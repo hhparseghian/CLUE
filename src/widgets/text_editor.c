@@ -7,6 +7,7 @@
 #include "clue/font.h"
 #include "clue/theme.h"
 #include "clue/timer.h"
+#include "clue/window.h"
 #include <xkbcommon/xkbcommon-keysyms.h>
 
 #define PAD       8
@@ -218,6 +219,16 @@ static int text_editor_handle_event(ClueWidget *w, UIEvent *event)
     ClueTextEditor *ed = (ClueTextEditor *)w;
     int x = w->base.x, y = w->base.y;
     int bw = w->base.w, bh = w->base.h;
+
+    if (event->type == UI_EVENT_MOUSE_MOVE) {
+        int mx = event->mouse_move.x, my = event->mouse_move.y;
+        bool inside = mx >= x && mx < x + bw && my >= y && my < y + bh;
+        ClueApp *app = clue_app_get();
+        if (app && app->window)
+            clue_window_set_cursor(app->window,
+                inside ? UI_CURSOR_TEXT : UI_CURSOR_DEFAULT);
+        return 0;
+    }
 
     if (event->type == UI_EVENT_MOUSE_BUTTON && event->mouse_button.btn == 0) {
         int mx = event->mouse_button.x, my = event->mouse_button.y;
