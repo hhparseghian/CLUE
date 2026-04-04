@@ -693,6 +693,7 @@
     <div class="fn-desc">Switch to the tab at the given index.</div>
   </div>
   <div class="signal-tag">Signal: "changed"</div>
+  <p>Set <code>tabs-&gt;page_bg</code> to a <code>UIColor</code> to give the tab content area a background color. The active tab blends seamlessly into the page.</p>
 
   <!-- ===================== DATA VIEWS ===================== -->
 
@@ -844,7 +845,11 @@
 
   <div class="fn-block">
     <div class="fn-sig"><span class="type">void</span> <span class="name">clue_fill_rect</span>(<span class="param">int x</span>, <span class="param">int y</span>, <span class="param">int w</span>, <span class="param">int h</span>, <span class="param">UIColor color</span>)</div>
-    <div class="fn-desc">Draw a filled rectangle.</div>
+    <div class="fn-desc">Draw a filled rectangle (SDF with anti-aliased edges).</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_fill_rect_solid</span>(<span class="param">int x</span>, <span class="param">int y</span>, <span class="param">int w</span>, <span class="param">int h</span>, <span class="param">UIColor color</span>)</div>
+    <div class="fn-desc">Draw a filled rectangle with no anti-aliasing. Use for pixel-perfect tiling where adjacent rects must not show seams.</div>
   </div>
   <div class="fn-block">
     <div class="fn-sig"><span class="type">void</span> <span class="name">clue_fill_rounded_rect</span>(<span class="param">int x</span>, <span class="param">int y</span>, <span class="param">int w</span>, <span class="param">int h</span>, <span class="param">float radius</span>, <span class="param">UIColor color</span>)</div>
@@ -926,7 +931,18 @@
     <div class="fn-sig"><span class="type">void</span> <span class="name">clue_style_set_margin</span>(<span class="param">ClueStyle *s</span>, <span class="param">int m</span>)</div>
     <div class="fn-desc">Set uniform margin on all sides.</div>
   </div>
-  <p>Style fields can also be set directly: <code>widget-&gt;base.style.bg_color</code>, <code>.fg_color</code>, <code>.corner_radius</code>, <code>.font</code>.</p>
+  <h3>Alignment</h3>
+  <div class="struct-block">
+    <div class="struct-name">ClueAlign</div>
+    <div class="enum-values">CLUE_ALIGN_START | CLUE_ALIGN_CENTER | CLUE_ALIGN_END</div>
+  </div>
+  <p>Set <code>widget-&gt;base.style.h_align</code> and <code>.v_align</code> on a box to control how children are positioned within the available space.</p>
+
+  <h3>Expand</h3>
+  <p>Set <code>widget-&gt;base.style.hexpand = true</code> to make a widget expand horizontally to fill its parent. Set <code>.vexpand = true</code> for vertical. When used inside a box, expanding children share extra space equally.</p>
+
+  <h3>Other fields</h3>
+  <p>Style fields can also be set directly: <code>widget-&gt;base.style.bg_color</code>, <code>.fg_color</code>, <code>.corner_radius</code>, <code>.font</code>, <code>.margin_top</code>, <code>.margin_right</code>, <code>.margin_bottom</code>, <code>.margin_left</code>.</p>
 
   <h2 id="theme">Theme</h2>
   <p class="description">Global theming with built-in dark/light presets and full customization.</p>
