@@ -78,7 +78,8 @@ make
 static void on_clicked(void *widget, void *data)
 {
     (void)widget;
-    clue_label_set_text((ClueLabel *)data, "Button clicked!");
+    ClueLabel *label = data;
+    clue_label_set_text(label, "Button clicked!");
 }
 
 int main(void)
