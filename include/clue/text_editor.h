@@ -12,10 +12,13 @@ typedef struct {
     int         text_cap;   /* capacity of text buffer */
     int         text_len;   /* current length */
     int         cursor;     /* cursor position (byte index) */
+    int         sel_start;  /* selection anchor (-1 = no sel) */
+    int         sel_end;    /* selection end */
     int         scroll_y;   /* vertical scroll offset in pixels */
     int         scroll_x;   /* horizontal scroll offset in pixels */
     bool        cursor_visible;
     int         blink_timer_id;
+    bool        mouse_selecting;
     bool        word_wrap;
     bool        line_numbers;
 } ClueTextEditor;

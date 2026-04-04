@@ -52,6 +52,7 @@ set(CLUE_CORE_SOURCES
     src/widgets/canvas.c
     src/widgets/splitter.c
     src/widgets/text_editor.c
+    src/widgets/clipboard.c
     src/widgets/app.c
     src/third_party/stb_image_impl.c
 )

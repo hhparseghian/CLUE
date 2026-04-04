@@ -17,6 +17,14 @@ typedef enum {
     UI_EVENT_CLOSE,
 } UIEventType;
 
+/* Modifier key flags */
+typedef enum {
+    UI_MOD_SHIFT = 1 << 0,
+    UI_MOD_CTRL  = 1 << 1,
+    UI_MOD_ALT   = 1 << 2,
+    UI_MOD_SUPER = 1 << 3,
+} UIModifiers;
+
 /* Unified event structure delivered to the application */
 typedef struct {
     UIEventType     type;
@@ -26,6 +34,7 @@ typedef struct {
         struct { int x, y, btn, pressed; }  mouse_button;
         struct { int x, y; float dx, dy; }  mouse_scroll;
         struct { int keycode, pressed;
+                 int modifiers;
                  char text[8]; }            key;
         struct { int w, h; }                resize;
     };

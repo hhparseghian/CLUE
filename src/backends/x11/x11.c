@@ -471,10 +471,21 @@ static void process_x_event(XEvent *xev)
         ev.window = win;
         ev.key.keycode = (int)xkb_state_key_get_one_sym(x11.xkb_state, keycode);
         ev.key.pressed = pressed;
+        ev.key.modifiers = 0;
+        if (xkb_state_mod_name_is_active(x11.xkb_state, XKB_MOD_NAME_SHIFT, XKB_STATE_MODS_EFFECTIVE))
+            ev.key.modifiers |= UI_MOD_SHIFT;
+        if (xkb_state_mod_name_is_active(x11.xkb_state, XKB_MOD_NAME_CTRL, XKB_STATE_MODS_EFFECTIVE))
+            ev.key.modifiers |= UI_MOD_CTRL;
+        if (xkb_state_mod_name_is_active(x11.xkb_state, XKB_MOD_NAME_ALT, XKB_STATE_MODS_EFFECTIVE))
+            ev.key.modifiers |= UI_MOD_ALT;
+        if (xkb_state_mod_name_is_active(x11.xkb_state, XKB_MOD_NAME_LOGO, XKB_STATE_MODS_EFFECTIVE))
+            ev.key.modifiers |= UI_MOD_SUPER;
 
         if (pressed && x11.xkb_state) {
-            xkb_state_key_get_utf8(x11.xkb_state, keycode,
-                                   ev.key.text, sizeof(ev.key.text));
+            /* Don't generate text for Ctrl combos */
+            if (!(ev.key.modifiers & UI_MOD_CTRL))
+                xkb_state_key_get_utf8(x11.xkb_state, keycode,
+                                       ev.key.text, sizeof(ev.key.text));
         }
 
         push_event(&ev);

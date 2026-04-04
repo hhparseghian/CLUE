@@ -8,7 +8,7 @@
 #include "clue/theme.h"
 #include "clue/font.h"
 #include "clue/timer.h"
-#include "clue/window.h"
+#include "clue/clipboard.h"
 #include <xkbcommon/xkbcommon-keysyms.h>
 
 #define INPUT_PAD_H 10
@@ -56,12 +56,69 @@ static int text_width_n(UIFont *font, const char *text, int n)
     return clue_font_text_width(font, buf);
 }
 
+static bool has_selection(ClueTextInput *inp)
+{
+    return inp->sel_start >= 0 && inp->sel_start != inp->sel_end;
+}
+
+static int sel_min(ClueTextInput *inp)
+{
+    return inp->sel_start < inp->sel_end ? inp->sel_start : inp->sel_end;
+}
+
+static int sel_max(ClueTextInput *inp)
+{
+    return inp->sel_start > inp->sel_end ? inp->sel_start : inp->sel_end;
+}
+
+static void clear_selection(ClueTextInput *inp)
+{
+    inp->sel_start = -1;
+    inp->sel_end = -1;
+}
+
+static void delete_selection(ClueTextInput *inp)
+{
+    if (!has_selection(inp)) return;
+    int s = sel_min(inp), e = sel_max(inp);
+    int len = (int)strlen(inp->text);
+    memmove(&inp->text[s], &inp->text[e], len - e + 1);
+    inp->cursor = s;
+    clear_selection(inp);
+}
+
+static void copy_selection(ClueTextInput *inp)
+{
+    if (!has_selection(inp)) return;
+    int s = sel_min(inp), e = sel_max(inp);
+    char buf[CLUE_TEXT_INPUT_MAX];
+    int n = e - s;
+    memcpy(buf, &inp->text[s], n);
+    buf[n] = '\0';
+    clue_clipboard_set(buf);
+}
+
+/* Place cursor at pixel position relative to widget */
+static int cursor_from_x(ClueTextInput *inp, int mx)
+{
+    UIFont *font = input_font(inp);
+    if (!font) return 0;
+    int rel_x = mx - inp->base.base.x - INPUT_PAD_H + inp->scroll_offset;
+    int len = (int)strlen(inp->text);
+    for (int i = 0; i <= len; i++) {
+        if (text_width_n(font, inp->text, i) >= rel_x)
+            return i;
+    }
+    return len;
+}
+
 static void text_input_draw(ClueWidget *w)
 {
     ClueTextInput *inp = (ClueTextInput *)w;
 
     if (!w->base.focused && inp->blink_timer_id) {
         stop_blink(inp);
+        clear_selection(inp);
     }
 
     UIFont *font = input_font(inp);
@@ -92,16 +149,25 @@ static void text_input_draw(ClueWidget *w)
     int text_x = x + INPUT_PAD_H - inp->scroll_offset;
     int text_y = y + (bh - clue_font_line_height(font)) / 2;
 
+    /* Selection highlight */
+    if (has_selection(inp)) {
+        int s = sel_min(inp), e = sel_max(inp);
+        int sx = text_x + text_width_n(font, inp->text, s);
+        int ex = text_x + text_width_n(font, inp->text, e);
+        int sh = clue_font_line_height(font);
+        clue_fill_rect(sx, y + INPUT_PAD_V, ex - sx, sh,
+                       UI_RGBAF(th->accent.r, th->accent.g, th->accent.b, 0.35f));
+    }
+
     if (inp->text[0]) {
         UIColor fg = w->style.fg_color.a > 0.001f ? w->style.fg_color : th->input.fg;
         clue_draw_text(text_x, text_y, inp->text, font, fg);
     } else if (inp->placeholder[0]) {
-        /* Show placeholder even when focused if text is empty */
         clue_draw_text(text_x, text_y, inp->placeholder, font, th->input.placeholder);
     }
 
     /* Cursor (blinks) */
-    if (w->base.focused && inp->cursor_visible) {
+    if (w->base.focused && inp->cursor_visible && !has_selection(inp)) {
         int cursor_x = text_x + text_width_n(font, inp->text, inp->cursor);
         int cursor_y = y + INPUT_PAD_V;
         int cursor_h = clue_font_line_height(font);
@@ -143,6 +209,13 @@ static int text_input_handle_event(ClueWidget *w, UIEvent *event)
             if (event->window)
                 clue_window_set_cursor(event->window, UI_CURSOR_TEXT);
         }
+        /* Drag selection */
+        if (inp->mouse_selecting) {
+            inp->cursor = cursor_from_x(inp, mx);
+            inp->sel_end = inp->cursor;
+            ensure_cursor_visible(inp);
+            return 1;
+        }
         return 0;
     }
     case UI_EVENT_MOUSE_BUTTON: {
@@ -150,64 +223,156 @@ static int text_input_handle_event(ClueWidget *w, UIEvent *event)
         int my = event->mouse_button.y;
         bool inside = mx >= x && mx < x + bw && my >= y && my < y + bh;
 
-        if (event->mouse_button.pressed && inside) {
+        if (event->mouse_button.pressed && event->mouse_button.btn == 0 && inside) {
             clue_focus_widget(&w->base);
             start_blink(inp);
-
-            /* Place cursor at click position */
-            UIFont *font = input_font(inp);
-            if (font) {
-                int rel_x = mx - x - INPUT_PAD_H + inp->scroll_offset;
-                int len = (int)strlen(inp->text);
-                inp->cursor = len;
-                for (int i = 0; i <= len; i++) {
-                    if (text_width_n(font, inp->text, i) >= rel_x) {
-                        inp->cursor = i;
-                        break;
-                    }
-                }
-            }
+            inp->cursor = cursor_from_x(inp, mx);
+            inp->sel_start = inp->cursor;
+            inp->sel_end = inp->cursor;
+            inp->mouse_selecting = true;
+            clue_capture_mouse(&w->base);
             return 1;
         }
-        /* Don't steal focus here -- let the clicked widget claim it */
+        if (!event->mouse_button.pressed && event->mouse_button.btn == 0 && inp->mouse_selecting) {
+            inp->mouse_selecting = false;
+            clue_release_mouse();
+            if (inp->sel_start == inp->sel_end)
+                clear_selection(inp);
+            return 1;
+        }
         return 0;
     }
 
     case UI_EVENT_KEY: {
         if (!w->base.focused || !event->key.pressed) return 0;
 
-        /* Reset blink so cursor stays visible while typing */
         stop_blink(inp);
         start_blink(inp);
 
         int key = event->key.keycode;
+        int mods = event->key.modifiers;
         int len = (int)strlen(inp->text);
+        bool shift = mods & UI_MOD_SHIFT;
+        bool ctrl = mods & UI_MOD_CTRL;
 
-        /* Cursor movement */
-        if (key == XKB_KEY_Left)  { if (inp->cursor > 0) inp->cursor--; ensure_cursor_visible(inp); return 1; }
-        if (key == XKB_KEY_Right) { if (inp->cursor < len) inp->cursor++; ensure_cursor_visible(inp); return 1; }
-        if (key == XKB_KEY_Home)  { inp->cursor = 0; ensure_cursor_visible(inp); return 1; }
-        if (key == XKB_KEY_End)   { inp->cursor = len; ensure_cursor_visible(inp); return 1; }
+        /* Ctrl+A: select all */
+        if (ctrl && (key == XKB_KEY_a || key == XKB_KEY_A)) {
+            inp->sel_start = 0;
+            inp->sel_end = len;
+            inp->cursor = len;
+            return 1;
+        }
 
-        /* Backspace */
-        if (key == XKB_KEY_BackSpace) {
-            if (inp->cursor > 0) {
-                memmove(&inp->text[inp->cursor - 1],
-                        &inp->text[inp->cursor], len - inp->cursor + 1);
-                inp->cursor--;
+        /* Ctrl+C: copy */
+        if (ctrl && (key == XKB_KEY_c || key == XKB_KEY_C)) {
+            copy_selection(inp);
+            return 1;
+        }
+
+        /* Ctrl+X: cut */
+        if (ctrl && (key == XKB_KEY_x || key == XKB_KEY_X)) {
+            copy_selection(inp);
+            if (has_selection(inp)) {
+                delete_selection(inp);
                 ensure_cursor_visible(inp);
                 clue_signal_emit(inp, "changed");
             }
             return 1;
         }
 
+        /* Ctrl+V: paste */
+        if (ctrl && (key == XKB_KEY_v || key == XKB_KEY_V)) {
+            char *clip = clue_clipboard_get();
+            if (clip) {
+                if (has_selection(inp)) delete_selection(inp);
+                len = (int)strlen(inp->text);
+                int clen = (int)strlen(clip);
+                if (len + clen < CLUE_TEXT_INPUT_MAX - 1) {
+                    memmove(&inp->text[inp->cursor + clen],
+                            &inp->text[inp->cursor], len - inp->cursor + 1);
+                    memcpy(&inp->text[inp->cursor], clip, clen);
+                    inp->cursor += clen;
+                    ensure_cursor_visible(inp);
+                    clue_signal_emit(inp, "changed");
+                }
+                free(clip);
+            }
+            return 1;
+        }
+
+        /* Cursor movement (with shift = extend selection) */
+        if (key == XKB_KEY_Left) {
+            if (shift) {
+                if (inp->sel_start < 0) inp->sel_start = inp->cursor;
+                if (inp->cursor > 0) inp->cursor--;
+                inp->sel_end = inp->cursor;
+            } else {
+                if (has_selection(inp)) { inp->cursor = sel_min(inp); clear_selection(inp); }
+                else if (inp->cursor > 0) inp->cursor--;
+            }
+            ensure_cursor_visible(inp);
+            return 1;
+        }
+        if (key == XKB_KEY_Right) {
+            if (shift) {
+                if (inp->sel_start < 0) inp->sel_start = inp->cursor;
+                if (inp->cursor < len) inp->cursor++;
+                inp->sel_end = inp->cursor;
+            } else {
+                if (has_selection(inp)) { inp->cursor = sel_max(inp); clear_selection(inp); }
+                else if (inp->cursor < len) inp->cursor++;
+            }
+            ensure_cursor_visible(inp);
+            return 1;
+        }
+        if (key == XKB_KEY_Home) {
+            if (shift) {
+                if (inp->sel_start < 0) inp->sel_start = inp->cursor;
+                inp->cursor = 0;
+                inp->sel_end = 0;
+            } else {
+                clear_selection(inp);
+                inp->cursor = 0;
+            }
+            ensure_cursor_visible(inp);
+            return 1;
+        }
+        if (key == XKB_KEY_End) {
+            if (shift) {
+                if (inp->sel_start < 0) inp->sel_start = inp->cursor;
+                inp->cursor = len;
+                inp->sel_end = len;
+            } else {
+                clear_selection(inp);
+                inp->cursor = len;
+            }
+            ensure_cursor_visible(inp);
+            return 1;
+        }
+
+        /* Backspace */
+        if (key == XKB_KEY_BackSpace) {
+            if (has_selection(inp)) {
+                delete_selection(inp);
+            } else if (inp->cursor > 0) {
+                memmove(&inp->text[inp->cursor - 1],
+                        &inp->text[inp->cursor], len - inp->cursor + 1);
+                inp->cursor--;
+            }
+            ensure_cursor_visible(inp);
+            clue_signal_emit(inp, "changed");
+            return 1;
+        }
+
         /* Delete */
         if (key == XKB_KEY_Delete) {
-            if (inp->cursor < len) {
+            if (has_selection(inp)) {
+                delete_selection(inp);
+            } else if (inp->cursor < len) {
                 memmove(&inp->text[inp->cursor],
                         &inp->text[inp->cursor + 1], len - inp->cursor);
-                clue_signal_emit(inp, "changed");
             }
+            clue_signal_emit(inp, "changed");
             return 1;
         }
 
@@ -218,13 +383,16 @@ static int text_input_handle_event(ClueWidget *w, UIEvent *event)
         }
 
         /* Printable text */
-        if (event->key.text[0] && len < CLUE_TEXT_INPUT_MAX - 2) {
+        if (event->key.text[0]) {
+            if (has_selection(inp)) delete_selection(inp);
+            len = (int)strlen(inp->text);
             int tlen = (int)strlen(event->key.text);
             if (len + tlen < CLUE_TEXT_INPUT_MAX - 1) {
                 memmove(&inp->text[inp->cursor + tlen],
                         &inp->text[inp->cursor], len - inp->cursor + 1);
                 memcpy(&inp->text[inp->cursor], event->key.text, tlen);
                 inp->cursor += tlen;
+                clear_selection(inp);
                 ensure_cursor_visible(inp);
                 clue_signal_emit(inp, "changed");
             }
@@ -268,6 +436,8 @@ ClueTextInput *clue_text_input_new(const char *placeholder)
     clue_cwidget_init(&inp->base, &text_input_vtable);
     inp->base.type_id = CLUE_WIDGET_TEXT_INPUT;
     inp->base.base.focusable = true;
+    inp->sel_start = -1;
+    inp->sel_end = -1;
     if (placeholder) {
         strncpy(inp->placeholder, placeholder, sizeof(inp->placeholder) - 1);
     }
@@ -292,4 +462,5 @@ void clue_text_input_set_text(ClueTextInput *input, const char *text)
     }
     input->cursor = (int)strlen(input->text);
     input->scroll_offset = 0;
+    clear_selection(input);
 }

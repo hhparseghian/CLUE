@@ -342,9 +342,18 @@ static void keyboard_handle_key(void *data, struct wl_keyboard *keyboard,
     ev.window = wm->focused;
     ev.key.keycode = (int)xkb_state_key_get_one_sym(wl.xkb_state, xkb_key);
     ev.key.pressed = (state == WL_KEYBOARD_KEY_STATE_PRESSED);
+    ev.key.modifiers = 0;
+    if (xkb_state_mod_name_is_active(wl.xkb_state, XKB_MOD_NAME_SHIFT, XKB_STATE_MODS_EFFECTIVE))
+        ev.key.modifiers |= UI_MOD_SHIFT;
+    if (xkb_state_mod_name_is_active(wl.xkb_state, XKB_MOD_NAME_CTRL, XKB_STATE_MODS_EFFECTIVE))
+        ev.key.modifiers |= UI_MOD_CTRL;
+    if (xkb_state_mod_name_is_active(wl.xkb_state, XKB_MOD_NAME_ALT, XKB_STATE_MODS_EFFECTIVE))
+        ev.key.modifiers |= UI_MOD_ALT;
+    if (xkb_state_mod_name_is_active(wl.xkb_state, XKB_MOD_NAME_LOGO, XKB_STATE_MODS_EFFECTIVE))
+        ev.key.modifiers |= UI_MOD_SUPER;
 
-    /* Get UTF-8 text for printable keys */
-    if (wl.xkb_state && ev.key.pressed) {
+    /* Get UTF-8 text for printable keys (skip for Ctrl combos) */
+    if (wl.xkb_state && ev.key.pressed && !(ev.key.modifiers & UI_MOD_CTRL)) {
         xkb_state_key_get_utf8(wl.xkb_state, xkb_key,
                                ev.key.text, sizeof(ev.key.text));
     }
