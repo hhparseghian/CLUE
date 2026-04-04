@@ -17,6 +17,7 @@ typedef struct {
     bool        cursor_visible;             /* blink state */
     int         blink_timer_id;
     bool        mouse_selecting;            /* drag-selecting */
+    long long   last_click_ms;              /* for double-click detection */
 } ClueTextInput;
 
 /* Create a new text input with optional placeholder text */

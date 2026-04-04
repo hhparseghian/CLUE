@@ -11,9 +11,34 @@
 #include "clue/clipboard.h"
 #include <xkbcommon/xkbcommon-keysyms.h>
 
+#include <time.h>
+#include <ctype.h>
+
 #define INPUT_PAD_H 10
 #define INPUT_PAD_V 8
 #define CURSOR_BLINK_MS 530
+#define DOUBLE_CLICK_MS 400
+
+static long long now_ms(void)
+{
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return (long long)ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
+}
+
+static int word_start(const char *text, int pos)
+{
+    int i = pos;
+    while (i > 0 && !isspace((unsigned char)text[i - 1])) i--;
+    return i;
+}
+
+static int word_end(const char *text, int len, int pos)
+{
+    int i = pos;
+    while (i < len && !isspace((unsigned char)text[i])) i++;
+    return i;
+}
 
 static bool blink_callback(void *data)
 {
@@ -227,8 +252,21 @@ static int text_input_handle_event(ClueWidget *w, UIEvent *event)
             clue_focus_widget(&w->base);
             start_blink(inp);
             inp->cursor = cursor_from_x(inp, mx);
-            inp->sel_start = inp->cursor;
-            inp->sel_end = inp->cursor;
+
+            /* Double-click: select word */
+            long long now = now_ms();
+            if (now - inp->last_click_ms < DOUBLE_CLICK_MS) {
+                int len = (int)strlen(inp->text);
+                inp->sel_start = word_start(inp->text, inp->cursor);
+                inp->sel_end = word_end(inp->text, len, inp->cursor);
+                inp->cursor = inp->sel_end;
+                inp->last_click_ms = 0;
+            } else {
+                inp->sel_start = inp->cursor;
+                inp->sel_end = inp->cursor;
+                inp->last_click_ms = now;
+            }
+
             inp->mouse_selecting = true;
             clue_capture_mouse(&w->base);
             return 1;

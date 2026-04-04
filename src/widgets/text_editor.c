@@ -1,3 +1,4 @@
+#define _POSIX_C_SOURCE 200809L
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -11,8 +12,33 @@
 #include "clue/clipboard.h"
 #include <xkbcommon/xkbcommon-keysyms.h>
 
+#include <time.h>
+#include <ctype.h>
+
 #define PAD       8
 #define GUTTER_W  40
+#define DOUBLE_CLICK_MS 400
+
+static long long now_ms(void)
+{
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return (long long)ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
+}
+
+static int ed_word_start(const char *text, int pos)
+{
+    int i = pos;
+    while (i > 0 && !isspace((unsigned char)text[i - 1])) i--;
+    return i;
+}
+
+static int ed_word_end(const char *text, int len, int pos)
+{
+    int i = pos;
+    while (i < len && !isspace((unsigned char)text[i])) i++;
+    return i;
+}
 #define CURSOR_BLINK_MS 530
 
 static UIFont *ed_font(ClueTextEditor *ed)
@@ -132,6 +158,81 @@ static int text_width_range(UIFont *font, const char *text, int from, int to)
     memcpy(buf, text + from, n);
     buf[n] = '\0';
     return clue_font_text_width(font, buf);
+}
+
+/* --- Undo/redo --- */
+
+static void undo_push(ClueTextEditor *ed)
+{
+    /* Discard any redo entries ahead of current position */
+    for (int i = ed->undo_pos; i < ed->undo_count; i++)
+        free(ed->undo_stack[i].text);
+    ed->undo_count = ed->undo_pos;
+
+    /* If full, shift everything down */
+    if (ed->undo_count >= CLUE_UNDO_MAX) {
+        free(ed->undo_stack[0].text);
+        for (int i = 1; i < ed->undo_count; i++)
+            ed->undo_stack[i - 1] = ed->undo_stack[i];
+        ed->undo_count--;
+    }
+
+    ClueUndoEntry *e = &ed->undo_stack[ed->undo_count];
+    e->text = malloc(ed->text_len + 1);
+    if (e->text) {
+        memcpy(e->text, ed->text, ed->text_len + 1);
+        e->text_len = ed->text_len;
+        e->cursor = ed->cursor;
+        ed->undo_count++;
+        ed->undo_pos = ed->undo_count;
+    }
+}
+
+static void undo_restore(ClueTextEditor *ed, ClueUndoEntry *e)
+{
+    if (e->text_len + 1 > ed->text_cap) {
+        char *buf = realloc(ed->text, e->text_len + 256);
+        if (!buf) return;
+        ed->text = buf;
+        ed->text_cap = e->text_len + 256;
+    }
+    memcpy(ed->text, e->text, e->text_len + 1);
+    ed->text_len = e->text_len;
+    ed->cursor = e->cursor;
+    clear_sel(ed);
+}
+
+static void undo_save_current(ClueTextEditor *ed)
+{
+    /* Save current state at undo_pos without moving undo_pos,
+     * so redo can restore it */
+    if (ed->undo_pos < CLUE_UNDO_MAX) {
+        ClueUndoEntry *e = &ed->undo_stack[ed->undo_pos];
+        free(e->text);
+        e->text = malloc(ed->text_len + 1);
+        if (e->text) {
+            memcpy(e->text, ed->text, ed->text_len + 1);
+            e->text_len = ed->text_len;
+            e->cursor = ed->cursor;
+            if (ed->undo_pos >= ed->undo_count)
+                ed->undo_count = ed->undo_pos + 1;
+        }
+    }
+}
+
+static void undo(ClueTextEditor *ed)
+{
+    if (ed->undo_pos <= 0) return;
+    undo_save_current(ed);
+    ed->undo_pos--;
+    undo_restore(ed, &ed->undo_stack[ed->undo_pos]);
+}
+
+static void redo(ClueTextEditor *ed)
+{
+    if (ed->undo_pos + 1 >= ed->undo_count) return;
+    ed->undo_pos++;
+    undo_restore(ed, &ed->undo_stack[ed->undo_pos]);
 }
 
 static void ensure_grow(ClueTextEditor *ed, int need)
@@ -328,8 +429,20 @@ static int text_editor_handle_event(ClueWidget *w, UIEvent *event)
             clue_focus_widget(&w->base);
             start_blink(ed);
             ed->cursor = cursor_from_xy(ed, mx, my);
-            ed->sel_start = ed->cursor;
-            ed->sel_end = ed->cursor;
+
+            /* Double-click: select word */
+            long long now = now_ms();
+            if (now - ed->last_click_ms < DOUBLE_CLICK_MS) {
+                ed->sel_start = ed_word_start(ed->text, ed->cursor);
+                ed->sel_end = ed_word_end(ed->text, ed->text_len, ed->cursor);
+                ed->cursor = ed->sel_end;
+                ed->last_click_ms = 0;
+            } else {
+                ed->sel_start = ed->cursor;
+                ed->sel_end = ed->cursor;
+                ed->last_click_ms = now;
+            }
+
             ed->mouse_selecting = true;
             clue_capture_mouse(&w->base);
             return 1;
@@ -364,6 +477,20 @@ static int text_editor_handle_event(ClueWidget *w, UIEvent *event)
         bool shift = mods & UI_MOD_SHIFT;
         bool ctrl = mods & UI_MOD_CTRL;
 
+        /* Ctrl+Z: undo, Ctrl+Shift+Z / Ctrl+Y: redo */
+        if (ctrl && (key == XKB_KEY_z || key == XKB_KEY_Z)) {
+            if (shift) redo(ed); else undo(ed);
+            ensure_cursor_visible(ed);
+            clue_signal_emit(ed, "changed");
+            return 1;
+        }
+        if (ctrl && (key == XKB_KEY_y || key == XKB_KEY_Y)) {
+            redo(ed);
+            ensure_cursor_visible(ed);
+            clue_signal_emit(ed, "changed");
+            return 1;
+        }
+
         /* Ctrl+A: select all */
         if (ctrl && (key == XKB_KEY_a || key == XKB_KEY_A)) {
             ed->sel_start = 0;
@@ -382,6 +509,7 @@ static int text_editor_handle_event(ClueWidget *w, UIEvent *event)
         if (ctrl && (key == XKB_KEY_x || key == XKB_KEY_X)) {
             copy_sel(ed);
             if (has_sel(ed)) {
+                undo_push(ed);
                 delete_sel(ed);
                 ensure_cursor_visible(ed);
                 clue_signal_emit(ed, "changed");
@@ -393,6 +521,7 @@ static int text_editor_handle_event(ClueWidget *w, UIEvent *event)
         if (ctrl && (key == XKB_KEY_v || key == XKB_KEY_V)) {
             char *clip = clue_clipboard_get();
             if (clip) {
+                undo_push(ed);
                 if (has_sel(ed)) delete_sel(ed);
                 int clen = (int)strlen(clip);
                 ensure_grow(ed, clen);
@@ -490,6 +619,7 @@ static int text_editor_handle_event(ClueWidget *w, UIEvent *event)
 
         /* Backspace */
         if (key == XKB_KEY_BackSpace) {
+            undo_push(ed);
             if (has_sel(ed)) {
                 delete_sel(ed);
             } else if (ed->cursor > 0) {
@@ -505,6 +635,7 @@ static int text_editor_handle_event(ClueWidget *w, UIEvent *event)
 
         /* Delete */
         if (key == XKB_KEY_Delete) {
+            undo_push(ed);
             if (has_sel(ed)) {
                 delete_sel(ed);
             } else if (ed->cursor < ed->text_len) {
@@ -518,6 +649,7 @@ static int text_editor_handle_event(ClueWidget *w, UIEvent *event)
 
         /* Enter */
         if (key == XKB_KEY_Return || key == XKB_KEY_KP_Enter) {
+            undo_push(ed);
             if (has_sel(ed)) delete_sel(ed);
             ensure_grow(ed, 1);
             memmove(&ed->text[ed->cursor + 1], &ed->text[ed->cursor],
@@ -533,6 +665,7 @@ static int text_editor_handle_event(ClueWidget *w, UIEvent *event)
 
         /* Tab */
         if (key == XKB_KEY_Tab) {
+            undo_push(ed);
             if (has_sel(ed)) delete_sel(ed);
             int spaces = 4;
             ensure_grow(ed, spaces);
@@ -549,6 +682,7 @@ static int text_editor_handle_event(ClueWidget *w, UIEvent *event)
 
         /* Printable text */
         if (event->key.text[0]) {
+            undo_push(ed);
             if (has_sel(ed)) delete_sel(ed);
             int tlen = (int)strlen(event->key.text);
             ensure_grow(ed, tlen);
@@ -572,6 +706,8 @@ static void text_editor_destroy(ClueWidget *w)
 {
     ClueTextEditor *ed = (ClueTextEditor *)w;
     stop_blink(ed);
+    for (int i = 0; i < ed->undo_count; i++)
+        free(ed->undo_stack[i].text);
     free(ed->text);
 }
 
