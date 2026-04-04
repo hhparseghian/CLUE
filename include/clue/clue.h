@@ -66,6 +66,7 @@ int clue_poll_events(UIEvent *events, int max);
 /* Get the active renderer */
 UIRenderer *clue_get_renderer(void);
 
+
 /* ------------------------------------------------------------------ */
 /* Type-safe auto-cast macro                                           */
 /*                                                                     */
@@ -118,6 +119,8 @@ UIRenderer *clue_get_renderer(void);
 #define clue_cwidget_destroy(w)        (clue_cwidget_destroy)(CLUE_W(w))
 #define clue_cwidget_draw_tree(w)      (clue_cwidget_draw_tree)(CLUE_W(w))
 #define clue_cwidget_layout_tree(w)    (clue_cwidget_layout_tree)(CLUE_W(w))
+#define clue_signal_connect(w, s, cb, d) \
+    (clue_signal_connect)(w, s, (ClueSignalCallback)(cb), d)
 #endif
 
 #endif /* CLUE_H */

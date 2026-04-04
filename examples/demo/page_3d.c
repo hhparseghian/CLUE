@@ -133,7 +133,6 @@ static void cube_build_mvp(float *mvp, float rx, float ry, float sc, float aspec
 
 static void cube_draw_cb(int x, int y, int w, int h, void *data)
 {
-    (void)data;
     cube_init_gl();
     if (!g_cube_prog) return;
 
@@ -173,7 +172,6 @@ static void cube_draw_cb(int x, int y, int w, int h, void *data)
 
 static void cube_event_cb(const ClueCanvasEvent *ev, void *data)
 {
-    (void)data;
     if (ev->type == CLUE_CANVAS_PRESS && ev->button == 0)
         g_cube_dragging = true;
     if (ev->type == CLUE_CANVAS_RELEASE && ev->button == 0)

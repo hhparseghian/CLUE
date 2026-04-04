@@ -12,15 +12,13 @@ const char *fruits[] = {
 
 const char *fruit_item(int index, void *user_data)
 {
-    (void)user_data;
     return fruits[index];
 }
 
 /* --- Theme toggle --- */
 
-static void on_theme_toggle(void *widget, void *data)
+static void on_theme_toggle(ClueButton *button, void *data)
 {
-    (void)data;
     static int idx = 0;
     idx = (idx + 1) % 4;
 
@@ -90,14 +88,13 @@ static void on_theme_toggle(void *widget, void *data)
 
     char label[32];
     snprintf(label, sizeof(label), "Theme: %s", names[(idx + 1) % 4]);
-    clue_button_set_label(widget, label);
+    clue_button_set_label(button, label);
 }
 
 /* --- Menu callbacks --- */
 
 static void on_menu_open(void *widget, void *data)
 {
-    (void)widget; (void)data;
     ClueFileFilter filters[] = {
         {"C Source",  ".c .h"},
         {"Text Files", ".txt .md"},
@@ -116,7 +113,6 @@ static void on_menu_open(void *widget, void *data)
 
 static void on_menu_save(void *widget, void *data)
 {
-    (void)widget; (void)data;
     ClueFileFilter save_filters[] = {
         {"Text Files", ".txt"},
         {"C Source",   ".c"},
@@ -135,13 +131,11 @@ static void on_menu_save(void *widget, void *data)
 
 static void on_menu_about(void *widget, void *data)
 {
-    (void)widget; (void)data;
     clue_dialog_message("About", "CLUE UI Engine v0.1");
 }
 
 static void on_menu_quit(void *widget, void *data)
 {
-    (void)widget; (void)data;
     clue_app_quit(clue_app_get());
 }
 

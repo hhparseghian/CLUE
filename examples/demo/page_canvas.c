@@ -14,7 +14,6 @@ static UIColor g_paint_color = {0.86f, 0.86f, 1.0f, 1.0f};
 
 static void canvas_draw_cb(int x, int y, int w, int h, void *data)
 {
-    (void)data; (void)w; (void)h;
     for (int i = 1; i < g_paint_count; i++) {
         if (g_paint_points[i].x < 0 || g_paint_points[i - 1].x < 0)
             continue;
@@ -32,7 +31,6 @@ static void canvas_draw_cb(int x, int y, int w, int h, void *data)
 
 static void canvas_event_cb(const ClueCanvasEvent *ev, void *data)
 {
-    (void)data;
     if (ev->type == CLUE_CANVAS_PRESS) {
         if (g_paint_count > 0 && g_paint_count < PAINT_MAX) {
             g_paint_points[g_paint_count] = (PaintPoint){-1, -1, {0, 0, 0, 0}};
@@ -57,18 +55,15 @@ static void canvas_event_cb(const ClueCanvasEvent *ev, void *data)
     }
 }
 
-static void on_canvas_clear(void *widget, void *data)
+static void on_canvas_clear(ClueButton *button, void *data)
 {
-    (void)widget; (void)data;
     g_paint_count = 0;
     clue_label_set_text(g_status, "Canvas cleared");
 }
 
-static void on_color_changed(void *widget, void *data)
+static void on_color_changed(ClueColorPicker *picker, void *data)
 {
-    (void)data;
-    ClueColorPicker *cp = widget;
-    g_paint_color = clue_colorpicker_get_color(cp);
+    g_paint_color = clue_colorpicker_get_color(picker);
 }
 
 ClueBox *build_canvas_page(void)

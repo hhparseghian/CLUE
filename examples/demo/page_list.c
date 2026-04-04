@@ -1,9 +1,8 @@
 #include "demo.h"
 
-static void on_list_selected(void *widget, void *data)
+static void on_list_selected(ClueListView *list, void *data)
 {
-    (void)data;
-    int idx = clue_listview_get_selected(widget);
+    int idx = clue_listview_get_selected(list);
     char buf[64];
     snprintf(buf, sizeof(buf), "Fruit: %s", idx >= 0 ? fruits[idx] : "none");
     clue_label_set_text(g_status, buf);

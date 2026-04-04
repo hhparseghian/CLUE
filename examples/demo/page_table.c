@@ -13,15 +13,13 @@ static const char *people[][3] = {
 
 static const char *table_cell(int row, int col, void *user_data)
 {
-    (void)user_data;
     if (row < 0 || row >= 8 || col < 0 || col >= 3) return "";
     return people[row][col];
 }
 
-static void on_table_selected(void *widget, void *data)
+static void on_table_selected(ClueTable *table, void *data)
 {
-    (void)data;
-    int row = clue_table_get_selected(widget);
+    int row = clue_table_get_selected(table);
     if (row >= 0 && row < 8) {
         char buf[128];
         snprintf(buf, sizeof(buf), "Table: %s (%s)", people[row][0], people[row][2]);

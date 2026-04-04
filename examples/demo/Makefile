@@ -1,5 +1,5 @@
 CC      ?= gcc
-CFLAGS  ?= -Wall -Wextra -O2
+CFLAGS  ?= -Wall -Wextra -Wno-unused-parameter -O2
 PKG     := clue
 
 CFLAGS  += $(shell pkg-config --cflags $(PKG))
