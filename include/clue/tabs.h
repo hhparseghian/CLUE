@@ -14,6 +14,7 @@ typedef struct {
     int          active;                   /* active tab index */
     int          hovered;                  /* hovered tab index */
     int          tab_height;               /* height of tab bar */
+    UIColor      page_bg;                 /* page background color (notebook) */
 } ClueTabs;
 
 /* Create a new tab container */

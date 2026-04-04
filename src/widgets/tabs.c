@@ -23,21 +23,42 @@ static void tabs_draw(ClueWidget *w)
     const ClueTheme *th = clue_theme_get();
     int x = w->base.x, y = w->base.y, bw = w->base.w;
 
-    /* Tab bar background */
-    clue_fill_rect(x, y, bw, t->tab_height, th->surface);
+    int content_y = y + t->tab_height;
+    int content_h = w->base.h - t->tab_height;
+    bool has_page_bg = t->page_bg.a > 0.001f;
+    UIColor page_bg = has_page_bg ? t->page_bg : th->bg;
 
-    /* Draw tab buttons */
+    /* Measure total tab bar width */
+    int tabs_width = 0;
+    if (font) {
+        for (int i = 0; i < t->tab_count; i++)
+            tabs_width += clue_font_text_width(font, t->tab_labels[i]) + TAB_PAD_H * 2;
+    }
+
+    /* Page background — one solid rect covering everything (no AA edges) */
+    if (has_page_bg) {
+        clue_fill_rect_solid(x, y, bw, w->base.h, page_bg);
+        /* Cover the tab bar area to the right of the tabs with app bg */
+        if (tabs_width < bw) {
+            clue_fill_rect_solid(x + tabs_width, y, bw - tabs_width, t->tab_height, th->bg);
+        }
+    }
+
+    /* Draw inactive tabs on top of page_bg (active tab = page_bg shows through) */
     int tx = x;
     for (int i = 0; i < t->tab_count; i++) {
         int tw = 0;
         if (font) tw = clue_font_text_width(font, t->tab_labels[i]) + TAB_PAD_H * 2;
 
-        /* Active tab highlight */
         if (i == t->active) {
-            clue_fill_rect(tx, y, tw, t->tab_height, th->bg);
-            clue_fill_rect(tx, y + t->tab_height - 3, tw, 3, th->accent);
-        } else if (i == t->hovered) {
-            clue_fill_rect(tx, y, tw, t->tab_height, th->surface_hover);
+            /* Accent underline at top */
+            clue_fill_rect_solid(tx, y, tw, 3, th->accent);
+        } else {
+            /* Inactive tab: surface color with SDF (keeps AA edges) */
+            clue_fill_rect(tx, y, tw, t->tab_height, th->surface);
+            if (i == t->hovered) {
+                clue_fill_rect(tx, y, tw, t->tab_height, th->surface_hover);
+            }
         }
 
         /* Tab label */
@@ -50,13 +71,20 @@ static void tabs_draw(ClueWidget *w)
         tx += tw;
     }
 
-    /* Bottom border */
-    clue_draw_line(x, y + t->tab_height, x + bw, y + t->tab_height,
-                   1.0f, th->surface_border);
 
-    /* Draw active page content */
+    /* Draw active page: force size to fill content area, layout, then draw */
     if (t->active >= 0 && t->active < t->tab_count && t->tab_pages[t->active]) {
-        clue_cwidget_draw_tree(t->tab_pages[t->active]);
+        ClueWidget *page = t->tab_pages[t->active];
+        page->base.x = x;
+        page->base.y = y + t->tab_height;
+        page->base.w = bw;
+        page->base.h = w->base.h - t->tab_height;
+        clue_cwidget_layout_tree(page);
+        page->base.x = x;
+        page->base.y = y + t->tab_height;
+        page->base.w = bw;
+        page->base.h = w->base.h - t->tab_height;
+        clue_cwidget_draw_tree(page);
     }
 }
 
@@ -70,11 +98,21 @@ static void tabs_layout(ClueWidget *w)
     /* Layout the active page to fill below the tab bar */
     if (t->active >= 0 && t->active < t->tab_count && t->tab_pages[t->active]) {
         ClueWidget *page = t->tab_pages[t->active];
+        int page_w = w->base.w;
+        int page_h = w->base.h - t->tab_height;
+
+        /* Set position and size before layout so hexpand/vexpand can use it */
         page->base.x = w->base.x;
         page->base.y = w->base.y + t->tab_height;
-        page->base.w = w->base.w;
-        page->base.h = w->base.h - t->tab_height;
+        page->base.w = page_w;
+        page->base.h = page_h;
         clue_cwidget_layout_tree(page);
+
+        /* Force page to fill tab content area regardless of content */
+        page->base.x = w->base.x;
+        page->base.y = w->base.y + t->tab_height;
+        page->base.w = page_w;
+        page->base.h = page_h;
     }
 }
 
