@@ -300,8 +300,8 @@ static void build_ui(FileDialogState *s)
     s->path_label = clue_label_new(s->current_dir);
     s->path_label->base.style.fg_color = th->fg;
 
-    clue_container_add((ClueWidget *)top_row, (ClueWidget *)s->btn_up);
-    clue_container_add((ClueWidget *)top_row, (ClueWidget *)s->path_label);
+    clue_container_add(top_row, s->btn_up);
+    clue_container_add(top_row, s->path_label);
 
     /* File list */
     s->list = clue_listview_new();
@@ -334,8 +334,8 @@ static void build_ui(FileDialogState *s)
     s->btn_ok = clue_button_new(ok_label);
     clue_signal_connect(s->btn_ok, "clicked", on_ok, s);
 
-    clue_container_add((ClueWidget *)btn_row, (ClueWidget *)s->btn_cancel);
-    clue_container_add((ClueWidget *)btn_row, (ClueWidget *)s->btn_ok);
+    clue_container_add(btn_row, s->btn_cancel);
+    clue_container_add(btn_row, s->btn_ok);
 
     /* Filter dropdown (if filters provided) */
     if (s->filters && s->filter_count > 0) {
@@ -355,13 +355,13 @@ static void build_ui(FileDialogState *s)
     }
 
     /* Assemble */
-    clue_container_add((ClueWidget *)s->root, (ClueWidget *)top_row);
+    clue_container_add(s->root, top_row);
     if (s->filter_dd)
-        clue_container_add((ClueWidget *)s->root, (ClueWidget *)s->filter_dd);
-    clue_container_add((ClueWidget *)s->root, (ClueWidget *)s->list);
-    clue_container_add((ClueWidget *)s->root, (ClueWidget *)s->filename_input);
-    clue_container_add((ClueWidget *)s->root, (ClueWidget *)sep);
-    clue_container_add((ClueWidget *)s->root, (ClueWidget *)btn_row);
+        clue_container_add(s->root, s->filter_dd);
+    clue_container_add(s->root, s->list);
+    clue_container_add(s->root, s->filename_input);
+    clue_container_add(s->root, sep);
+    clue_container_add(s->root, btn_row);
 }
 
 /* ------------------------------------------------------------------ */
@@ -428,7 +428,7 @@ static ClueFileDialogResult run_file_dialog(ClueFileDialogMode mode,
                                         title ? title : "File");
     if (!win) {
         clear_entries(&state);
-        clue_cwidget_destroy((ClueWidget *)state.root);
+        clue_cwidget_destroy(state.root);
         return result;
     }
 
@@ -485,8 +485,8 @@ static ClueFileDialogResult run_file_dialog(ClueFileDialogMode mode,
         state.root->base.base.y = 0;
         state.root->base.base.w = win->w;
         state.root->base.base.h = win->h;
-        clue_cwidget_layout_tree((ClueWidget *)state.root);
-        clue_cwidget_draw_tree((ClueWidget *)state.root);
+        clue_cwidget_layout_tree(state.root);
+        clue_cwidget_draw_tree(state.root);
 
         /* Draw dropdown overlay if open */
         if (state.filter_dd) {
@@ -506,7 +506,7 @@ static ClueFileDialogResult run_file_dialog(ClueFileDialogMode mode,
     }
 
     clear_entries(&state);
-    clue_cwidget_destroy((ClueWidget *)state.root);
+    clue_cwidget_destroy(state.root);
     g_fds = NULL;
 
     return result;

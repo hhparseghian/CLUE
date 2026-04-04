@@ -69,10 +69,10 @@ int main(void)
     ClueButton *btn = clue_button_new("Click Me");
     clue_signal_connect(btn, "clicked", on_clicked, label);
 
-    clue_container_add((ClueWidget *)vbox, (ClueWidget *)label);
-    clue_container_add((ClueWidget *)vbox, (ClueWidget *)btn);
+    clue_container_add(vbox, label);
+    clue_container_add(vbox, btn);
 
-    clue_app_set_root(app, (ClueWidget *)vbox);
+    clue_app_set_root(app, vbox);
     clue_app_run(app);
     clue_app_destroy(app);
     return 0;

@@ -56,4 +56,50 @@ int clue_poll_events(UIEvent *events, int max);
 /* Get the active renderer */
 UIRenderer *clue_get_renderer(void);
 
+/* ------------------------------------------------------------------ */
+/* Type-safe auto-cast macro                                           */
+/*                                                                     */
+/* CLUE_W(x) converts any known widget pointer to ClueWidget * at      */
+/* compile time.  Passing an unrecognised type is a compile error.      */
+/* ------------------------------------------------------------------ */
+
+#define CLUE_W(x) _Generic((x),                  \
+    ClueWidget    *: (ClueWidget *)(x),           \
+    ClueBox       *: (ClueWidget *)(x),           \
+    ClueLabel     *: (ClueWidget *)(x),           \
+    ClueButton    *: (ClueWidget *)(x),           \
+    ClueTextInput *: (ClueWidget *)(x),           \
+    ClueCheckbox  *: (ClueWidget *)(x),           \
+    ClueRadio     *: (ClueWidget *)(x),           \
+    ClueSlider    *: (ClueWidget *)(x),           \
+    ClueDropdown  *: (ClueWidget *)(x),           \
+    ClueListView  *: (ClueWidget *)(x),           \
+    ClueTreeView  *: (ClueWidget *)(x),           \
+    ClueTable     *: (ClueWidget *)(x),           \
+    ClueProgress  *: (ClueWidget *)(x),           \
+    ClueScroll    *: (ClueWidget *)(x),           \
+    ClueImage     *: (ClueWidget *)(x),           \
+    ClueGrid      *: (ClueWidget *)(x),           \
+    ClueTabs      *: (ClueWidget *)(x),           \
+    ClueSeparator *: (ClueWidget *)(x),           \
+    ClueMenu      *: (ClueWidget *)(x),           \
+    ClueMenuBar   *: (ClueWidget *)(x)            \
+)
+
+/* Wrapper macros -- shadow the real functions so call sites need no casts.
+ * Internal implementation files define CLUE_IMPL before including this
+ * header to suppress the macros and use the real function signatures. */
+#ifndef CLUE_IMPL
+#define clue_container_add(p, c)       (clue_container_add)(CLUE_W(p), CLUE_W(c))
+#define clue_container_remove(p, c)    (clue_container_remove)(CLUE_W(p), CLUE_W(c))
+#define clue_app_set_root(app, r)      (clue_app_set_root)(app, CLUE_W(r))
+#define clue_tabs_add(t, l, c)         (clue_tabs_add)(t, l, CLUE_W(c))
+#define clue_dialog_set_content(d, c)  (clue_dialog_set_content)(d, CLUE_W(c))
+#define clue_tooltip_set(w, t)         (clue_tooltip_set)(CLUE_W(w), t)
+#define clue_tooltip_get(w)            (clue_tooltip_get)(CLUE_W(w))
+#define clue_cwidget_destroy(w)        (clue_cwidget_destroy)(CLUE_W(w))
+#define clue_cwidget_draw_tree(w)      (clue_cwidget_draw_tree)(CLUE_W(w))
+#define clue_cwidget_layout_tree(w)    (clue_cwidget_layout_tree)(CLUE_W(w))
+#endif
+
 #endif /* CLUE_H */

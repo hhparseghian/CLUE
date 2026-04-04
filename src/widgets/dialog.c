@@ -1,4 +1,5 @@
 #define _POSIX_C_SOURCE 200809L
+#define CLUE_IMPL
 /*
  * CLUE -- Dialog widget
  *

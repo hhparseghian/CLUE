@@ -202,7 +202,7 @@ static void on_show_modal(void *w, void *d)
     ClueDialog *dlg = clue_dialog_new("Modal + On Top", 380, 160);
     ClueLabel *lbl = clue_label_new("Blocks parent, stays on top.");
     lbl->base.style.fg_color = clue_theme_get()->fg;
-    clue_dialog_set_content(dlg, (ClueWidget *)lbl);
+    clue_dialog_set_content(dlg, lbl);
     clue_dialog_add_button(dlg, "Cancel", CLUE_DIALOG_CANCEL);
     clue_dialog_add_button(dlg, "OK", CLUE_DIALOG_OK);
     clue_dialog_set_flags(dlg, CLUE_DIALOG_FLAG_MODAL | CLUE_DIALOG_FLAG_ON_TOP);
@@ -220,7 +220,7 @@ static void on_show_ontop(void *w, void *d)
     ClueDialog *dlg = clue_dialog_new("On Top Only", 380, 160);
     ClueLabel *lbl = clue_label_new("Stays on top, parent is usable.");
     lbl->base.style.fg_color = clue_theme_get()->fg;
-    clue_dialog_set_content(dlg, (ClueWidget *)lbl);
+    clue_dialog_set_content(dlg, lbl);
     clue_dialog_add_button(dlg, "Close", CLUE_DIALOG_OK);
     clue_dialog_set_flags(dlg, CLUE_DIALOG_FLAG_ON_TOP);
     clue_dialog_run(dlg);
@@ -234,7 +234,7 @@ static void on_show_free(void *w, void *d)
     ClueDialog *dlg = clue_dialog_new("Free Dialog", 380, 160);
     ClueLabel *lbl = clue_label_new("Independent window, no blocking.");
     lbl->base.style.fg_color = clue_theme_get()->fg;
-    clue_dialog_set_content(dlg, (ClueWidget *)lbl);
+    clue_dialog_set_content(dlg, lbl);
     clue_dialog_add_button(dlg, "Close", CLUE_DIALOG_OK);
     clue_dialog_set_flags(dlg, 0);
     clue_dialog_run(dlg);
@@ -244,7 +244,7 @@ static void on_show_free(void *w, void *d)
 
 /* --- Build tab pages --- */
 
-static ClueWidget *build_widgets_page(ClueApp *app)
+static ClueBox *build_widgets_page(ClueApp *app)
 {
     ClueBox *page = clue_box_new(CLUE_VERTICAL, 10);
     clue_style_set_padding(&page->base.style, 12);
@@ -260,8 +260,8 @@ static ClueWidget *build_widgets_page(ClueApp *app)
     ClueButton *btn_quit = clue_button_new("Quit");
     btn_quit->base.style.bg_color = UI_RGB(180, 50, 50);
     clue_signal_connect(btn_quit, "clicked", on_quit, app);
-    clue_container_add((ClueWidget *)btn_row, (ClueWidget *)btn_hello);
-    clue_container_add((ClueWidget *)btn_row, (ClueWidget *)btn_quit);
+    clue_container_add(btn_row, btn_hello);
+    clue_container_add(btn_row, btn_quit);
 
     /* Text input */
     ClueTextInput *input = clue_text_input_new("Type here...");
@@ -282,9 +282,9 @@ static ClueWidget *build_widgets_page(ClueApp *app)
     clue_signal_connect(r2, "changed", on_radio, NULL);
     clue_signal_connect(r3, "changed", on_radio, NULL);
     ClueBox *radio_row = clue_box_new(CLUE_HORIZONTAL, 16);
-    clue_container_add((ClueWidget *)radio_row, (ClueWidget *)r1);
-    clue_container_add((ClueWidget *)radio_row, (ClueWidget *)r2);
-    clue_container_add((ClueWidget *)radio_row, (ClueWidget *)r3);
+    clue_container_add(radio_row, r1);
+    clue_container_add(radio_row, r2);
+    clue_container_add(radio_row, r3);
 
     /* Slider */
     ClueBox *slider_row = clue_box_new(CLUE_HORIZONTAL, 8);
@@ -293,8 +293,8 @@ static ClueWidget *build_widgets_page(ClueApp *app)
     ClueSlider *slider = clue_slider_new(0, 100, 50);
     slider->base.base.w = 200;
     clue_signal_connect(slider, "changed", on_slider, NULL);
-    clue_container_add((ClueWidget *)slider_row, (ClueWidget *)sl);
-    clue_container_add((ClueWidget *)slider_row, (ClueWidget *)slider);
+    clue_container_add(slider_row, sl);
+    clue_container_add(slider_row, slider);
 
     /* Dropdown */
     ClueDropdown *dd = clue_dropdown_new("Pick a colour...");
@@ -312,8 +312,8 @@ static ClueWidget *build_widgets_page(ClueApp *app)
     clue_signal_connect(btn_reset, "clicked", on_reset_progress, NULL);
 
     ClueBox *progress_row = clue_box_new(CLUE_HORIZONTAL, 16);
-    clue_container_add((ClueWidget *)progress_row, (ClueWidget *)g_progress);
-    clue_container_add((ClueWidget *)progress_row, (ClueWidget *)btn_reset);
+    clue_container_add(progress_row, g_progress);
+    clue_container_add(progress_row, btn_reset);
 
     /* Timer label */
     g_timer_label = clue_label_new("Uptime: 00:00");
@@ -327,17 +327,17 @@ static ClueWidget *build_widgets_page(ClueApp *app)
     clue_signal_connect(btn_ontop, "clicked", on_show_ontop, NULL);
     ClueButton *btn_free = clue_button_new("Free");
     clue_signal_connect(btn_free, "clicked", on_show_free, NULL);
-    clue_container_add((ClueWidget *)dlg_row, (ClueWidget *)btn_modal);
-    clue_container_add((ClueWidget *)dlg_row, (ClueWidget *)btn_ontop);
-    clue_container_add((ClueWidget *)dlg_row, (ClueWidget *)btn_free);
+    clue_container_add(dlg_row, btn_modal);
+    clue_container_add(dlg_row, btn_ontop);
+    clue_container_add(dlg_row, btn_free);
 
     /* Tooltips */
-    clue_tooltip_set((ClueWidget *)btn_hello, "Prints hello to status bar");
-    clue_tooltip_set((ClueWidget *)btn_quit, "Exits the application");
-    clue_tooltip_set((ClueWidget *)btn_modal, "Modal + on top, blocks parent");
-    clue_tooltip_set((ClueWidget *)btn_ontop, "Stays on top, parent is usable");
-    clue_tooltip_set((ClueWidget *)btn_free, "Independent window, no blocking");
-    clue_tooltip_set((ClueWidget *)g_progress, "Animated progress bar (timer)");
+    clue_tooltip_set(btn_hello, "Prints hello to status bar");
+    clue_tooltip_set(btn_quit, "Exits the application");
+    clue_tooltip_set(btn_modal, "Modal + on top, blocks parent");
+    clue_tooltip_set(btn_ontop, "Stays on top, parent is usable");
+    clue_tooltip_set(btn_free, "Independent window, no blocking");
+    clue_tooltip_set(g_progress, "Animated progress bar (timer)");
 
     /* Add spacing between widget groups */
     input->base.style.margin_top = 4;
@@ -353,23 +353,23 @@ static ClueWidget *build_widgets_page(ClueApp *app)
     ClueSeparator *sep2 = clue_separator_new(CLUE_HORIZONTAL);
     ClueSeparator *sep3 = clue_separator_new(CLUE_HORIZONTAL);
 
-    clue_container_add((ClueWidget *)page, (ClueWidget *)btn_row);
-    clue_container_add((ClueWidget *)page, (ClueWidget *)input);
-    clue_container_add((ClueWidget *)page, (ClueWidget *)sep1);
-    clue_container_add((ClueWidget *)page, (ClueWidget *)cb);
-    clue_container_add((ClueWidget *)page, (ClueWidget *)radio_row);
-    clue_container_add((ClueWidget *)page, (ClueWidget *)slider_row);
-    clue_container_add((ClueWidget *)page, (ClueWidget *)dd);
-    clue_container_add((ClueWidget *)page, (ClueWidget *)sep2);
-    clue_container_add((ClueWidget *)page, (ClueWidget *)progress_row);
-    clue_container_add((ClueWidget *)page, (ClueWidget *)g_timer_label);
-    clue_container_add((ClueWidget *)page, (ClueWidget *)sep3);
-    clue_container_add((ClueWidget *)page, (ClueWidget *)dlg_row);
+    clue_container_add(page, btn_row);
+    clue_container_add(page, input);
+    clue_container_add(page, sep1);
+    clue_container_add(page, cb);
+    clue_container_add(page, radio_row);
+    clue_container_add(page, slider_row);
+    clue_container_add(page, dd);
+    clue_container_add(page, sep2);
+    clue_container_add(page, progress_row);
+    clue_container_add(page, g_timer_label);
+    clue_container_add(page, sep3);
+    clue_container_add(page, dlg_row);
 
-    return (ClueWidget *)page;
+    return page;
 }
 
-static ClueWidget *build_list_page(void)
+static ClueBox *build_list_page(void)
 {
     ClueBox *page = clue_box_new(CLUE_VERTICAL, 10);
     clue_style_set_padding(&page->base.style, 12);
@@ -387,13 +387,13 @@ static ClueWidget *build_list_page(void)
     clue_listview_set_data(lv, 20, fruit_item, NULL);
     clue_signal_connect(lv, "selected", on_list_selected, NULL);
 
-    clue_container_add((ClueWidget *)page, (ClueWidget *)lbl);
-    clue_container_add((ClueWidget *)page, (ClueWidget *)lv);
+    clue_container_add(page, lbl);
+    clue_container_add(page, lv);
 
-    return (ClueWidget *)page;
+    return page;
 }
 
-static ClueWidget *build_grid_page(void)
+static ClueBox *build_grid_page(void)
 {
     ClueBox *page = clue_box_new(CLUE_VERTICAL, 10);
     clue_style_set_padding(&page->base.style, 12);
@@ -427,17 +427,17 @@ static ClueWidget *build_grid_page(void)
     clue_dropdown_add_item(dd, "Designer");
     clue_dropdown_add_item(dd, "Manager");
 
-    clue_container_add((ClueWidget *)grid, (ClueWidget *)l1);
-    clue_container_add((ClueWidget *)grid, (ClueWidget *)i1);
-    clue_container_add((ClueWidget *)grid, (ClueWidget *)l2);
-    clue_container_add((ClueWidget *)grid, (ClueWidget *)i2);
-    clue_container_add((ClueWidget *)grid, (ClueWidget *)l3);
-    clue_container_add((ClueWidget *)grid, (ClueWidget *)dd);
+    clue_container_add(grid, l1);
+    clue_container_add(grid, i1);
+    clue_container_add(grid, l2);
+    clue_container_add(grid, i2);
+    clue_container_add(grid, l3);
+    clue_container_add(grid, dd);
 
-    clue_container_add((ClueWidget *)page, (ClueWidget *)lbl);
-    clue_container_add((ClueWidget *)page, (ClueWidget *)grid);
+    clue_container_add(page, lbl);
+    clue_container_add(page, grid);
 
-    return (ClueWidget *)page;
+    return page;
 }
 
 /* --- Table data --- */
@@ -481,7 +481,7 @@ static void on_table_selected(void *w, void *d)
     }
 }
 
-static ClueWidget *build_tree_page(void)
+static ClueBox *build_tree_page(void)
 {
     ClueBox *page = clue_box_new(CLUE_VERTICAL, 10);
     clue_style_set_padding(&page->base.style, 12);
@@ -518,11 +518,11 @@ static ClueWidget *build_tree_page(void)
     clue_tree_node_add(tv->root, clue_tree_node_new("CMakeLists.txt"));
     clue_tree_node_add(tv->root, clue_tree_node_new("README.md"));
 
-    clue_container_add((ClueWidget *)page, (ClueWidget *)tv);
-    return (ClueWidget *)page;
+    clue_container_add(page, tv);
+    return page;
 }
 
-static ClueWidget *build_table_page(void)
+static ClueBox *build_table_page(void)
 {
     ClueBox *page = clue_box_new(CLUE_VERTICAL, 10);
     clue_style_set_padding(&page->base.style, 12);
@@ -539,8 +539,8 @@ static ClueWidget *build_table_page(void)
     clue_table_set_data(tbl, 8, table_cell, NULL);
     clue_signal_connect(tbl, "selected", on_table_selected, NULL);
 
-    clue_container_add((ClueWidget *)page, (ClueWidget *)tbl);
-    return (ClueWidget *)page;
+    clue_container_add(page, tbl);
+    return page;
 }
 
 /* --- Menu callbacks --- */
@@ -634,10 +634,10 @@ int main(void)
 
     ClueButton *theme_btn = clue_button_new("Theme: Light");
     clue_signal_connect(theme_btn, "clicked", on_theme_toggle, NULL);
-    clue_tooltip_set((ClueWidget *)theme_btn, "Cycle through 4 themes");
+    clue_tooltip_set(theme_btn, "Cycle through 4 themes");
 
-    clue_container_add((ClueWidget *)header, (ClueWidget *)title);
-    clue_container_add((ClueWidget *)header, (ClueWidget *)theme_btn);
+    clue_container_add(header, title);
+    clue_container_add(header, theme_btn);
 
     /* Tabs */
     ClueTabs *tabs = clue_tabs_new();
@@ -650,12 +650,12 @@ int main(void)
     clue_tabs_add(tabs, "Tree", build_tree_page());
     clue_tabs_add(tabs, "Table", build_table_page());
 
-    clue_container_add((ClueWidget *)root, (ClueWidget *)menubar);
-    clue_container_add((ClueWidget *)root, (ClueWidget *)header);
-    clue_container_add((ClueWidget *)root, (ClueWidget *)g_status);
-    clue_container_add((ClueWidget *)root, (ClueWidget *)tabs);
+    clue_container_add(root, menubar);
+    clue_container_add(root, header);
+    clue_container_add(root, g_status);
+    clue_container_add(root, tabs);
 
-    clue_app_set_root(app, (ClueWidget *)root);
+    clue_app_set_root(app, root);
 
     /* 1-second timer for uptime clock */
     clue_timer_repeat(1000, on_tick_clock, NULL);

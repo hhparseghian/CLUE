@@ -34,14 +34,14 @@ int main(void)
     clue_signal_connect(quit, "clicked", on_quit, app);
 
     ClueBox *btn_row = clue_box_new(CLUE_HORIZONTAL, 8);
-    clue_container_add((ClueWidget *)btn_row, (ClueWidget *)btn);
-    clue_container_add((ClueWidget *)btn_row, (ClueWidget *)quit);
+    clue_container_add(btn_row, btn);
+    clue_container_add(btn_row, quit);
 
-    clue_container_add((ClueWidget *)vbox, (ClueWidget *)title);
-    clue_container_add((ClueWidget *)vbox, (ClueWidget *)status);
-    clue_container_add((ClueWidget *)vbox, (ClueWidget *)btn_row);
+    clue_container_add(vbox, title);
+    clue_container_add(vbox, status);
+    clue_container_add(vbox, btn_row);
 
-    clue_app_set_root(app, (ClueWidget *)vbox);
+    clue_app_set_root(app, vbox);
     clue_app_run(app);
     clue_app_destroy(app);
     return 0;

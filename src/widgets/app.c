@@ -1,3 +1,4 @@
+#define CLUE_IMPL
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
