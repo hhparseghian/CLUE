@@ -90,13 +90,32 @@ void clue_window_destroy(UIWindow *win)
 /* Set the window type (NORMAL, DIALOG, POPUP) */
 void clue_window_set_type(UIWindow *win, UIWindowType type)
 {
-    if (win) win->type = type;
+    if (!win) return;
+    win->type = type;
+    /* Re-apply backend hints if window already created */
+    UIWindowManager *wm = &g_wm;
+    if (wm->backend && wm->backend->set_window_type)
+        wm->backend->set_window_type(win, type);
 }
 
 /* Set the parent window (required for DIALOG and POPUP types) */
 void clue_window_set_parent(UIWindow *win, UIWindow *parent)
 {
-    if (win) win->parent = parent;
+    if (!win) return;
+    win->parent = parent;
+    UIWindowManager *wm = &g_wm;
+    if (wm->backend && wm->backend->set_window_parent)
+        wm->backend->set_window_parent(win, parent);
+}
+
+void clue_window_set_position(UIWindow *win, int x, int y)
+{
+    if (!win) return;
+    win->x = x;
+    win->y = y;
+    UIWindowManager *wm = &g_wm;
+    if (wm->backend && wm->backend->set_window_position)
+        wm->backend->set_window_position(win, x, y);
 }
 
 /* Show or hide a window */

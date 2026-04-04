@@ -48,6 +48,9 @@ void clue_window_set_type(UIWindow *win, UIWindowType type);
 /* Set the parent window (required for DIALOG and POPUP types) */
 void clue_window_set_parent(UIWindow *win, UIWindow *parent);
 
+/* Set the window position on screen */
+void clue_window_set_position(UIWindow *win, int x, int y);
+
 /* Show or hide a window */
 void clue_window_set_visible(UIWindow *win, bool visible);
 

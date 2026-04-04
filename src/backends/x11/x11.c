@@ -349,6 +349,49 @@ static void x11_destroy_window(struct UIWindow *win)
     win->backend_data = NULL;
 }
 
+static void x11_set_window_type(struct UIWindow *win, int type)
+{
+    (void)type;
+    if (!win || !win->backend_data) return;
+    X11WindowData *wd = win->backend_data;
+    if (win->type == UI_WINDOW_DIALOG && win->parent) {
+        X11WindowData *parent_wd = win->parent->backend_data;
+        if (parent_wd)
+            XSetTransientForHint(x11.display, wd->xwin, parent_wd->xwin);
+    }
+    XFlush(x11.display);
+}
+
+static void x11_set_window_parent(struct UIWindow *win, struct UIWindow *parent)
+{
+    (void)parent;
+    if (!win || !win->backend_data) return;
+    X11WindowData *wd = win->backend_data;
+    if (win->type == UI_WINDOW_DIALOG && win->parent) {
+        X11WindowData *parent_wd = win->parent->backend_data;
+        if (parent_wd) {
+            XSetTransientForHint(x11.display, wd->xwin, parent_wd->xwin);
+            /* Center dialog on parent's actual screen position */
+            Window child;
+            int px, py;
+            XTranslateCoordinates(x11.display, parent_wd->xwin, x11.root,
+                                  0, 0, &px, &py, &child);
+            int cx = px + (win->parent->w - win->w) / 2;
+            int cy = py + (win->parent->h - win->h) / 2;
+            XMoveWindow(x11.display, wd->xwin, cx, cy);
+        }
+    }
+    XFlush(x11.display);
+}
+
+static void x11_set_window_position(struct UIWindow *win, int px, int py)
+{
+    if (!win || !win->backend_data) return;
+    X11WindowData *wd = win->backend_data;
+    XMoveWindow(x11.display, wd->xwin, px, py);
+    XFlush(x11.display);
+}
+
 static void x11_make_current(struct UIWindow *win)
 {
     if (!win || !win->backend_data) return;
@@ -509,9 +552,12 @@ static int x11_poll_events(UIEvent *events, int max)
 UIBackend x11_backend = {
     .init           = x11_init,
     .shutdown       = x11_shutdown,
-    .create_window  = x11_create_window,
-    .destroy_window = x11_destroy_window,
-    .make_current   = x11_make_current,
+    .create_window    = x11_create_window,
+    .destroy_window   = x11_destroy_window,
+    .set_window_type    = x11_set_window_type,
+    .set_window_parent  = x11_set_window_parent,
+    .set_window_position = x11_set_window_position,
+    .make_current       = x11_make_current,
     .swap_buffers   = x11_swap_buffers,
     .poll_events    = x11_poll_events,
     .native_display = NULL,

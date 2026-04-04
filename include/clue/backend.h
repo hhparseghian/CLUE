@@ -12,6 +12,9 @@ typedef struct {
     void  (*shutdown)(void);
     int   (*create_window)(struct UIWindow *win);
     void  (*destroy_window)(struct UIWindow *win);
+    void  (*set_window_type)(struct UIWindow *win, int type);
+    void  (*set_window_parent)(struct UIWindow *win, struct UIWindow *parent);
+    void  (*set_window_position)(struct UIWindow *win, int x, int y);
     void  (*make_current)(struct UIWindow *win);
     void  (*swap_buffers)(struct UIWindow *win);
     int   (*poll_events)(UIEvent *events, int max);
