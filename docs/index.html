@@ -263,6 +263,7 @@
   <a href="#image">Image</a>
   <a href="#tooltip">Tooltip</a>
   <a href="#canvas">Canvas</a>
+  <a href="#colorpicker">Color Picker</a>
   <a href="#text_editor">Text Editor</a>
   <div class="sidebar-section">Containers</div>
   <a href="#box">Box</a>
@@ -296,7 +297,7 @@
   <!-- Overview -->
   <div class="hero">
     <h1>CLUE</h1>
-    <p>Cross-platform Lightweight UI Engine &mdash; a C99 GUI toolkit with OpenGL ES 2 rendering.</p>
+    <p>C Lightweight UI Engine &mdash; a C99 GUI toolkit for Linux with OpenGL ES 2 rendering.</p>
     <span class="badge green">C99</span>
     <span class="badge blue">Wayland</span>
     <span class="badge blue">X11</span>
@@ -676,7 +677,31 @@
     <div class="fn-sig"><span class="type">void</span> <span class="name">clue_canvas_set_draw</span>(<span class="param">ClueCanvas *c</span>, <span class="param">ClueCanvasDrawCb cb</span>, <span class="param">void *user_data</span>)</div>
     <div class="fn-desc">Set the draw callback. Called each frame with canvas bounds (x, y, w, h) and user data.</div>
   </div>
-  <div class="signal-tag">Signal: "clicked"</div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_canvas_set_event</span>(<span class="param">ClueCanvas *c</span>, <span class="param">ClueCanvasEventCb cb</span>, <span class="param">void *user_data</span>)</div>
+    <div class="fn-desc">Set the event callback for mouse interaction. Receives CLUE_CANVAS_PRESS, CLUE_CANVAS_MOTION, CLUE_CANVAS_RELEASE with coordinates relative to canvas origin.</div>
+  </div>
+
+  <h2 id="colorpicker">Color Picker</h2>
+  <p class="description">An HSV gradient picker with a hue bar and a Tango palette grid (light/mid/dark shades).</p>
+
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">ClueColorPicker *</span><span class="name">clue_colorpicker_new</span>(<span class="param">void</span>)</div>
+    <div class="fn-desc">Create a color picker with a default Tango palette.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">UIColor</span> <span class="name">clue_colorpicker_get_color</span>(<span class="param">ClueColorPicker *cp</span>)</div>
+    <div class="fn-desc">Get the currently selected color.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_colorpicker_set_color</span>(<span class="param">ClueColorPicker *cp</span>, <span class="param">UIColor color</span>)</div>
+    <div class="fn-desc">Set the selected color. Updates the HSV gradient position to match.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_colorpicker_add_color</span>(<span class="param">ClueColorPicker *cp</span>, <span class="param">UIColor color</span>)</div>
+    <div class="fn-desc">Add a custom color to the palette grid.</div>
+  </div>
+  <div class="signal-tag">Signal: "changed"</div>
 
   <h2 id="text_editor">Text Editor</h2>
   <p class="description">A multi-line text editor with cursor navigation, scrolling, optional line numbers, and tab support.</p>

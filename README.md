@@ -1,15 +1,22 @@
-# CLUE — Cross-platform Lightweight UI Engine
+# CLUE — C Lightweight UI Engine
 
-A lightweight GUI toolkit written in C99 with OpenGL ES 2 rendering and multiple display backends.
+A lightweight C99 GUI toolkit for Linux with OpenGL ES 2 rendering and multiple display backends (Wayland, X11, DRM/KMS).
 
 ## Features
 
-- **Widgets**: buttons, labels, text inputs, checkboxes, sliders, dropdowns, progress bars, tabs, grids, tables, tree views, list views, dialogs, tooltips, menus
+- **Widgets**: buttons, labels, text inputs, checkboxes, radio buttons, sliders, dropdowns, progress bars, toggle switches, spinboxes, separators, images
+- **Containers**: boxes, grids, tabs, scroll, splitter, toolbar, statusbar
+- **Data views**: list views, tables, tree views
+- **Advanced**: multi-line text editor, canvas, color picker, file dialogs, menus, tooltips, dialogs
+- **Text editing**: selection, copy/cut/paste, clipboard (system + internal)
+- **Keyboard shortcuts**: user-registered global keybindings
+- **Mouse cursors**: resize, text, crosshair, pointer (X11 + Wayland)
 - **Backends**: Wayland, X11, DRM/KMS
-- **Theming**: built-in dark/light themes with full customization support
+- **Theming**: built-in dark/light themes with full customization
 - **Signals**: GTK-style signal/callback system
 - **Timers**: repeating and one-shot timers
 - **Font rendering**: FreeType-based text rendering
+- **Type safety**: C11 `_Generic` auto-cast macros for widget APIs
 - **Zero dependencies beyond system libs**: EGL, GLES2, FreeType, xkbcommon
 
 ## Getting started

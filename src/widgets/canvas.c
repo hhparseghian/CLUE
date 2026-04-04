@@ -2,6 +2,8 @@
 #include "clue/canvas.h"
 #include "clue/draw.h"
 #include "clue/theme.h"
+#include "clue/app.h"
+#include "clue/window.h"
 
 static void canvas_draw(ClueWidget *w)
 {
@@ -24,24 +26,55 @@ static void canvas_draw(ClueWidget *w)
 
 static void canvas_layout(ClueWidget *w)
 {
-    /* Size is set by the user or by expand flags */
     if (w->base.w == 0) w->base.w = 200;
     if (w->base.h == 0) w->base.h = 150;
 }
 
+static void fire_event(ClueCanvas *c, int type, int mx, int my, int btn)
+{
+    if (!c->event_cb) return;
+    int rx = mx - c->base.base.x;
+    int ry = my - c->base.base.y;
+    c->event_cb(type, rx, ry, btn, c->event_data);
+}
+
 static int canvas_handle_event(ClueWidget *w, UIEvent *event)
 {
-    if (event->type == UI_EVENT_MOUSE_BUTTON &&
-        event->mouse_button.pressed &&
-        event->mouse_button.btn == 0) {
+    ClueCanvas *c = (ClueCanvas *)w;
+    int x = w->base.x, y = w->base.y;
+    int bw = w->base.w, bh = w->base.h;
+
+    if (event->type == UI_EVENT_MOUSE_MOVE) {
+        int mx = event->mouse_move.x, my = event->mouse_move.y;
+        if (mx >= x && mx < x + bw && my >= y && my < y + bh) {
+            if (event->window)
+                clue_window_set_cursor(event->window, UI_CURSOR_CROSSHAIR);
+        }
+        if (c->painting) {
+            fire_event(c, CLUE_CANVAS_MOTION, mx, my, 0);
+            return 1;
+        }
+        return 0;
+    }
+
+    if (event->type == UI_EVENT_MOUSE_BUTTON) {
         int mx = event->mouse_button.x, my = event->mouse_button.y;
-        if (mx >= w->base.x && mx < w->base.x + w->base.w &&
-            my >= w->base.y && my < w->base.y + w->base.h) {
-            ClueCanvas *c = (ClueCanvas *)w;
-            clue_signal_emit(c, "clicked");
+        bool inside = mx >= x && mx < x + bw && my >= y && my < y + bh;
+
+        if (event->mouse_button.pressed && inside) {
+            c->painting = true;
+            clue_capture_mouse(&w->base);
+            fire_event(c, CLUE_CANVAS_PRESS, mx, my, event->mouse_button.btn);
+            return 1;
+        }
+        if (!event->mouse_button.pressed && c->painting) {
+            c->painting = false;
+            clue_release_mouse();
+            fire_event(c, CLUE_CANVAS_RELEASE, mx, my, event->mouse_button.btn);
             return 1;
         }
     }
+
     return 0;
 }
 
@@ -69,4 +102,11 @@ void clue_canvas_set_draw(ClueCanvas *c, ClueCanvasDrawCb cb, void *user_data)
     if (!c) return;
     c->draw_cb   = cb;
     c->draw_data = user_data;
+}
+
+void clue_canvas_set_event(ClueCanvas *c, ClueCanvasEventCb cb, void *user_data)
+{
+    if (!c) return;
+    c->event_cb   = cb;
+    c->event_data = user_data;
 }

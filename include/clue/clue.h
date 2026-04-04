@@ -2,7 +2,7 @@
 #define CLUE_H
 
 /*
- * CLUE -- Cross-platform Lightweight UI Engine
+ * CLUE -- C Lightweight UI Engine
  *
  * Main public header. Include this to get the full API.
  */
@@ -47,6 +47,7 @@
 #include "canvas.h"
 #include "splitter.h"
 #include "text_editor.h"
+#include "colorpicker.h"
 #include "clipboard.h"
 #include "shortcut.h"
 #include "app.h"
@@ -99,7 +100,8 @@ UIRenderer *clue_get_renderer(void);
     ClueToolbar   *: (ClueWidget *)(x),           \
     ClueCanvas    *: (ClueWidget *)(x),           \
     ClueSplitter  *: (ClueWidget *)(x),           \
-    ClueTextEditor *: (ClueWidget *)(x)           \
+    ClueTextEditor  *: (ClueWidget *)(x),          \
+    ClueColorPicker *: (ClueWidget *)(x)           \
 )
 
 /* Wrapper macros -- shadow the real functions so call sites need no casts.
