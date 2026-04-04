@@ -48,6 +48,7 @@
 #include "splitter.h"
 #include "text_editor.h"
 #include "clipboard.h"
+#include "shortcut.h"
 #include "app.h"
 
 /* Initialise CLUE: selects a backend and sets up the window manager.

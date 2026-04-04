@@ -405,3 +405,4 @@ void clue_menubar_draw_overlay(ClueMenuBar *bar)
     if (!bar->menus[bar->active] || !bar->menus[bar->active]->open) return;
     menu_draw(&bar->menus[bar->active]->base);
 }
+

@@ -10,6 +10,7 @@
 #include "clue/timer.h"
 #include "clue/dropdown.h"
 #include "clue/menu.h"
+#include "clue/shortcut.h"
 #include "clue/tabs.h"
 
 /* Global app singleton */
@@ -134,6 +135,13 @@ void clue_app_run(ClueApp *app)
                 /* Reset cursor before dispatch; widgets override if needed */
                 clue_window_set_cursor(app->window, UI_CURSOR_DEFAULT);
             }
+            /* Global keyboard shortcuts */
+            if (events[i].type == UI_EVENT_KEY && events[i].key.pressed) {
+                if (clue_shortcut_dispatch(events[i].key.keycode,
+                                           events[i].key.modifiers))
+                    continue;
+            }
+
             /* If a widget has captured the mouse, send mouse events to it */
             if (app->captured_widget &&
                 (events[i].type == UI_EVENT_MOUSE_MOVE ||

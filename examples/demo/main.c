@@ -777,6 +777,11 @@ int main(void)
     clue_menubar_add(menubar, "File", file_menu);
     clue_menubar_add(menubar, "Help", help_menu);
 
+    /* Register keyboard shortcuts */
+    clue_shortcut_add("Ctrl+O", on_menu_open, NULL);
+    clue_shortcut_add("Ctrl+S", on_menu_save, NULL);
+    clue_shortcut_add("Ctrl+Q", on_menu_quit, NULL);
+
     /* Header */
     ClueBox *header = clue_box_new(CLUE_HORIZONTAL, 10);
     clue_style_set_padding(&header->base.style, 12);
