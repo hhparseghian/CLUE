@@ -371,11 +371,6 @@ static void draw_shape(int x, int y, int w, int h,
 
 static void gl_fill_rect(int x, int y, int w, int h, UIColor color)
 {
-    draw_shape(x, y, w, h, 0.0f, 0.0f, 0, color);
-}
-
-static void gl_fill_rect_solid(int x, int y, int w, int h, UIColor color)
-{
     if (!gl.flat_prog) return;
     glUseProgram(gl.flat_prog);
     glUniform2f(gl.flat_u_resolution, (float)gl.vp_w, (float)gl.vp_h);
@@ -412,8 +407,30 @@ static void gl_draw_rounded_rect(int x, int y, int w, int h,
 
 static void gl_fill_circle(int cx, int cy, int radius, UIColor color)
 {
-    int d = radius * 2;
-    draw_shape(cx - radius, cy - radius, d, d, 0.0f, 0.0f, 1, color);
+    if (!gl.flat_prog || radius <= 0) return;
+
+    /* Draw as a triangle fan using the flat shader — no SDF AA artifacts */
+    #define CIRCLE_SEGS 32
+    GLfloat verts[(CIRCLE_SEGS + 2) * 2];
+    float fcx = (float)cx, fcy = (float)cy, fr = (float)radius;
+
+    /* Center vertex */
+    verts[0] = fcx;
+    verts[1] = fcy;
+
+    for (int i = 0; i <= CIRCLE_SEGS; i++) {
+        float angle = (float)i / (float)CIRCLE_SEGS * 6.2831853f;
+        verts[(i + 1) * 2 + 0] = fcx + fr * cosf(angle);
+        verts[(i + 1) * 2 + 1] = fcy + fr * sinf(angle);
+    }
+
+    glUseProgram(gl.flat_prog);
+    glUniform2f(gl.flat_u_resolution, (float)gl.vp_w, (float)gl.vp_h);
+    glUniform4f(gl.flat_u_color, color.r, color.g, color.b, color.a);
+    glVertexAttribPointer(gl.flat_a_pos, 2, GL_FLOAT, GL_FALSE, 0, verts);
+    glEnableVertexAttribArray(gl.flat_a_pos);
+    glDrawArrays(GL_TRIANGLE_FAN, 0, CIRCLE_SEGS + 2);
+    #undef CIRCLE_SEGS
 }
 
 static void gl_draw_circle(int cx, int cy, int radius,
@@ -629,7 +646,6 @@ static UIRenderer g_gl_renderer = {
     .end_frame         = gl_end_frame,
     .clear             = gl_clear,
     .fill_rect         = gl_fill_rect,
-    .fill_rect_solid   = gl_fill_rect_solid,
     .fill_rounded_rect = gl_fill_rounded_rect,
     .draw_rect         = gl_draw_rect,
     .draw_rounded_rect = gl_draw_rounded_rect,

@@ -111,12 +111,16 @@ static int canvas_handle_event(ClueWidget *w, UIEvent *event)
         bool inside = mx >= x && mx < x + bw && my >= y && my < y + bh;
 
         if (event->mouse_button.pressed && inside) {
-            c->painting = true;
-            c->last_mx = mx;
-            c->last_my = my;
-            clue_capture_mouse(&w->base);
             if (c->focusable_canvas)
                 clue_focus_widget(&w->base);
+
+            /* Only capture mouse for left button (painting/dragging) */
+            if (event->mouse_button.btn == 0) {
+                c->painting = true;
+                c->last_mx = mx;
+                c->last_my = my;
+                clue_capture_mouse(&w->base);
+            }
 
             ClueCanvasEvent ev = {0};
             ev.type = CLUE_CANVAS_PRESS;
@@ -126,7 +130,7 @@ static int canvas_handle_event(ClueWidget *w, UIEvent *event)
             fire_event(c, &ev);
             return 1;
         }
-        if (!event->mouse_button.pressed && c->painting) {
+        if (!event->mouse_button.pressed && c->painting && event->mouse_button.btn == 0) {
             c->painting = false;
             clue_release_mouse();
 

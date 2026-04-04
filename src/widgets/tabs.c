@@ -37,10 +37,10 @@ static void tabs_draw(ClueWidget *w)
 
     /* Page background */
     if (has_page_bg) {
-        clue_fill_rect_solid(x, y, bw, w->base.h, page_bg);
+        clue_fill_rect(x, y, bw, w->base.h, page_bg);
         /* Cover the tab bar area to the right of the tabs with app bg */
         if (tabs_width < bw) {
-            clue_fill_rect_solid(x + tabs_width, y, bw - tabs_width, t->tab_height, th->bg);
+            clue_fill_rect(x + tabs_width, y, bw - tabs_width, t->tab_height, th->bg);
         }
     }
 
@@ -52,7 +52,7 @@ static void tabs_draw(ClueWidget *w)
 
         if (i == t->active) {
             /* Accent underline at top */
-            clue_fill_rect_solid(tx, y, tw, 3, th->accent);
+            clue_fill_rect(tx, y, tw, 3, th->accent);
         } else {
             /* Inactive tab */
             clue_fill_rect(tx, y, tw, t->tab_height, th->surface);

@@ -77,7 +77,7 @@ static void colorpicker_draw(ClueWidget *w)
 
     /* SV gradient square - draw as rows of colored pixels */
     int gy = grad_y(cp);
-    int step = 4; /* render in 4px blocks for performance */
+    int step = 2;
     for (int row = 0; row < gs; row += step) {
         float v = 1.0f - (float)row / (float)gs;
         for (int col = 0; col < gs; col += step) {

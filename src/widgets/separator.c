@@ -14,10 +14,10 @@ static void separator_draw(ClueWidget *w)
 
     if (s->orientation == CLUE_HORIZONTAL) {
         int cy = y + w->base.h / 2;
-        clue_fill_rect_solid(x, cy, w->base.w, SEP_THICKNESS, th->surface_border);
+        clue_fill_rect(x, cy, w->base.w, SEP_THICKNESS, th->surface_border);
     } else {
         int cx = x + w->base.w / 2;
-        clue_fill_rect_solid(cx, y, SEP_THICKNESS, w->base.h, th->surface_border);
+        clue_fill_rect(cx, y, SEP_THICKNESS, w->base.h, th->surface_border);
     }
 }
 

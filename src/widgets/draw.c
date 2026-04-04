@@ -10,9 +10,6 @@ void clue_clear(float r, float g, float b, float a)
 void clue_fill_rect(int x, int y, int w, int h, UIColor color)
 { R(); APP->renderer->fill_rect(x, y, w, h, color); }
 
-void clue_fill_rect_solid(int x, int y, int w, int h, UIColor color)
-{ R(); APP->renderer->fill_rect_solid(x, y, w, h, color); }
-
 void clue_fill_rounded_rect(int x, int y, int w, int h,
                             float radius, UIColor color)
 { R(); APP->renderer->fill_rounded_rect(x, y, w, h, radius, color); }
