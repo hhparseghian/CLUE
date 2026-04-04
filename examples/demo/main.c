@@ -733,135 +733,192 @@ static ClueBox *build_canvas_page(void)
 /* --- 3D cube demo --- */
 
 #include <math.h>
+#include <GLES2/gl2.h>
 
 static float g_cube_rx = 0.4f, g_cube_ry = 0.6f;
 static float g_cube_scale = 1.0f;
+static bool g_cube_dragging = false;
+static GLuint g_cube_prog = 0;
+static GLint g_cube_u_mvp, g_cube_a_pos, g_cube_a_col;
 
-/* Unit cube vertices */
-static const float cube_verts[8][3] = {
-    {-1,-1,-1}, { 1,-1,-1}, { 1, 1,-1}, {-1, 1,-1},
-    {-1,-1, 1}, { 1,-1, 1}, { 1, 1, 1}, {-1, 1, 1},
+/* Cube: 6 faces * 2 triangles * 3 vertices * (3 pos + 3 color) */
+static const float cube_data[] = {
+    /* Front (red) */
+    -1,-1, 1,  0.9f,0.3f,0.3f,   1,-1, 1,  0.9f,0.3f,0.3f,   1, 1, 1,  0.9f,0.3f,0.3f,
+    -1,-1, 1,  0.9f,0.3f,0.3f,   1, 1, 1,  0.9f,0.3f,0.3f,  -1, 1, 1,  0.9f,0.3f,0.3f,
+    /* Back (green) */
+    -1,-1,-1,  0.3f,0.7f,0.3f,  -1, 1,-1,  0.3f,0.7f,0.3f,   1, 1,-1,  0.3f,0.7f,0.3f,
+    -1,-1,-1,  0.3f,0.7f,0.3f,   1, 1,-1,  0.3f,0.7f,0.3f,   1,-1,-1,  0.3f,0.7f,0.3f,
+    /* Top (blue) */
+    -1, 1,-1,  0.3f,0.4f,0.9f,  -1, 1, 1,  0.3f,0.4f,0.9f,   1, 1, 1,  0.3f,0.4f,0.9f,
+    -1, 1,-1,  0.3f,0.4f,0.9f,   1, 1, 1,  0.3f,0.4f,0.9f,   1, 1,-1,  0.3f,0.4f,0.9f,
+    /* Bottom (yellow) */
+    -1,-1,-1,  0.9f,0.85f,0.2f,  1,-1,-1,  0.9f,0.85f,0.2f,  1,-1, 1,  0.9f,0.85f,0.2f,
+    -1,-1,-1,  0.9f,0.85f,0.2f,  1,-1, 1,  0.9f,0.85f,0.2f, -1,-1, 1,  0.9f,0.85f,0.2f,
+    /* Right (orange) */
+     1,-1,-1,  0.9f,0.5f,0.1f,   1, 1,-1,  0.9f,0.5f,0.1f,   1, 1, 1,  0.9f,0.5f,0.1f,
+     1,-1,-1,  0.9f,0.5f,0.1f,   1, 1, 1,  0.9f,0.5f,0.1f,   1,-1, 1,  0.9f,0.5f,0.1f,
+    /* Left (purple) */
+    -1,-1,-1,  0.6f,0.3f,0.8f,  -1,-1, 1,  0.6f,0.3f,0.8f,  -1, 1, 1,  0.6f,0.3f,0.8f,
+    -1,-1,-1,  0.6f,0.3f,0.8f,  -1, 1, 1,  0.6f,0.3f,0.8f,  -1, 1,-1,  0.6f,0.3f,0.8f,
 };
 
-/* Cube edges (pairs of vertex indices) */
-static const int cube_edges[12][2] = {
-    {0,1},{1,2},{2,3},{3,0}, /* back face */
-    {4,5},{5,6},{6,7},{7,4}, /* front face */
-    {0,4},{1,5},{2,6},{3,7}, /* connecting */
-};
+static const char *cube_vert_src =
+    "attribute vec3 a_pos;\n"
+    "attribute vec3 a_col;\n"
+    "varying vec3 v_col;\n"
+    "uniform mat4 u_mvp;\n"
+    "void main() {\n"
+    "    gl_Position = u_mvp * vec4(a_pos, 1.0);\n"
+    "    v_col = a_col;\n"
+    "}\n";
 
-/* Cube faces (quads, 4 vertex indices each) */
-static const int cube_faces[6][4] = {
-    {0,1,2,3}, {4,5,6,7}, {0,1,5,4},
-    {2,3,7,6}, {0,3,7,4}, {1,2,6,5},
-};
+static const char *cube_frag_src =
+    "precision mediump float;\n"
+    "varying vec3 v_col;\n"
+    "void main() {\n"
+    "    gl_FragColor = vec4(v_col, 1.0);\n"
+    "}\n";
 
-/* Face colors */
-static const UIColor face_colors[6] = {
-    {0.9f, 0.3f, 0.3f, 0.6f},  /* red */
-    {0.3f, 0.7f, 0.3f, 0.6f},  /* green */
-    {0.3f, 0.4f, 0.9f, 0.6f},  /* blue */
-    {0.9f, 0.85f, 0.2f, 0.6f}, /* yellow */
-    {0.9f, 0.5f, 0.1f, 0.6f},  /* orange */
-    {0.6f, 0.3f, 0.8f, 0.6f},  /* purple */
-};
-
-static void project(float vx, float vy, float vz, float rx, float ry,
-                    int cx, int cy, float scale, int *sx, int *sy, float *depth)
+static void cube_init_gl(void)
 {
-    /* Rotate around Y */
-    float x1 = vx * cosf(ry) - vz * sinf(ry);
-    float z1 = vx * sinf(ry) + vz * cosf(ry);
-    float y1 = vy;
-    /* Rotate around X */
-    float y2 = y1 * cosf(rx) - z1 * sinf(rx);
-    float z2 = y1 * sinf(rx) + z1 * cosf(rx);
-    float x2 = x1;
-    /* Simple perspective */
-    float d = 4.0f + z2;
-    if (d < 0.1f) d = 0.1f;
-    *sx = cx + (int)(x2 * scale / d * 2.0f);
-    *sy = cy + (int)(y2 * scale / d * 2.0f);
-    *depth = z2;
+    if (g_cube_prog) return;
+
+    GLuint vs = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vs, 1, &cube_vert_src, NULL);
+    glCompileShader(vs);
+
+    GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fs, 1, &cube_frag_src, NULL);
+    glCompileShader(fs);
+
+    g_cube_prog = glCreateProgram();
+    glAttachShader(g_cube_prog, vs);
+    glAttachShader(g_cube_prog, fs);
+    glLinkProgram(g_cube_prog);
+    glDeleteShader(vs);
+    glDeleteShader(fs);
+
+    g_cube_a_pos = glGetAttribLocation(g_cube_prog, "a_pos");
+    g_cube_a_col = glGetAttribLocation(g_cube_prog, "a_col");
+    g_cube_u_mvp = glGetUniformLocation(g_cube_prog, "u_mvp");
+}
+
+/* Multiply two column-major 4x4 matrices: out = a * b */
+static void mat4_mul(float *out, const float *a, const float *b)
+{
+    float tmp[16];
+    for (int c = 0; c < 4; c++)
+        for (int r = 0; r < 4; r++) {
+            float s = 0;
+            for (int k = 0; k < 4; k++)
+                s += a[r + k * 4] * b[k + c * 4];
+            tmp[r + c * 4] = s;
+        }
+    memcpy(out, tmp, sizeof(tmp));
+}
+
+static void cube_build_mvp(float *mvp, float rx, float ry, float sc, float aspect)
+{
+    /* Perspective (fov ~60 degrees, column-major) */
+    float f = 1.0f / tanf(30.0f * 3.14159265f / 180.0f);
+    float n = 0.1f, fa = 100.0f;
+    float proj[16] = {0};
+    proj[0]  = f / aspect;
+    proj[5]  = f;
+    proj[10] = (fa + n) / (n - fa);
+    proj[11] = -1.0f;
+    proj[14] = (2.0f * fa * n) / (n - fa);
+
+    /* Rotation around Y (column-major) */
+    float cy = cosf(ry), sy = sinf(ry);
+    float roty[16] = {
+         cy, 0, -sy, 0,
+          0, 1,   0, 0,
+         sy, 0,  cy, 0,
+          0, 0,   0, 1,
+    };
+
+    /* Rotation around X (column-major) */
+    float cx = cosf(rx), sx = sinf(rx);
+    float rotx[16] = {
+        1,  0,   0, 0,
+        0, cx,  sx, 0,
+        0, -sx, cx, 0,
+        0,  0,   0, 1,
+    };
+
+    /* Scale */
+    float scale[16] = {
+        sc, 0,  0,  0,
+        0,  sc, 0,  0,
+        0,  0,  sc, 0,
+        0,  0,  0,  1,
+    };
+
+    /* Translation Z = -5 */
+    float trans[16] = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 0, -5, 1,
+    };
+
+    /* Model = trans * rotx * roty * scale */
+    float tmp1[16], tmp2[16], model[16];
+    mat4_mul(tmp1, roty, scale);
+    mat4_mul(tmp2, rotx, tmp1);
+    mat4_mul(model, trans, tmp2);
+
+    /* MVP = proj * model */
+    mat4_mul(mvp, proj, model);
 }
 
 static void cube_draw_cb(int x, int y, int w, int h, void *data)
 {
     (void)data;
-    int cx = x + w / 2, cy = y + h / 2;
-    float scale = (w < h ? w : h) * 0.35f * g_cube_scale;
+    cube_init_gl();
+    if (!g_cube_prog) return;
 
-    int proj[8][2];
-    float depths[8];
-    for (int i = 0; i < 8; i++) {
-        project(cube_verts[i][0], cube_verts[i][1], cube_verts[i][2],
-                g_cube_rx, g_cube_ry, cx, cy, scale, &proj[i][0], &proj[i][1],
-                &depths[i]);
-    }
+    /* Get the full window height for glViewport/glScissor (GL uses bottom-left origin) */
+    ClueApp *app = clue_app_get();
+    int win_h = app && app->window ? app->window->h : h;
 
-    /* Sort faces by average depth (painter's algorithm) */
-    float face_depth[6];
-    int face_order[6];
-    for (int f = 0; f < 6; f++) {
-        face_depth[f] = 0;
-        for (int v = 0; v < 4; v++)
-            face_depth[f] += depths[cube_faces[f][v]];
-        face_depth[f] /= 4.0f;
-        face_order[f] = f;
-    }
-    /* Simple bubble sort */
-    for (int i = 0; i < 5; i++)
-        for (int j = 0; j < 5 - i; j++)
-            if (face_depth[face_order[j]] > face_depth[face_order[j + 1]]) {
-                int tmp = face_order[j];
-                face_order[j] = face_order[j + 1];
-                face_order[j + 1] = tmp;
-            }
+    /* Set GL viewport to canvas area */
+    glViewport(x, win_h - y - h, w, h);
+    glScissor(x, win_h - y - h, w, h);
+    glEnable(GL_SCISSOR_TEST);
 
-    /* Draw filled faces back-to-front using scanline fill on quads */
-    for (int fi = 0; fi < 6; fi++) {
-        int f = face_order[fi];
-        const int *fv = cube_faces[f];
-        int qx[4], qy[4];
-        int min_y = 9999, max_y = -9999;
-        for (int v = 0; v < 4; v++) {
-            qx[v] = proj[fv[v]][0];
-            qy[v] = proj[fv[v]][1];
-            if (qy[v] < min_y) min_y = qy[v];
-            if (qy[v] > max_y) max_y = qy[v];
-        }
-        /* Scanline fill the convex quad */
-        for (int sy = min_y; sy <= max_y; sy++) {
-            int xs[8], xn = 0;
-            for (int e = 0; e < 4; e++) {
-                int e2 = (e + 1) % 4;
-                int ey0 = qy[e], ey1 = qy[e2];
-                if ((sy >= ey0 && sy < ey1) || (sy >= ey1 && sy < ey0)) {
-                    float t2 = (float)(sy - ey0) / (float)(ey1 - ey0);
-                    if (xn < 8) xs[xn++] = qx[e] + (int)(t2 * (qx[e2] - qx[e]));
-                }
-            }
-            if (xn >= 2) {
-                int xl = xs[0], xr = xs[1];
-                if (xl > xr) { int tmp = xl; xl = xr; xr = tmp; }
-                clue_fill_rect(xl, sy, xr - xl + 1, 1, face_colors[f]);
-            }
-        }
-    }
+    /* Clear just the canvas area */
+    glClearColor(0.12f, 0.12f, 0.15f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    /* Draw edges */
-    for (int i = 0; i < 12; i++) {
-        int a = cube_edges[i][0], b = cube_edges[i][1];
-        clue_draw_line(proj[a][0], proj[a][1], proj[b][0], proj[b][1],
-                       2.0f, UI_RGB(230, 230, 240));
-    }
+    glEnable(GL_DEPTH_TEST);
+    glUseProgram(g_cube_prog);
 
-    /* Label */
+    /* Build MVP */
+    float aspect = (float)w / (float)h;
+    float mvp[16];
+    cube_build_mvp(mvp, g_cube_rx, g_cube_ry, g_cube_scale, aspect);
+    glUniformMatrix4fv(g_cube_u_mvp, 1, GL_FALSE, mvp);
+
+    /* Draw cube */
+    int stride = 6 * sizeof(float);
+    glVertexAttribPointer(g_cube_a_pos, 3, GL_FLOAT, GL_FALSE, stride, cube_data);
+    glEnableVertexAttribArray(g_cube_a_pos);
+    glVertexAttribPointer(g_cube_a_col, 3, GL_FLOAT, GL_FALSE, stride, cube_data + 3);
+    glEnableVertexAttribArray(g_cube_a_col);
+    glDrawArrays(GL_TRIANGLES, 0, 36);
+    glDisableVertexAttribArray(g_cube_a_pos);
+    glDisableVertexAttribArray(g_cube_a_col);
+
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_SCISSOR_TEST);
+
+    /* Draw label using CLUE 2D (GL state is restored by canvas after this) */
     clue_draw_text_default(x + 8, y + h - 20, "Drag to rotate, scroll to zoom",
                            UI_RGB(100, 100, 120));
 }
-
-static bool g_cube_dragging = false;
 
 static void cube_event_cb(const ClueCanvasEvent *ev, void *data)
 {
