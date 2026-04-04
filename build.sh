@@ -78,4 +78,4 @@ make -j"$JOBS"
 
 echo ""
 echo "Build complete. Run the hello example with:"
-echo "  $BUILD_DIR/clue_hello"
+echo "  $BUILD_DIR/clue_demo"

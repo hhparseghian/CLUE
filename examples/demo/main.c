@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include "clue/clue.h"
 
 /* --- List view data --- */
@@ -543,6 +544,44 @@ static ClueWidget *build_table_page(void)
 }
 
 /* --- Menu callbacks --- */
+static void on_menu_open(void *w, void *d)
+{
+    (void)w; (void)d;
+    ClueFileFilter filters[] = {
+        {"C Source",  ".c .h"},
+        {"Text Files", ".txt .md"},
+        {"Images",    ".png .jpg .bmp"},
+    };
+    ClueFileDialogResult r = clue_file_dialog_open("Open File", NULL,
+                                                    filters, 3);
+    if (r.ok) {
+        const char *name = strrchr(r.path, '/');
+        name = name ? name + 1 : r.path;
+        char buf[256];
+        snprintf(buf, sizeof(buf), "Opened: %.200s", name);
+        clue_label_set_text(g_status, buf);
+    }
+}
+
+static void on_menu_save(void *w, void *d)
+{
+    (void)w; (void)d;
+    ClueFileFilter save_filters[] = {
+        {"Text Files", ".txt"},
+        {"C Source",   ".c"},
+    };
+    ClueFileDialogResult r = clue_file_dialog_save("Save File", NULL,
+                                                    "untitled.txt",
+                                                    save_filters, 2);
+    if (r.ok) {
+        const char *name = strrchr(r.path, '/');
+        name = name ? name + 1 : r.path;
+        char buf[256];
+        snprintf(buf, sizeof(buf), "Saved: %.200s", name);
+        clue_label_set_text(g_status, buf);
+    }
+}
+
 static void on_menu_about(void *w, void *d)
 {
     (void)w; (void)d;
@@ -570,7 +609,8 @@ int main(void)
 
     ClueMenu *file_menu = clue_menu_new();
     clue_menu_add_item_shortcut(file_menu, "New", "Ctrl+N", NULL, NULL);
-    clue_menu_add_item_shortcut(file_menu, "Open", "Ctrl+O", NULL, NULL);
+    clue_menu_add_item_shortcut(file_menu, "Open", "Ctrl+O", on_menu_open, NULL);
+    clue_menu_add_item_shortcut(file_menu, "Save", "Ctrl+S", on_menu_save, NULL);
     clue_menu_add_separator(file_menu);
     clue_menu_add_item_shortcut(file_menu, "Quit", "Ctrl+Q", on_menu_quit, NULL);
 
