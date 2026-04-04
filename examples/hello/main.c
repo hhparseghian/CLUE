@@ -211,6 +211,10 @@ static ClueWidget *build_widgets_page(ClueApp *app)
 {
     ClueBox *page = clue_box_new(CLUE_VERTICAL, 10);
     clue_style_set_padding(&page->base.style, 12);
+    page->base.style.corner_radius = 0;
+    page->base.style.hexpand = true;
+    page->base.style.vexpand = true;
+    page->base.style.h_align = CLUE_ALIGN_CENTER;
 
     /* Buttons */
     ClueBox *btn_row = clue_box_new(CLUE_HORIZONTAL, 8);
@@ -288,6 +292,16 @@ static ClueWidget *build_widgets_page(ClueApp *app)
     clue_tooltip_set((ClueWidget *)btn_dlg, "Opens a confirmation dialog");
     clue_tooltip_set((ClueWidget *)g_progress, "Animated progress bar (timer)");
 
+    /* Add spacing between widget groups */
+    input->base.style.margin_top = 4;
+    cb->base.style.margin_top = 4;
+    radio_row->base.style.margin_top = 4;
+    slider_row->base.style.margin_top = 8;
+    dd->base.style.margin_top = 4;
+    progress_row->base.style.margin_top = 8;
+    g_timer_label->base.style.margin_top = 8;
+    btn_dlg->base.style.margin_top = 8;
+
     clue_container_add((ClueWidget *)page, (ClueWidget *)btn_row);
     clue_container_add((ClueWidget *)page, (ClueWidget *)input);
     clue_container_add((ClueWidget *)page, (ClueWidget *)cb);
@@ -305,6 +319,10 @@ static ClueWidget *build_list_page(void)
 {
     ClueBox *page = clue_box_new(CLUE_VERTICAL, 10);
     clue_style_set_padding(&page->base.style, 12);
+    page->base.style.corner_radius = 0;
+    page->base.style.hexpand = true;
+    page->base.style.vexpand = true;
+    page->base.style.h_align = CLUE_ALIGN_CENTER;
 
     ClueLabel *lbl = clue_label_new("Fruit list (virtual scrolling):");
     lbl->base.style.fg_color = UI_RGB(180, 180, 190);
@@ -325,6 +343,10 @@ static ClueWidget *build_grid_page(void)
 {
     ClueBox *page = clue_box_new(CLUE_VERTICAL, 10);
     clue_style_set_padding(&page->base.style, 12);
+    page->base.style.corner_radius = 0;
+    page->base.style.hexpand = true;
+    page->base.style.vexpand = true;
+    page->base.style.h_align = CLUE_ALIGN_CENTER;
 
     ClueLabel *lbl = clue_label_new("Form grid layout:");
     lbl->base.style.fg_color = UI_RGB(180, 180, 190);
@@ -409,6 +431,10 @@ static ClueWidget *build_tree_page(void)
 {
     ClueBox *page = clue_box_new(CLUE_VERTICAL, 10);
     clue_style_set_padding(&page->base.style, 12);
+    page->base.style.corner_radius = 0;
+    page->base.style.hexpand = true;
+    page->base.style.vexpand = true;
+    page->base.style.h_align = CLUE_ALIGN_CENTER;
 
     ClueTreeView *tv = clue_treeview_new();
     tv->base.base.w = 350;
@@ -446,6 +472,10 @@ static ClueWidget *build_table_page(void)
 {
     ClueBox *page = clue_box_new(CLUE_VERTICAL, 10);
     clue_style_set_padding(&page->base.style, 12);
+    page->base.style.corner_radius = 0;
+    page->base.style.hexpand = true;
+    page->base.style.vexpand = true;
+    page->base.style.h_align = CLUE_ALIGN_CENTER;
 
     ClueTable *tbl = clue_table_new();
     clue_table_add_column(tbl, "Name", 120);
@@ -479,6 +509,8 @@ int main(void)
 
     /* Main layout */
     ClueBox *root = clue_box_new(CLUE_VERTICAL, 0);
+    root->base.style.hexpand = true;
+    root->base.style.vexpand = true;
 
     /* Menu bar */
     ClueMenuBar *menubar = clue_menubar_new();
@@ -516,6 +548,9 @@ int main(void)
 
     /* Tabs */
     ClueTabs *tabs = clue_tabs_new();
+    tabs->base.style.hexpand = true;
+    tabs->base.style.vexpand = true;
+    tabs->page_bg = UI_RGB(45, 45, 50);
     clue_tabs_add(tabs, "Widgets", build_widgets_page(app));
     clue_tabs_add(tabs, "List", build_list_page());
     clue_tabs_add(tabs, "Form", build_grid_page());
