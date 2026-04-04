@@ -271,6 +271,7 @@
   <a href="#treeview">Tree View</a>
   <div class="sidebar-section">Overlays</div>
   <a href="#dialog">Dialog</a>
+  <a href="#file_dialog">File Dialog</a>
   <a href="#menu">Menu</a>
   <div class="sidebar-section">Rendering</div>
   <a href="#draw">Draw</a>
@@ -826,6 +827,22 @@
   <div class="fn-block">
     <div class="fn-sig"><span class="type">ClueDialogResult</span> <span class="name">clue_dialog_run</span>(<span class="param">ClueDialog *dlg</span>)</div>
     <div class="fn-desc">Show the dialog and run its event loop. Blocks until closed. Returns the result code.</div>
+  </div>
+
+  <h2 id="file_dialog">File Dialog</h2>
+  <p class="description">Built-in file open/save dialogs with directory browsing, icons, and filters.</p>
+
+  <div class="struct-block">
+    <div class="struct-name">ClueFileFilter</div>
+    <div class="struct-desc">Named filter: <code>{ "C Source", ".c .h" }</code>. Pass an array of these to the dialog functions.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">ClueFileDialogResult</span> <span class="name">clue_file_dialog_open</span>(<span class="param">const char *title</span>, <span class="param">const char *start_dir</span>, <span class="param">const ClueFileFilter *filters</span>, <span class="param">int filter_count</span>)</div>
+    <div class="fn-desc">Show a file open dialog. Returns the selected path or <code>.ok = false</code> if cancelled.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">ClueFileDialogResult</span> <span class="name">clue_file_dialog_save</span>(<span class="param">const char *title</span>, <span class="param">const char *start_dir</span>, <span class="param">const char *filename</span>, <span class="param">const ClueFileFilter *filters</span>, <span class="param">int filter_count</span>)</div>
+    <div class="fn-desc">Show a file save dialog with a default filename.</div>
   </div>
 
   <h2 id="menu">Menu</h2>
