@@ -4,6 +4,7 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 BUILD_DIR="$SCRIPT_DIR/build"
 BACKEND_WAYLAND=ON
+BACKEND_X11=ON
 BACKEND_DRM=ON
 CLEAN=0
 JOBS=$(nproc 2>/dev/null || echo 4)
@@ -12,8 +13,12 @@ usage() {
     echo "Usage: $0 [options]"
     echo ""
     echo "Options:"
-    echo "  --wayland-only   Disable DRM backend (no libinput needed)"
-    echo "  --drm-only       Disable Wayland backend"
+    echo "  --wayland-only   Build only the Wayland backend"
+    echo "  --x11-only       Build only the X11 backend"
+    echo "  --drm-only       Build only the DRM/KMS backend"
+    echo "  --no-wayland     Disable Wayland backend"
+    echo "  --no-x11         Disable X11 backend"
+    echo "  --no-drm         Disable DRM backend"
     echo "  --clean          Remove build directory before building"
     echo "  --install-deps   Install build dependencies (requires sudo)"
     echo "  -j N             Parallel jobs (default: $(nproc 2>/dev/null || echo 4))"
@@ -39,8 +44,12 @@ install_deps() {
 
 while [ $# -gt 0 ]; do
     case "$1" in
-        --wayland-only) BACKEND_DRM=OFF ;;
-        --drm-only)     BACKEND_WAYLAND=OFF ;;
+        --wayland-only) BACKEND_X11=OFF; BACKEND_DRM=OFF ;;
+        --x11-only)     BACKEND_WAYLAND=OFF; BACKEND_DRM=OFF ;;
+        --drm-only)     BACKEND_WAYLAND=OFF; BACKEND_X11=OFF ;;
+        --no-wayland)   BACKEND_WAYLAND=OFF ;;
+        --no-x11)       BACKEND_X11=OFF ;;
+        --no-drm)       BACKEND_DRM=OFF ;;
         --clean)        CLEAN=1 ;;
         --install-deps) install_deps; exit 0 ;;
         -j)             JOBS="$2"; shift ;;
@@ -58,9 +67,10 @@ fi
 mkdir -p "$BUILD_DIR"
 cd "$BUILD_DIR"
 
-echo "--- Configuring (Wayland=$BACKEND_WAYLAND, DRM=$BACKEND_DRM) ---"
+echo "--- Configuring (Wayland=$BACKEND_WAYLAND, X11=$BACKEND_X11, DRM=$BACKEND_DRM) ---"
 cmake "$SCRIPT_DIR" \
     -DUI_BACKEND_WAYLAND="$BACKEND_WAYLAND" \
+    -DUI_BACKEND_X11="$BACKEND_X11" \
     -DUI_BACKEND_DRM="$BACKEND_DRM"
 
 echo "--- Building (jobs=$JOBS) ---"

@@ -12,29 +12,39 @@ A lightweight GUI toolkit written in C99 with OpenGL ES 2 rendering and multiple
 - **Font rendering**: FreeType-based text rendering
 - **Zero dependencies beyond system libs**: EGL, GLES2, FreeType, xkbcommon
 
-## Building
+## Getting started
+
+### Install dependencies
 
 ```bash
-mkdir build && cd build
-cmake ..
-make
+./build.sh --install-deps
 ```
 
-### Backend options
+### Build
 
 ```bash
-cmake .. -DUI_BACKEND_WAYLAND=ON -DUI_BACKEND_X11=ON -DUI_BACKEND_DRM=ON
+./build.sh
 ```
 
-### Dependencies
+Options:
+- `--wayland-only` — build only the Wayland backend
+- `--x11-only` — build only the X11 backend
+- `--drm-only` — build only the DRM/KMS backend
+- `--no-wayland`, `--no-x11`, `--no-drm` — disable individual backends
+- `--clean` — clean rebuild
+- `-j N` — parallel jobs
 
-- CMake 3.10+
-- EGL and OpenGL ES 2
-- FreeType2
-- xkbcommon
-- Wayland (optional): wayland-client, wayland-egl, wayland-protocols
-- X11 (optional): libX11
-- DRM (optional): libdrm, gbm, libinput, libudev
+### Install
+
+```bash
+cd build
+sudo make install
+```
+
+This installs:
+- `libclue.a` to `/usr/local/lib/`
+- Headers to `/usr/local/include/clue/`
+- `clue.pc` to `/usr/local/lib/pkgconfig/`
 
 ## Quick start
 
