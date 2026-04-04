@@ -188,5 +188,16 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/clue.pc
 )
 
 # ---------- Hello example ----------
-add_executable(clue_demo examples/demo/main.c)
+add_executable(clue_demo
+    examples/demo/main.c
+    examples/demo/page_widgets.c
+    examples/demo/page_list.c
+    examples/demo/page_form.c
+    examples/demo/page_tree.c
+    examples/demo/page_table.c
+    examples/demo/page_editor.c
+    examples/demo/page_canvas.c
+    examples/demo/page_3d.c
+    examples/demo/page_splitter.c
+)
 target_link_libraries(clue_demo PRIVATE clue)
