@@ -292,28 +292,28 @@ static void canvas_draw_cb(int x, int y, int w, int h, void *data)
     }
 }
 
-static void canvas_event_cb(int type, int cx, int cy, int button, void *data)
+static void canvas_event_cb(const ClueCanvasEvent *ev, void *data)
 {
-    (void)data; (void)button;
-    if (type == CLUE_CANVAS_PRESS) {
+    (void)data;
+    if (ev->type == CLUE_CANVAS_PRESS) {
         if (g_paint_count > 0 && g_paint_count < PAINT_MAX) {
             g_paint_points[g_paint_count] = (PaintPoint){-1, -1, {0}};
             g_paint_count++;
         }
         if (g_paint_count < PAINT_MAX) {
-            g_paint_points[g_paint_count] = (PaintPoint){cx, cy, g_paint_color};
+            g_paint_points[g_paint_count] = (PaintPoint){ev->x, ev->y, g_paint_color};
             g_paint_count++;
         }
-        g_paint_last_x = cx;
-        g_paint_last_y = cy;
-    } else if (type == CLUE_CANVAS_MOTION) {
+        g_paint_last_x = ev->x;
+        g_paint_last_y = ev->y;
+    } else if (ev->type == CLUE_CANVAS_MOTION && g_paint_last_x >= 0) {
         if (g_paint_count < PAINT_MAX) {
-            g_paint_points[g_paint_count] = (PaintPoint){cx, cy, g_paint_color};
+            g_paint_points[g_paint_count] = (PaintPoint){ev->x, ev->y, g_paint_color};
             g_paint_count++;
         }
-        g_paint_last_x = cx;
-        g_paint_last_y = cy;
-    } else if (type == CLUE_CANVAS_RELEASE) {
+        g_paint_last_x = ev->x;
+        g_paint_last_y = ev->y;
+    } else if (ev->type == CLUE_CANVAS_RELEASE) {
         g_paint_last_x = -1;
         g_paint_last_y = -1;
     }
@@ -730,6 +730,182 @@ static ClueBox *build_canvas_page(void)
     return page;
 }
 
+/* --- 3D cube demo --- */
+
+#include <math.h>
+
+static float g_cube_rx = 0.4f, g_cube_ry = 0.6f;
+static float g_cube_scale = 1.0f;
+
+/* Unit cube vertices */
+static const float cube_verts[8][3] = {
+    {-1,-1,-1}, { 1,-1,-1}, { 1, 1,-1}, {-1, 1,-1},
+    {-1,-1, 1}, { 1,-1, 1}, { 1, 1, 1}, {-1, 1, 1},
+};
+
+/* Cube edges (pairs of vertex indices) */
+static const int cube_edges[12][2] = {
+    {0,1},{1,2},{2,3},{3,0}, /* back face */
+    {4,5},{5,6},{6,7},{7,4}, /* front face */
+    {0,4},{1,5},{2,6},{3,7}, /* connecting */
+};
+
+/* Cube faces (quads, 4 vertex indices each) */
+static const int cube_faces[6][4] = {
+    {0,1,2,3}, {4,5,6,7}, {0,1,5,4},
+    {2,3,7,6}, {0,3,7,4}, {1,2,6,5},
+};
+
+/* Face colors */
+static const UIColor face_colors[6] = {
+    {0.9f, 0.3f, 0.3f, 0.6f},  /* red */
+    {0.3f, 0.7f, 0.3f, 0.6f},  /* green */
+    {0.3f, 0.4f, 0.9f, 0.6f},  /* blue */
+    {0.9f, 0.85f, 0.2f, 0.6f}, /* yellow */
+    {0.9f, 0.5f, 0.1f, 0.6f},  /* orange */
+    {0.6f, 0.3f, 0.8f, 0.6f},  /* purple */
+};
+
+static void project(float vx, float vy, float vz, float rx, float ry,
+                    int cx, int cy, float scale, int *sx, int *sy, float *depth)
+{
+    /* Rotate around Y */
+    float x1 = vx * cosf(ry) - vz * sinf(ry);
+    float z1 = vx * sinf(ry) + vz * cosf(ry);
+    float y1 = vy;
+    /* Rotate around X */
+    float y2 = y1 * cosf(rx) - z1 * sinf(rx);
+    float z2 = y1 * sinf(rx) + z1 * cosf(rx);
+    float x2 = x1;
+    /* Simple perspective */
+    float d = 4.0f + z2;
+    if (d < 0.1f) d = 0.1f;
+    *sx = cx + (int)(x2 * scale / d * 2.0f);
+    *sy = cy + (int)(y2 * scale / d * 2.0f);
+    *depth = z2;
+}
+
+static void cube_draw_cb(int x, int y, int w, int h, void *data)
+{
+    (void)data;
+    int cx = x + w / 2, cy = y + h / 2;
+    float scale = (w < h ? w : h) * 0.35f * g_cube_scale;
+
+    int proj[8][2];
+    float depths[8];
+    for (int i = 0; i < 8; i++) {
+        project(cube_verts[i][0], cube_verts[i][1], cube_verts[i][2],
+                g_cube_rx, g_cube_ry, cx, cy, scale, &proj[i][0], &proj[i][1],
+                &depths[i]);
+    }
+
+    /* Sort faces by average depth (painter's algorithm) */
+    float face_depth[6];
+    int face_order[6];
+    for (int f = 0; f < 6; f++) {
+        face_depth[f] = 0;
+        for (int v = 0; v < 4; v++)
+            face_depth[f] += depths[cube_faces[f][v]];
+        face_depth[f] /= 4.0f;
+        face_order[f] = f;
+    }
+    /* Simple bubble sort */
+    for (int i = 0; i < 5; i++)
+        for (int j = 0; j < 5 - i; j++)
+            if (face_depth[face_order[j]] > face_depth[face_order[j + 1]]) {
+                int tmp = face_order[j];
+                face_order[j] = face_order[j + 1];
+                face_order[j + 1] = tmp;
+            }
+
+    /* Draw filled faces back-to-front using scanline fill on quads */
+    for (int fi = 0; fi < 6; fi++) {
+        int f = face_order[fi];
+        const int *fv = cube_faces[f];
+        int qx[4], qy[4];
+        int min_y = 9999, max_y = -9999;
+        for (int v = 0; v < 4; v++) {
+            qx[v] = proj[fv[v]][0];
+            qy[v] = proj[fv[v]][1];
+            if (qy[v] < min_y) min_y = qy[v];
+            if (qy[v] > max_y) max_y = qy[v];
+        }
+        /* Scanline fill the convex quad */
+        for (int sy = min_y; sy <= max_y; sy++) {
+            int xs[8], xn = 0;
+            for (int e = 0; e < 4; e++) {
+                int e2 = (e + 1) % 4;
+                int ey0 = qy[e], ey1 = qy[e2];
+                if ((sy >= ey0 && sy < ey1) || (sy >= ey1 && sy < ey0)) {
+                    float t2 = (float)(sy - ey0) / (float)(ey1 - ey0);
+                    if (xn < 8) xs[xn++] = qx[e] + (int)(t2 * (qx[e2] - qx[e]));
+                }
+            }
+            if (xn >= 2) {
+                int xl = xs[0], xr = xs[1];
+                if (xl > xr) { int tmp = xl; xl = xr; xr = tmp; }
+                clue_fill_rect(xl, sy, xr - xl + 1, 1, face_colors[f]);
+            }
+        }
+    }
+
+    /* Draw edges */
+    for (int i = 0; i < 12; i++) {
+        int a = cube_edges[i][0], b = cube_edges[i][1];
+        clue_draw_line(proj[a][0], proj[a][1], proj[b][0], proj[b][1],
+                       2.0f, UI_RGB(230, 230, 240));
+    }
+
+    /* Label */
+    clue_draw_text_default(x + 8, y + h - 20, "Drag to rotate, scroll to zoom",
+                           UI_RGB(100, 100, 120));
+}
+
+static bool g_cube_dragging = false;
+
+static void cube_event_cb(const ClueCanvasEvent *ev, void *data)
+{
+    (void)data;
+    if (ev->type == CLUE_CANVAS_PRESS && ev->button == 0) {
+        g_cube_dragging = true;
+    }
+    if (ev->type == CLUE_CANVAS_RELEASE && ev->button == 0) {
+        g_cube_dragging = false;
+    }
+    if (ev->type == CLUE_CANVAS_MOTION && g_cube_dragging) {
+        g_cube_ry += ev->dx * 0.01f;
+        g_cube_rx += ev->dy * 0.01f;
+    }
+    if (ev->type == CLUE_CANVAS_SCROLL) {
+        g_cube_scale += ev->scroll_y * 0.1f;
+        if (g_cube_scale < 0.3f) g_cube_scale = 0.3f;
+        if (g_cube_scale > 3.0f) g_cube_scale = 3.0f;
+    }
+}
+
+static ClueBox *build_3d_page(void)
+{
+    ClueBox *page = clue_box_new(CLUE_VERTICAL, 8);
+    clue_style_set_padding(&page->base.style, 12);
+    page->base.style.corner_radius = 0;
+    page->base.style.hexpand = true;
+    page->base.style.vexpand = true;
+
+    ClueLabel *lbl = clue_label_new("3D Canvas (drag to rotate, scroll to zoom):");
+    lbl->base.style.fg_color = UI_RGB(180, 180, 190);
+
+    ClueCanvas *canvas = clue_canvas_new(500, 400);
+    canvas->base.style.hexpand = true;
+    canvas->base.style.vexpand = true;
+    clue_canvas_set_draw(canvas, cube_draw_cb, NULL);
+    clue_canvas_set_event(canvas, cube_event_cb, NULL);
+
+    clue_container_add(page, lbl);
+    clue_container_add(page, canvas);
+
+    return page;
+}
+
 /* --- Splitter page --- */
 
 static ClueBox *build_splitter_page(void)
@@ -896,6 +1072,7 @@ int main(void)
     clue_tabs_add(tabs, "Editor", build_editor_page());
     clue_tabs_add(tabs, "Canvas", build_canvas_page());
     clue_tabs_add(tabs, "Splitter", build_splitter_page());
+    clue_tabs_add(tabs, "3D", build_3d_page());
 
     clue_container_add(root, menubar);
     clue_container_add(root, header);

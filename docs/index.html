@@ -667,7 +667,7 @@
   <div class="signal-tag">Signal: "changed"</div>
 
   <h2 id="canvas">Canvas</h2>
-  <p class="description">A user-drawable area. Register a draw callback to render custom content each frame.</p>
+  <p class="description">A user-drawable area with GL state protection. Safe for 2D drawing or raw OpenGL ES 2 calls (e.g. 3D scenes). Supports mouse, scroll, and keyboard events.</p>
 
   <div class="fn-block">
     <div class="fn-sig"><span class="type">ClueCanvas *</span><span class="name">clue_canvas_new</span>(<span class="param">int w</span>, <span class="param">int h</span>)</div>
@@ -675,12 +675,21 @@
   </div>
   <div class="fn-block">
     <div class="fn-sig"><span class="type">void</span> <span class="name">clue_canvas_set_draw</span>(<span class="param">ClueCanvas *c</span>, <span class="param">ClueCanvasDrawCb cb</span>, <span class="param">void *user_data</span>)</div>
-    <div class="fn-desc">Set the draw callback. Called each frame with canvas bounds (x, y, w, h) and user data.</div>
+    <div class="fn-desc">Set the draw callback. Called each frame with canvas bounds (x, y, w, h) and user data. GL state is saved/restored automatically.</div>
   </div>
   <div class="fn-block">
     <div class="fn-sig"><span class="type">void</span> <span class="name">clue_canvas_set_event</span>(<span class="param">ClueCanvas *c</span>, <span class="param">ClueCanvasEventCb cb</span>, <span class="param">void *user_data</span>)</div>
-    <div class="fn-desc">Set the event callback for mouse interaction. Receives CLUE_CANVAS_PRESS, CLUE_CANVAS_MOTION, CLUE_CANVAS_RELEASE with coordinates relative to canvas origin.</div>
+    <div class="fn-desc">Set the event callback. Receives a <code>ClueCanvasEvent</code> struct with type, position, delta, scroll, key, and modifier fields.</div>
   </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_canvas_set_focusable</span>(<span class="param">ClueCanvas *c</span>, <span class="param">bool focusable</span>)</div>
+    <div class="fn-desc">Enable keyboard events on the canvas (click to focus). Required for WASD camera controls etc.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_canvas_set_save_gl</span>(<span class="param">ClueCanvas *c</span>, <span class="param">bool save</span>)</div>
+    <div class="fn-desc">Enable/disable GL state save/restore around the draw callback (default: true).</div>
+  </div>
+  <p>Event types: <code>CLUE_CANVAS_PRESS</code>, <code>CLUE_CANVAS_RELEASE</code>, <code>CLUE_CANVAS_MOTION</code> (with dx/dy deltas), <code>CLUE_CANVAS_SCROLL</code> (with scroll_x/scroll_y), <code>CLUE_CANVAS_KEY</code> (with keycode/modifiers, when focusable).</p>
 
   <h2 id="colorpicker">Color Picker</h2>
   <p class="description">An HSV gradient picker with a hue bar and a Tango palette grid (light/mid/dark shades).</p>
