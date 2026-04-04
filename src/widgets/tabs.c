@@ -35,7 +35,7 @@ static void tabs_draw(ClueWidget *w)
             tabs_width += clue_font_text_width(font, t->tab_labels[i]) + TAB_PAD_H * 2;
     }
 
-    /* Page background — one solid rect covering everything (no AA edges) */
+    /* Page background */
     if (has_page_bg) {
         clue_fill_rect_solid(x, y, bw, w->base.h, page_bg);
         /* Cover the tab bar area to the right of the tabs with app bg */
@@ -44,7 +44,7 @@ static void tabs_draw(ClueWidget *w)
         }
     }
 
-    /* Draw inactive tabs on top of page_bg (active tab = page_bg shows through) */
+    /* Draw tab buttons */
     int tx = x;
     for (int i = 0; i < t->tab_count; i++) {
         int tw = 0;
@@ -54,7 +54,7 @@ static void tabs_draw(ClueWidget *w)
             /* Accent underline at top */
             clue_fill_rect_solid(tx, y, tw, 3, th->accent);
         } else {
-            /* Inactive tab: surface color with SDF (keeps AA edges) */
+            /* Inactive tab */
             clue_fill_rect(tx, y, tw, t->tab_height, th->surface);
             if (i == t->hovered) {
                 clue_fill_rect(tx, y, tw, t->tab_height, th->surface_hover);
@@ -101,14 +101,14 @@ static void tabs_layout(ClueWidget *w)
         int page_w = w->base.w;
         int page_h = w->base.h - t->tab_height;
 
-        /* Set position and size before layout so hexpand/vexpand can use it */
+        /* Set position and size before layout */
         page->base.x = w->base.x;
         page->base.y = w->base.y + t->tab_height;
         page->base.w = page_w;
         page->base.h = page_h;
         clue_cwidget_layout_tree(page);
 
-        /* Force page to fill tab content area regardless of content */
+        /* Set final page dimensions */
         page->base.x = w->base.x;
         page->base.y = w->base.y + t->tab_height;
         page->base.w = page_w;
@@ -138,7 +138,7 @@ static int tabs_handle_event(ClueWidget *w, UIEvent *event)
                 tx += tw;
             }
         }
-        /* Don't consume -- let children also get the event */
+        /* Let children also handle the event */
         return 0;
     }
 
