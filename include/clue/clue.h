@@ -24,6 +24,7 @@
 #include "scroll.h"
 #include "image.h"
 #include "checkbox.h"
+#include "radio.h"
 #include "slider.h"
 #include "dropdown.h"
 #include "theme.h"
