@@ -260,6 +260,18 @@ ClueBox *build_widgets_page(ClueApp *app)
     clue_container_add(page, sep3);
     clue_container_add(page, dlg_row);
 
+    /* Wrapped label */
+    ClueSeparator *sep4 = clue_separator_new(CLUE_HORIZONTAL);
+    ClueLabel *wrap_lbl = clue_label_new(
+        "This is a multi-line label with word wrapping enabled. "
+        "It automatically breaks long text to fit within the width.\n\n"
+        "Newlines also work.");
+    wrap_lbl->base.base.w = 350;
+    wrap_lbl->base.style.fg_color = UI_RGB(180, 180, 190);
+    clue_label_set_wrap(wrap_lbl, true);
+    clue_container_add(page, sep4);
+    clue_container_add(page, wrap_lbl);
+
     clue_timer_repeat(1000, on_tick_clock, NULL);
     clue_timer_repeat(16, on_tick_progress, NULL);
 
