@@ -274,7 +274,7 @@ static ClueWidget *build_widgets_page(ClueApp *app)
     ClueButton *btn_reset = clue_button_new("Reset");
     clue_signal_connect(btn_reset, "clicked", on_reset_progress, NULL);
 
-    ClueBox *progress_row = clue_box_new(CLUE_HORIZONTAL, 8);
+    ClueBox *progress_row = clue_box_new(CLUE_HORIZONTAL, 16);
     clue_container_add((ClueWidget *)progress_row, (ClueWidget *)g_progress);
     clue_container_add((ClueWidget *)progress_row, (ClueWidget *)btn_reset);
 
