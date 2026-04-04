@@ -26,10 +26,12 @@ static void separator_layout(ClueWidget *w)
     ClueSeparator *s = (ClueSeparator *)w;
 
     if (s->orientation == CLUE_HORIZONTAL) {
-        if (w->base.h < SEP_MIN_SIZE) w->base.h = SEP_MIN_SIZE;
+        w->base.w = 0; /* reset so parent can set correct width */
+        w->base.h = SEP_MIN_SIZE;
         w->style.hexpand = true;
     } else {
-        if (w->base.w < SEP_MIN_SIZE) w->base.w = SEP_MIN_SIZE;
+        w->base.w = SEP_MIN_SIZE;
+        w->base.h = 0;
         w->style.vexpand = true;
     }
 }

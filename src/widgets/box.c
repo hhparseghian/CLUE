@@ -26,6 +26,14 @@ static void box_layout(ClueWidget *w)
     int avail_w = w->base.w - pad_h;
     int avail_h = w->base.h - pad_v;
 
+    /* Reset expanded dimensions so children shrink when parent shrinks */
+    for (int i = 0; i < w->base.child_count; i++) {
+        ClueWidget *child = (ClueWidget *)w->base.children[i];
+        if (!child->base.visible) continue;
+        if (child->style.hexpand) child->base.w = 0;
+        if (child->style.vexpand) child->base.h = 0;
+    }
+
     /* First pass: position children, measure content, count expanders */
     int cx = w->base.x + s->padding_left;
     int cy = w->base.y + s->padding_top;
