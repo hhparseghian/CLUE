@@ -38,14 +38,20 @@ Options:
 - `--x11-only` — build only the X11 backend
 - `--drm-only` — build only the DRM/KMS backend
 - `--no-wayland`, `--no-x11`, `--no-drm` — disable individual backends
+- `--install` — install library and build demo
 - `--clean` — clean rebuild
 - `-j N` — parallel jobs
+
+Flags can be combined:
+
+```bash
+./build.sh --clean --x11-only --install
+```
 
 ### Install
 
 ```bash
-cd build
-sudo make install
+./build.sh --install
 ```
 
 This installs:
@@ -56,7 +62,7 @@ This installs:
 
 ### Run the demo
 
-After installing, build and run the demo:
+After installing, the demo is built automatically. You can also rebuild it:
 
 ```bash
 cd /usr/local/share/clue/examples/demo
@@ -104,6 +110,10 @@ Link against the installed library with pkg-config:
 ```bash
 cc main.c $(pkg-config --cflags --libs clue) -o myapp
 ```
+
+## Documentation
+
+Full API reference: [docs/index.html](docs/index.html)
 
 ## License
 
