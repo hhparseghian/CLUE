@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CLUE — API Documentation</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --border: #30363d;
+    --text: #e6edf3;
+    --text-muted: #8b949e;
+    --accent: #58a6ff;
+    --accent-dim: #1f6feb;
+    --green: #3fb950;
+    --purple: #bc8cff;
+    --orange: #d29922;
+    --red: #f85149;
+    --code-bg: #0d1117;
+    --sidebar-w: 280px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* Sidebar */
+  .sidebar {
+    position: fixed;
+    top: 0; left: 0;
+    width: var(--sidebar-w);
+    height: 100vh;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    padding: 20px 0;
+    z-index: 10;
+  }
+  .sidebar-logo {
+    padding: 0 20px 16px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 12px;
+  }
+  .sidebar-logo h1 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .sidebar-logo span {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .sidebar-section {
+    padding: 8px 20px 4px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+  }
+  .sidebar a {
+    display: block;
+    padding: 4px 20px 4px 28px;
+    font-size: 14px;
+    color: var(--text-muted);
+    transition: color 0.15s, background 0.15s;
+  }
+  .sidebar a:hover, .sidebar a.active {
+    color: var(--text);
+    background: rgba(88, 166, 255, 0.08);
+    text-decoration: none;
+  }
+  .sidebar a.active { border-left: 2px solid var(--accent); padding-left: 26px; }
+
+  /* Main content */
+  .main {
+    margin-left: var(--sidebar-w);
+    padding: 40px 60px 80px;
+    max-width: 900px;
+  }
+  h2 {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 48px 0 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+  }
+  h2:first-child { margin-top: 0; }
+  h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 28px 0 8px;
+    color: var(--text);
+  }
+  p { margin: 8px 0; color: var(--text-muted); }
+  .description { margin-bottom: 20px; }
+
+  /* Function blocks */
+  .fn-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin: 12px 0;
+  }
+  .fn-sig {
+    font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+    font-size: 14px;
+    color: var(--text);
+    word-break: break-all;
+  }
+  .fn-sig .type { color: var(--green); }
+  .fn-sig .name { color: var(--accent); font-weight: 600; }
+  .fn-sig .param { color: var(--orange); }
+  .fn-desc {
+    margin-top: 8px;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  /* Struct blocks */
+  .struct-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin: 12px 0;
+  }
+  .struct-name {
+    font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+    font-size: 14px;
+    color: var(--purple);
+    font-weight: 600;
+  }
+  .struct-desc {
+    margin-top: 4px;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  /* Enum blocks */
+  .enum-values {
+    font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+    font-size: 13px;
+    margin-top: 6px;
+    color: var(--orange);
+  }
+
+  /* Signal tag */
+  .signal-tag {
+    display: inline-block;
+    background: rgba(188, 140, 255, 0.15);
+    color: var(--purple);
+    font-size: 12px;
+    font-family: monospace;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-top: 8px;
+  }
+
+  /* Code blocks */
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    overflow-x: auto;
+    margin: 12px 0;
+  }
+  code {
+    font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+    font-size: 13px;
+    color: var(--text);
+  }
+  p code {
+    background: var(--surface);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 13px;
+  }
+
+  /* Hero */
+  .hero {
+    padding: 20px 0 32px;
+  }
+  .hero h1 { font-size: 36px; font-weight: 800; margin-bottom: 8px; }
+  .hero p { font-size: 16px; color: var(--text-muted); }
+  .badge {
+    display: inline-block;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    color: var(--text-muted);
+    margin: 8px 4px 0 0;
+  }
+  .badge.green { border-color: var(--green); color: var(--green); }
+  .badge.blue { border-color: var(--accent); color: var(--accent); }
+
+  /* Search */
+  .search-box {
+    padding: 8px 20px 12px;
+  }
+  .search-box input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 12px;
+    color: var(--text);
+    font-size: 13px;
+    outline: none;
+  }
+  .search-box input:focus { border-color: var(--accent); }
+  .search-box input::placeholder { color: var(--text-muted); }
+
+  /* Mobile */
+  @media (max-width: 768px) {
+    .sidebar { display: none; }
+    .main { margin-left: 0; padding: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <h1>CLUE</h1>
+    <span>v0.1.0 &mdash; API Reference</span>
+  </div>
+  <div class="search-box">
+    <input type="text" id="search" placeholder="Search API..." autocomplete="off">
+  </div>
+  <div class="sidebar-section">Getting Started</div>
+  <a href="#overview">Overview</a>
+  <a href="#quickstart">Quick Start</a>
+  <div class="sidebar-section">Application</div>
+  <a href="#app">App</a>
+  <a href="#window">Window</a>
+  <a href="#event">Event</a>
+  <a href="#timer">Timer</a>
+  <div class="sidebar-section">Widgets</div>
+  <a href="#widget">Widget (base)</a>
+  <a href="#label">Label</a>
+  <a href="#button">Button</a>
+  <a href="#text_input">Text Input</a>
+  <a href="#checkbox">Checkbox</a>
+  <a href="#radio">Radio</a>
+  <a href="#slider">Slider</a>
+  <a href="#dropdown">Dropdown</a>
+  <a href="#progress">Progress</a>
+  <a href="#image">Image</a>
+  <a href="#tooltip">Tooltip</a>
+  <div class="sidebar-section">Containers</div>
+  <a href="#box">Box</a>
+  <a href="#grid">Grid</a>
+  <a href="#scroll">Scroll</a>
+  <a href="#tabs">Tabs</a>
+  <div class="sidebar-section">Data Views</div>
+  <a href="#listview">List View</a>
+  <a href="#table">Table</a>
+  <a href="#treeview">Tree View</a>
+  <div class="sidebar-section">Overlays</div>
+  <a href="#dialog">Dialog</a>
+  <a href="#menu">Menu</a>
+  <div class="sidebar-section">Rendering</div>
+  <a href="#draw">Draw</a>
+  <a href="#font">Font</a>
+  <a href="#style">Style</a>
+  <a href="#theme">Theme</a>
+  <a href="#signal">Signal</a>
+</nav>
+
+<div class="main" id="content">
+
+  <!-- Overview -->
+  <div class="hero">
+    <h1>CLUE</h1>
+    <p>Cross-platform Lightweight UI Engine &mdash; a C99 GUI toolkit with OpenGL ES 2 rendering.</p>
+    <span class="badge green">C99</span>
+    <span class="badge blue">Wayland</span>
+    <span class="badge blue">X11</span>
+    <span class="badge blue">DRM/KMS</span>
+    <span class="badge">MIT License</span>
+  </div>
+
+  <h2 id="overview">Overview</h2>
+  <p>CLUE is a retained-mode widget toolkit written in C99. It renders with OpenGL ES 2 via EGL and supports Wayland, X11, and DRM/KMS display backends. Include <code>&lt;clue/clue.h&gt;</code> to access the full API.</p>
+
+  <h2 id="quickstart">Quick Start</h2>
+  <pre><code><span style="color:#3fb950">#include</span> <span style="color:#a5d6ff">&lt;clue/clue.h&gt;</span>
+
+<span style="color:#8b949e">// Callback for button click</span>
+<span style="color:#3fb950">static void</span> <span style="color:#58a6ff">on_clicked</span>(<span style="color:#3fb950">void</span> *widget, <span style="color:#3fb950">void</span> *data)
+{
+    clue_label_set_text((<span style="color:#bc8cff">ClueLabel</span> *)data, <span style="color:#a5d6ff">"Button clicked!"</span>);
+}
+
+<span style="color:#3fb950">int</span> <span style="color:#58a6ff">main</span>(<span style="color:#3fb950">void</span>)
+{
+    <span style="color:#bc8cff">ClueApp</span> *app = clue_app_new(<span style="color:#a5d6ff">"My App"</span>, <span style="color:#d29922">400</span>, <span style="color:#d29922">300</span>);
+
+    <span style="color:#bc8cff">ClueBox</span> *vbox = clue_box_new(<span style="color:#d29922">CLUE_VERTICAL</span>, <span style="color:#d29922">12</span>);
+    <span style="color:#bc8cff">ClueLabel</span> *label = clue_label_new(<span style="color:#a5d6ff">"Hello, CLUE!"</span>);
+    <span style="color:#bc8cff">ClueButton</span> *btn = clue_button_new(<span style="color:#a5d6ff">"Click Me"</span>);
+    clue_signal_connect(btn, <span style="color:#a5d6ff">"clicked"</span>, on_clicked, label);
+
+    clue_container_add((<span style="color:#bc8cff">ClueWidget</span> *)vbox, (<span style="color:#bc8cff">ClueWidget</span> *)label);
+    clue_container_add((<span style="color:#bc8cff">ClueWidget</span> *)vbox, (<span style="color:#bc8cff">ClueWidget</span> *)btn);
+
+    clue_app_set_root(app, (<span style="color:#bc8cff">ClueWidget</span> *)vbox);
+    clue_app_run(app);
+    clue_app_destroy(app);
+    <span style="color:#3fb950">return</span> <span style="color:#d29922">0</span>;
+}</code></pre>
+
+  <!-- ===================== APPLICATION ===================== -->
+
+  <h2 id="app">App</h2>
+  <p class="description">Top-level application context. Manages the main window, event loop, and widget tree.</p>
+
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">ClueApp *</span><span class="name">clue_app_new</span>(<span class="param">const char *title</span>, <span class="param">int w</span>, <span class="param">int h</span>)</div>
+    <div class="fn-desc">Create a new application with a window of the given size and title.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_app_set_root</span>(<span class="param">ClueApp *app</span>, <span class="param">ClueWidget *root</span>)</div>
+    <div class="fn-desc">Set the root widget of the application's window.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_app_run</span>(<span class="param">ClueApp *app</span>)</div>
+    <div class="fn-desc">Enter the main event loop. Blocks until <code>clue_app_quit()</code> is called.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_app_quit</span>(<span class="param">ClueApp *app</span>)</div>
+    <div class="fn-desc">Request the application to exit its event loop.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_app_destroy</span>(<span class="param">ClueApp *app</span>)</div>
+    <div class="fn-desc">Free all resources associated with the application.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">ClueApp *</span><span class="name">clue_app_get</span>(<span class="param">void</span>)</div>
+    <div class="fn-desc">Return the current application instance (singleton).</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">UIFont *</span><span class="name">clue_app_default_font</span>(<span class="param">void</span>)</div>
+    <div class="fn-desc">Return the application's default font.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_focus_widget</span>(<span class="param">UIWidget *widget</span>)</div>
+    <div class="fn-desc">Set keyboard focus to the given widget.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_capture_mouse</span>(<span class="param">UIWidget *widget</span>)</div>
+    <div class="fn-desc">Capture all mouse events to the given widget.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_release_mouse</span>(<span class="param">void</span>)</div>
+    <div class="fn-desc">Release the mouse capture.</div>
+  </div>
+
+  <!-- Window -->
+  <h2 id="window">Window</h2>
+  <p class="description">Window management. Most apps use <code>ClueApp</code> which handles this internally.</p>
+
+  <div class="struct-block">
+    <div class="struct-name">UIWindowType</div>
+    <div class="enum-values">UI_WINDOW_NORMAL | UI_WINDOW_DIALOG | UI_WINDOW_POPUP</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">UIWindow *</span><span class="name">clue_window_create</span>(<span class="param">int w</span>, <span class="param">int h</span>, <span class="param">const char *title</span>)</div>
+    <div class="fn-desc">Create a new window with the given dimensions and title.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_window_destroy</span>(<span class="param">UIWindow *win</span>)</div>
+    <div class="fn-desc">Destroy a window and free its resources.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_window_set_type</span>(<span class="param">UIWindow *win</span>, <span class="param">UIWindowType type</span>)</div>
+    <div class="fn-desc">Set the window type (normal, dialog, or popup).</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_window_set_visible</span>(<span class="param">UIWindow *win</span>, <span class="param">bool visible</span>)</div>
+    <div class="fn-desc">Show or hide the window.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_window_mark_dirty</span>(<span class="param">UIWindow *win</span>)</div>
+    <div class="fn-desc">Mark the window as needing a redraw.</div>
+  </div>
+
+  <!-- Event -->
+  <h2 id="event">Event</h2>
+  <p class="description">Input and window events. Events are dispatched automatically by the app loop.</p>
+
+  <div class="struct-block">
+    <div class="struct-name">UIEventType</div>
+    <div class="enum-values">UI_EVENT_NONE | UI_EVENT_MOUSE_MOVE | UI_EVENT_MOUSE_BUTTON | UI_EVENT_MOUSE_SCROLL | UI_EVENT_KEY | UI_EVENT_RESIZE | UI_EVENT_CLOSE</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">int</span> <span class="name">clue_event_dispatch</span>(<span class="param">UIEvent *event</span>)</div>
+    <div class="fn-desc">Dispatch an event through the widget tree. Returns 1 if handled.</div>
+  </div>
+
+  <!-- Timer -->
+  <h2 id="timer">Timer</h2>
+  <p class="description">Schedule callbacks to run after a delay or at a regular interval.</p>
+
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">int</span> <span class="name">clue_timer_once</span>(<span class="param">int delay_ms</span>, <span class="param">ClueTimerCallback cb</span>, <span class="param">void *data</span>)</div>
+    <div class="fn-desc">Schedule a one-shot callback after <code>delay_ms</code> milliseconds. Returns a timer ID.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">int</span> <span class="name">clue_timer_repeat</span>(<span class="param">int interval_ms</span>, <span class="param">ClueTimerCallback cb</span>, <span class="param">void *data</span>)</div>
+    <div class="fn-desc">Schedule a repeating callback. The callback returns <code>true</code> to continue, <code>false</code> to stop.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_timer_cancel</span>(<span class="param">int timer_id</span>)</div>
+    <div class="fn-desc">Cancel a running timer by its ID.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_timer_cancel_all</span>(<span class="param">void</span>)</div>
+    <div class="fn-desc">Cancel all active timers.</div>
+  </div>
+
+  <!-- ===================== WIDGETS ===================== -->
+
+  <h2 id="widget">Widget (base)</h2>
+  <p class="description">Base widget types and container operations shared by all widgets.</p>
+
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_container_add</span>(<span class="param">ClueWidget *parent</span>, <span class="param">ClueWidget *child</span>)</div>
+    <div class="fn-desc">Add a child widget to a container widget.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_container_remove</span>(<span class="param">ClueWidget *parent</span>, <span class="param">ClueWidget *child</span>)</div>
+    <div class="fn-desc">Remove a child widget from its container.</div>
+  </div>
+
+  <h2 id="label">Label</h2>
+  <p class="description">A simple text display widget.</p>
+
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">ClueLabel *</span><span class="name">clue_label_new</span>(<span class="param">const char *text</span>)</div>
+    <div class="fn-desc">Create a new label with the given text.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_label_set_text</span>(<span class="param">ClueLabel *label</span>, <span class="param">const char *text</span>)</div>
+    <div class="fn-desc">Update the label's display text.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">const char *</span><span class="name">clue_label_get_text</span>(<span class="param">ClueLabel *label</span>)</div>
+    <div class="fn-desc">Get the label's current text.</div>
+  </div>
+
+  <h2 id="button">Button</h2>
+  <p class="description">A clickable button widget.</p>
+
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">ClueButton *</span><span class="name">clue_button_new</span>(<span class="param">const char *label</span>)</div>
+    <div class="fn-desc">Create a new button with the given label text.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_button_set_label</span>(<span class="param">ClueButton *button</span>, <span class="param">const char *label</span>)</div>
+    <div class="fn-desc">Update the button's label text.</div>
+  </div>
+  <div class="signal-tag">Signal: "clicked"</div>
+
+  <h2 id="text_input">Text Input</h2>
+  <p class="description">A single-line text input field with placeholder support.</p>
+
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">ClueTextInput *</span><span class="name">clue_text_input_new</span>(<span class="param">const char *placeholder</span>)</div>
+    <div class="fn-desc">Create a new text input with placeholder text.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">const char *</span><span class="name">clue_text_input_get_text</span>(<span class="param">ClueTextInput *input</span>)</div>
+    <div class="fn-desc">Get the current input text.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_text_input_set_text</span>(<span class="param">ClueTextInput *input</span>, <span class="param">const char *text</span>)</div>
+    <div class="fn-desc">Set the input text programmatically.</div>
+  </div>
+  <div class="signal-tag">Signal: "changed"</div>
+
+  <h2 id="checkbox">Checkbox</h2>
+  <p class="description">A toggleable checkbox with a label.</p>
+
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">ClueCheckbox *</span><span class="name">clue_checkbox_new</span>(<span class="param">const char *label</span>)</div>
+    <div class="fn-desc">Create a new checkbox with the given label.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">bool</span> <span class="name">clue_checkbox_is_checked</span>(<span class="param">ClueCheckbox *cb</span>)</div>
+    <div class="fn-desc">Return whether the checkbox is currently checked.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_checkbox_set_checked</span>(<span class="param">ClueCheckbox *cb</span>, <span class="param">bool checked</span>)</div>
+    <div class="fn-desc">Set the checkbox state programmatically.</div>
+  </div>
+  <div class="signal-tag">Signal: "toggled"</div>
+
+  <h2 id="radio">Radio</h2>
+  <p class="description">A radio button with group support. Only one button per group can be selected at a time.</p>
+
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">ClueRadioGroup *</span><span class="name">clue_radio_group_new</span>(<span class="param">void</span>)</div>
+    <div class="fn-desc">Create a new radio group for mutual exclusion.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_radio_group_destroy</span>(<span class="param">ClueRadioGroup *group</span>)</div>
+    <div class="fn-desc">Destroy a radio group (does not destroy the radio widgets).</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">ClueRadio *</span><span class="name">clue_radio_new</span>(<span class="param">const char *label</span>, <span class="param">ClueRadioGroup *group</span>)</div>
+    <div class="fn-desc">Create a new radio button and add it to a group.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">bool</span> <span class="name">clue_radio_is_selected</span>(<span class="param">ClueRadio *r</span>)</div>
+    <div class="fn-desc">Return whether this radio button is currently selected.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_radio_set_selected</span>(<span class="param">ClueRadio *r</span>)</div>
+    <div class="fn-desc">Select this radio button (deselects all others in its group).</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">ClueRadio *</span><span class="name">clue_radio_group_get_selected</span>(<span class="param">ClueRadioGroup *group</span>)</div>
+    <div class="fn-desc">Get the currently selected radio button in a group (NULL if none).</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">int</span> <span class="name">clue_radio_group_get_selected_index</span>(<span class="param">ClueRadioGroup *group</span>)</div>
+    <div class="fn-desc">Get the index of the selected button (-1 if none).</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_radio_group_set_selected</span>(<span class="param">ClueRadioGroup *group</span>, <span class="param">int index</span>)</div>
+    <div class="fn-desc">Select a button by index.</div>
+  </div>
+  <div class="signal-tag">Signal: "changed"</div>
+
+  <h2 id="slider">Slider</h2>
+  <p class="description">A horizontal range slider.</p>
+
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">ClueSlider *</span><span class="name">clue_slider_new</span>(<span class="param">float min_val</span>, <span class="param">float max_val</span>, <span class="param">float value</span>)</div>
+    <div class="fn-desc">Create a new slider with min, max, and initial value.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">float</span> <span class="name">clue_slider_get_value</span>(<span class="param">ClueSlider *slider</span>)</div>
+    <div class="fn-desc">Get the current slider value.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_slider_set_value</span>(<span class="param">ClueSlider *slider</span>, <span class="param">float value</span>)</div>
+    <div class="fn-desc">Set the slider value programmatically.</div>
+  </div>
+  <div class="signal-tag">Signal: "changed"</div>
+
+  <h2 id="dropdown">Dropdown</h2>
+  <p class="description">A dropdown / select widget.</p>
+
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">ClueDropdown *</span><span class="name">clue_dropdown_new</span>(<span class="param">const char *placeholder</span>)</div>
+    <div class="fn-desc">Create a new dropdown with placeholder text.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_dropdown_add_item</span>(<span class="param">ClueDropdown *dd</span>, <span class="param">const char *text</span>)</div>
+    <div class="fn-desc">Add an item to the dropdown list.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">int</span> <span class="name">clue_dropdown_get_selected</span>(<span class="param">ClueDropdown *dd</span>)</div>
+    <div class="fn-desc">Get the index of the selected item (-1 if none).</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">const char *</span><span class="name">clue_dropdown_get_selected_text</span>(<span class="param">ClueDropdown *dd</span>)</div>
+    <div class="fn-desc">Get the text of the selected item.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_dropdown_set_selected</span>(<span class="param">ClueDropdown *dd</span>, <span class="param">int index</span>)</div>
+    <div class="fn-desc">Set the selected item by index.</div>
+  </div>
+  <div class="signal-tag">Signal: "changed"</div>
+
+  <h2 id="progress">Progress</h2>
+  <p class="description">A progress bar with determinate and indeterminate modes.</p>
+
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">ClueProgress *</span><span class="name">clue_progress_new</span>(<span class="param">void</span>)</div>
+    <div class="fn-desc">Create a new progress bar (starts at 0).</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_progress_set_value</span>(<span class="param">ClueProgress *p</span>, <span class="param">float value</span>)</div>
+    <div class="fn-desc">Set progress value (0.0 to 1.0).</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">float</span> <span class="name">clue_progress_get_value</span>(<span class="param">ClueProgress *p</span>)</div>
+    <div class="fn-desc">Get the current progress value.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_progress_set_indeterminate</span>(<span class="param">ClueProgress *p</span>, <span class="param">bool on</span>)</div>
+    <div class="fn-desc">Enable or disable indeterminate (spinner) mode.</div>
+  </div>
+
+  <h2 id="image">Image</h2>
+  <p class="description">Display an image from a file or texture.</p>
+
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">ClueImage *</span><span class="name">clue_image_new</span>(<span class="param">const char *path</span>)</div>
+    <div class="fn-desc">Create an image widget from a file (PNG, JPG, etc.).</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">ClueImage *</span><span class="name">clue_image_new_from_texture</span>(<span class="param">UITexture tex</span>, <span class="param">int w</span>, <span class="param">int h</span>)</div>
+    <div class="fn-desc">Create an image widget from an existing texture.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_image_set_size</span>(<span class="param">ClueImage *image</span>, <span class="param">int w</span>, <span class="param">int h</span>)</div>
+    <div class="fn-desc">Set the display size of the image.</div>
+  </div>
+
+  <h2 id="tooltip">Tooltip</h2>
+  <p class="description">Attach hover tooltips to any widget.</p>
+
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_tooltip_set</span>(<span class="param">ClueWidget *widget</span>, <span class="param">const char *text</span>)</div>
+    <div class="fn-desc">Set the tooltip text for a widget.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">const char *</span><span class="name">clue_tooltip_get</span>(<span class="param">ClueWidget *widget</span>)</div>
+    <div class="fn-desc">Get the tooltip text for a widget.</div>
+  </div>
+
+  <!-- ===================== CONTAINERS ===================== -->
+
+  <h2 id="box">Box</h2>
+  <p class="description">A vertical or horizontal container that arranges children in a line with spacing.</p>
+
+  <div class="struct-block">
+    <div class="struct-name">ClueBoxOrientation</div>
+    <div class="enum-values">CLUE_VERTICAL | CLUE_HORIZONTAL</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">ClueBox *</span><span class="name">clue_box_new</span>(<span class="param">ClueBoxOrientation orientation</span>, <span class="param">int spacing</span>)</div>
+    <div class="fn-desc">Create a new box container with the given orientation and spacing between children.</div>
+  </div>
+
+  <h2 id="grid">Grid</h2>
+  <p class="description">A fixed-column grid layout for form-like UIs.</p>
+
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">ClueGrid *</span><span class="name">clue_grid_new</span>(<span class="param">int cols</span>, <span class="param">int row_spacing</span>, <span class="param">int col_spacing</span>)</div>
+    <div class="fn-desc">Create a new grid with the given number of columns and spacing.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_grid_set_col_width</span>(<span class="param">ClueGrid *grid</span>, <span class="param">int col</span>, <span class="param">int width</span>)</div>
+    <div class="fn-desc">Set a fixed width for a specific column.</div>
+  </div>
+
+  <h2 id="scroll">Scroll</h2>
+  <p class="description">A scrollable container for content that exceeds the visible area.</p>
+
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">ClueScroll *</span><span class="name">clue_scroll_new</span>(<span class="param">void</span>)</div>
+    <div class="fn-desc">Create a new scroll container.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_scroll_to</span>(<span class="param">ClueScroll *scroll</span>, <span class="param">int x</span>, <span class="param">int y</span>)</div>
+    <div class="fn-desc">Scroll to the given position.</div>
+  </div>
+
+  <h2 id="tabs">Tabs</h2>
+  <p class="description">A tabbed container that shows one page at a time.</p>
+
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">ClueTabs *</span><span class="name">clue_tabs_new</span>(<span class="param">void</span>)</div>
+    <div class="fn-desc">Create a new tab container.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">int</span> <span class="name">clue_tabs_add</span>(<span class="param">ClueTabs *tabs</span>, <span class="param">const char *label</span>, <span class="param">ClueWidget *content</span>)</div>
+    <div class="fn-desc">Add a tab page with a label and content widget. Returns the tab index.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">int</span> <span class="name">clue_tabs_get_active</span>(<span class="param">ClueTabs *tabs</span>)</div>
+    <div class="fn-desc">Get the index of the currently active tab.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_tabs_set_active</span>(<span class="param">ClueTabs *tabs</span>, <span class="param">int index</span>)</div>
+    <div class="fn-desc">Switch to the tab at the given index.</div>
+  </div>
+  <div class="signal-tag">Signal: "changed"</div>
+
+  <!-- ===================== DATA VIEWS ===================== -->
+
+  <h2 id="listview">List View</h2>
+  <p class="description">A virtual-scrolling list for large data sets. Data is provided via callback.</p>
+
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">ClueListView *</span><span class="name">clue_listview_new</span>(<span class="param">void</span>)</div>
+    <div class="fn-desc">Create a new list view.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_listview_set_data</span>(<span class="param">ClueListView *lv</span>, <span class="param">int count</span>, <span class="param">ClueListViewItemCallback cb</span>, <span class="param">void *user_data</span>)</div>
+    <div class="fn-desc">Set the data source. The callback returns the text for each row index.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">int</span> <span class="name">clue_listview_get_selected</span>(<span class="param">ClueListView *lv</span>)</div>
+    <div class="fn-desc">Get the selected row index (-1 if none).</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_listview_set_selected</span>(<span class="param">ClueListView *lv</span>, <span class="param">int index</span>)</div>
+    <div class="fn-desc">Set the selected row by index.</div>
+  </div>
+  <div class="signal-tag">Signal: "selected"</div>
+
+  <h2 id="table">Table</h2>
+  <p class="description">A multi-column data table with sortable headers.</p>
+
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">ClueTable *</span><span class="name">clue_table_new</span>(<span class="param">void</span>)</div>
+    <div class="fn-desc">Create a new table widget.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_table_add_column</span>(<span class="param">ClueTable *t</span>, <span class="param">const char *header</span>, <span class="param">int width</span>)</div>
+    <div class="fn-desc">Add a column with a header label and width.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_table_set_data</span>(<span class="param">ClueTable *t</span>, <span class="param">int rows</span>, <span class="param">ClueTableCellCallback cb</span>, <span class="param">void *user_data</span>)</div>
+    <div class="fn-desc">Set the data source. The callback returns the text for each (row, col) cell.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">int</span> <span class="name">clue_table_get_selected</span>(<span class="param">ClueTable *t</span>)</div>
+    <div class="fn-desc">Get the selected row index (-1 if none).</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_table_set_selected</span>(<span class="param">ClueTable *t</span>, <span class="param">int row</span>)</div>
+    <div class="fn-desc">Set the selected row by index.</div>
+  </div>
+  <div class="signal-tag">Signal: "selected"</div>
+
+  <h2 id="treeview">Tree View</h2>
+  <p class="description">A hierarchical tree view with expandable nodes.</p>
+
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">ClueTreeView *</span><span class="name">clue_treeview_new</span>(<span class="param">void</span>)</div>
+    <div class="fn-desc">Create a new tree view. Access <code>tv-&gt;root</code> to build the tree.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">ClueTreeNode *</span><span class="name">clue_tree_node_new</span>(<span class="param">const char *label</span>)</div>
+    <div class="fn-desc">Create a new tree node with the given label.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">ClueTreeNode *</span><span class="name">clue_tree_node_add</span>(<span class="param">ClueTreeNode *parent</span>, <span class="param">ClueTreeNode *child</span>)</div>
+    <div class="fn-desc">Add a child node to a parent node. Returns the child.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">ClueTreeNode *</span><span class="name">clue_treeview_get_selected</span>(<span class="param">ClueTreeView *tv</span>)</div>
+    <div class="fn-desc">Get the currently selected tree node.</div>
+  </div>
+  <div class="signal-tag">Signal: "selected"</div>
+
+  <!-- ===================== OVERLAYS ===================== -->
+
+  <h2 id="dialog">Dialog</h2>
+  <p class="description">Modal dialogs for messages and confirmations.</p>
+
+  <div class="struct-block">
+    <div class="struct-name">ClueDialogResult</div>
+    <div class="enum-values">CLUE_DIALOG_NONE | CLUE_DIALOG_OK | CLUE_DIALOG_CANCEL | CLUE_DIALOG_YES | CLUE_DIALOG_NO</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">ClueDialogResult</span> <span class="name">clue_dialog_message</span>(<span class="param">const char *title</span>, <span class="param">const char *message</span>)</div>
+    <div class="fn-desc">Show a simple message dialog. Blocks until dismissed.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">ClueDialogResult</span> <span class="name">clue_dialog_confirm</span>(<span class="param">const char *title</span>, <span class="param">const char *message</span>)</div>
+    <div class="fn-desc">Show a confirmation dialog with OK/Cancel. Blocks until dismissed.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_dialog_message_async</span>(<span class="param">const char *title</span>, <span class="param">const char *message</span>, <span class="param">ClueDialogCallback cb</span>, <span class="param">void *user_data</span>)</div>
+    <div class="fn-desc">Show a message dialog (non-blocking). Result delivered to callback.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_dialog_confirm_async</span>(<span class="param">const char *title</span>, <span class="param">const char *message</span>, <span class="param">ClueDialogCallback cb</span>, <span class="param">void *user_data</span>)</div>
+    <div class="fn-desc">Show a confirmation dialog (non-blocking). Result delivered to callback.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">ClueDialog *</span><span class="name">clue_dialog_new</span>(<span class="param">const char *title</span>, <span class="param">int w</span>, <span class="param">int h</span>)</div>
+    <div class="fn-desc">Create a custom dialog with given dimensions.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_dialog_set_content</span>(<span class="param">ClueDialog *dlg</span>, <span class="param">ClueWidget *content</span>)</div>
+    <div class="fn-desc">Set the content widget of a custom dialog.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_dialog_add_button</span>(<span class="param">ClueDialog *dlg</span>, <span class="param">const char *label</span>, <span class="param">ClueDialogResult result</span>)</div>
+    <div class="fn-desc">Add a button to the dialog that returns the given result.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">ClueDialogResult</span> <span class="name">clue_dialog_run</span>(<span class="param">ClueDialog *dlg</span>)</div>
+    <div class="fn-desc">Show the dialog modally and return the result.</div>
+  </div>
+
+  <h2 id="menu">Menu</h2>
+  <p class="description">Menu bars and popup/context menus.</p>
+
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">ClueMenuBar *</span><span class="name">clue_menubar_new</span>(<span class="param">void</span>)</div>
+    <div class="fn-desc">Create a new menu bar widget.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_menubar_add</span>(<span class="param">ClueMenuBar *bar</span>, <span class="param">const char *label</span>, <span class="param">ClueMenu *menu</span>)</div>
+    <div class="fn-desc">Add a top-level menu to the menu bar.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">ClueMenu *</span><span class="name">clue_menu_new</span>(<span class="param">void</span>)</div>
+    <div class="fn-desc">Create a new popup menu.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_menu_add_item</span>(<span class="param">ClueMenu *menu</span>, <span class="param">const char *label</span>, <span class="param">ClueSignalCallback callback</span>, <span class="param">void *user_data</span>)</div>
+    <div class="fn-desc">Add a menu item with a callback.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_menu_add_item_shortcut</span>(<span class="param">ClueMenu *menu</span>, <span class="param">const char *label</span>, <span class="param">const char *shortcut</span>, <span class="param">ClueSignalCallback callback</span>, <span class="param">void *user_data</span>)</div>
+    <div class="fn-desc">Add a menu item with a keyboard shortcut hint.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_menu_add_separator</span>(<span class="param">ClueMenu *menu</span>)</div>
+    <div class="fn-desc">Add a visual separator to the menu.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_menu_popup</span>(<span class="param">ClueMenu *menu</span>, <span class="param">int x</span>, <span class="param">int y</span>)</div>
+    <div class="fn-desc">Show the menu as a popup at the given position.</div>
+  </div>
+
+  <!-- ===================== RENDERING ===================== -->
+
+  <h2 id="draw">Draw</h2>
+  <p class="description">Low-level drawing primitives. Use these for custom widget rendering.</p>
+
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_fill_rect</span>(<span class="param">int x</span>, <span class="param">int y</span>, <span class="param">int w</span>, <span class="param">int h</span>, <span class="param">UIColor color</span>)</div>
+    <div class="fn-desc">Draw a filled rectangle.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_fill_rounded_rect</span>(<span class="param">int x</span>, <span class="param">int y</span>, <span class="param">int w</span>, <span class="param">int h</span>, <span class="param">float radius</span>, <span class="param">UIColor color</span>)</div>
+    <div class="fn-desc">Draw a filled rectangle with rounded corners.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_draw_rect</span>(<span class="param">int x</span>, <span class="param">int y</span>, <span class="param">int w</span>, <span class="param">int h</span>, <span class="param">float thickness</span>, <span class="param">UIColor color</span>)</div>
+    <div class="fn-desc">Draw a rectangle outline.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_draw_rounded_rect</span>(<span class="param">int x</span>, <span class="param">int y</span>, <span class="param">int w</span>, <span class="param">int h</span>, <span class="param">float radius</span>, <span class="param">float thickness</span>, <span class="param">UIColor color</span>)</div>
+    <div class="fn-desc">Draw a rounded rectangle outline.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_draw_line</span>(<span class="param">int x0</span>, <span class="param">int y0</span>, <span class="param">int x1</span>, <span class="param">int y1</span>, <span class="param">float thickness</span>, <span class="param">UIColor color</span>)</div>
+    <div class="fn-desc">Draw a line between two points.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_fill_circle</span>(<span class="param">int cx</span>, <span class="param">int cy</span>, <span class="param">int radius</span>, <span class="param">UIColor color</span>)</div>
+    <div class="fn-desc">Draw a filled circle.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_draw_circle</span>(<span class="param">int cx</span>, <span class="param">int cy</span>, <span class="param">int radius</span>, <span class="param">float thickness</span>, <span class="param">UIColor color</span>)</div>
+    <div class="fn-desc">Draw a circle outline.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_draw_text</span>(<span class="param">int x</span>, <span class="param">int y</span>, <span class="param">const char *text</span>, <span class="param">UIFont *font</span>, <span class="param">UIColor color</span>)</div>
+    <div class="fn-desc">Draw text at the given position with a specific font.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_draw_text_default</span>(<span class="param">int x</span>, <span class="param">int y</span>, <span class="param">const char *text</span>, <span class="param">UIColor color</span>)</div>
+    <div class="fn-desc">Draw text using the application's default font.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_draw_image</span>(<span class="param">UITexture tex</span>, <span class="param">int x</span>, <span class="param">int y</span>, <span class="param">int w</span>, <span class="param">int h</span>)</div>
+    <div class="fn-desc">Draw a texture at the given position and size.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_set_clip_rect</span>(<span class="param">int x</span>, <span class="param">int y</span>, <span class="param">int w</span>, <span class="param">int h</span>)</div>
+    <div class="fn-desc">Set the scissor/clip rectangle. Drawing outside this region is clipped.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_reset_clip_rect</span>(<span class="param">void</span>)</div>
+    <div class="fn-desc">Reset the clip rectangle to the full window.</div>
+  </div>
+
+  <h2 id="font">Font</h2>
+  <p class="description">FreeType-based font loading and text measurement.</p>
+
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">UIFont *</span><span class="name">clue_font_load</span>(<span class="param">const char *path</span>, <span class="param">int size_px</span>)</div>
+    <div class="fn-desc">Load a TrueType font from a file at the given pixel size.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_font_destroy</span>(<span class="param">UIFont *font</span>)</div>
+    <div class="fn-desc">Free a loaded font.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">int</span> <span class="name">clue_font_text_width</span>(<span class="param">UIFont *font</span>, <span class="param">const char *text</span>)</div>
+    <div class="fn-desc">Measure the width of a string in pixels.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">int</span> <span class="name">clue_font_line_height</span>(<span class="param">UIFont *font</span>)</div>
+    <div class="fn-desc">Get the line height in pixels.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">int</span> <span class="name">clue_font_ascent</span>(<span class="param">UIFont *font</span>)</div>
+    <div class="fn-desc">Get the font ascent (baseline to top) in pixels.</div>
+  </div>
+
+  <h2 id="style">Style</h2>
+  <p class="description">Per-widget styling: padding, margin, colors, corner radius, and font.</p>
+
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_style_set_padding</span>(<span class="param">ClueStyle *s</span>, <span class="param">int p</span>)</div>
+    <div class="fn-desc">Set uniform padding on all sides.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_style_set_margin</span>(<span class="param">ClueStyle *s</span>, <span class="param">int m</span>)</div>
+    <div class="fn-desc">Set uniform margin on all sides.</div>
+  </div>
+  <p>Style fields can also be set directly: <code>widget-&gt;base.style.bg_color</code>, <code>.fg_color</code>, <code>.corner_radius</code>, <code>.font</code>.</p>
+
+  <h2 id="theme">Theme</h2>
+  <p class="description">Global theming with built-in dark/light presets and full customization.</p>
+
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">const ClueTheme *</span><span class="name">clue_theme_dark</span>(<span class="param">void</span>)</div>
+    <div class="fn-desc">Get the built-in dark theme.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">const ClueTheme *</span><span class="name">clue_theme_light</span>(<span class="param">void</span>)</div>
+    <div class="fn-desc">Get the built-in light theme.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_theme_set</span>(<span class="param">const ClueTheme *theme</span>)</div>
+    <div class="fn-desc">Set the active theme. Pass a built-in or custom <code>ClueTheme</code>.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">const ClueTheme *</span><span class="name">clue_theme_get</span>(<span class="param">void</span>)</div>
+    <div class="fn-desc">Get the currently active theme.</div>
+  </div>
+
+  <h2 id="signal">Signal</h2>
+  <p class="description">GTK-style signal/callback system for widget events.</p>
+
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_signal_connect</span>(<span class="param">void *widget</span>, <span class="param">const char *signal_name</span>, <span class="param">ClueSignalCallback callback</span>, <span class="param">void *user_data</span>)</div>
+    <div class="fn-desc">Connect a callback to a widget's signal (e.g. <code>"clicked"</code>, <code>"changed"</code>, <code>"toggled"</code>).</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_signal_emit</span>(<span class="param">void *widget</span>, <span class="param">const char *signal_name</span>)</div>
+    <div class="fn-desc">Emit a signal, invoking all connected callbacks.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_signal_disconnect_all</span>(<span class="param">void *widget</span>)</div>
+    <div class="fn-desc">Disconnect all signal handlers from a widget.</div>
+  </div>
+
+</div>
+
+<script>
+// Sidebar active state
+const links = document.querySelectorAll('.sidebar a[href^="#"]');
+const sections = [];
+links.forEach(l => {
+  const id = l.getAttribute('href').slice(1);
+  const el = document.getElementById(id);
+  if (el) sections.push({ link: l, el: el });
+});
+
+function updateActive() {
+  let current = sections[0];
+  for (const s of sections) {
+    if (s.el.getBoundingClientRect().top <= 80) current = s;
+  }
+  links.forEach(l => l.classList.remove('active'));
+  if (current) current.link.classList.add('active');
+}
+window.addEventListener('scroll', updateActive);
+updateActive();
+
+// Search
+document.getElementById('search').addEventListener('input', function() {
+  const q = this.value.toLowerCase();
+  const blocks = document.querySelectorAll('.fn-block, .struct-block');
+  blocks.forEach(b => {
+    const text = b.textContent.toLowerCase();
+    b.style.display = q && !text.includes(q) ? 'none' : '';
+  });
+});
+</script>
+
+</body>
+</html>
