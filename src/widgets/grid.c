@@ -42,6 +42,13 @@ static void grid_layout(ClueWidget *w)
         if (cw[c] == 0) cw[c] = auto_w;
     }
 
+    /* Reset expanded children so they don't carry stale sizes */
+    for (int i = 0; i < n; i++) {
+        ClueWidget *child = (ClueWidget *)w->base.children[i];
+        if (child->style.hexpand) child->base.w = 0;
+        if (child->style.vexpand) child->base.h = 0;
+    }
+
     /* Calculate row heights from children (natural size pass) */
     int rh[256];
     for (int r = 0; r < rows && r < 256; r++) rh[r] = 0;
@@ -54,9 +61,10 @@ static void grid_layout(ClueWidget *w)
         if (ch > rh[r]) rh[r] = ch;
     }
 
-    /* Distribute remaining vertical space to rows when children want vexpand */
+    /* Distribute remaining vertical space to rows */
     int avail_h = w->base.h - s->padding_top - s->padding_bottom
                   - g->row_spacing * (rows - 1);
+    if (avail_h < 0) avail_h = 0;
     int used_h = 0;
     for (int r = 0; r < rows && r < 256; r++) used_h += rh[r];
     int extra_h = avail_h - used_h;
@@ -97,8 +105,11 @@ static void grid_layout(ClueWidget *w)
         cy += rh[r] + g->row_spacing;
     }
 
-    /* Update grid total size */
-    w->base.h = cy - w->base.y - g->row_spacing + s->padding_bottom;
+    /* Update grid total size — only grow if content overflows,
+     * never shrink (parent sets height via vexpand) */
+    int content_h = cy - w->base.y - g->row_spacing + s->padding_bottom;
+    if (!w->style.vexpand && content_h > w->base.h)
+        w->base.h = content_h;
 }
 
 static const ClueWidgetVTable grid_vtable = {
