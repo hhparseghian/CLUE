@@ -2,6 +2,16 @@
 
 A lightweight C99 GUI toolkit for Linux with OpenGL ES 2 rendering and multiple display backends (Wayland, X11, DRM/KMS).
 
+## Screenshots
+
+| Widgets | Canvas | 3D |
+|---------|--------|----|
+| ![Widgets](screenshots/widgets.png) | ![Canvas](screenshots/canvas.png) | ![3D](screenshots/cube3d.png) |
+
+| Table | Splitter | Form |
+|-------|----------|------|
+| ![Table](screenshots/table.png) | ![Splitter](screenshots/splitter.png) | ![Form](screenshots/form.png) |
+
 ## Features
 
 - **Widgets**: buttons, labels, text inputs, checkboxes, radio buttons, sliders, dropdowns, progress bars, toggle switches, spinboxes, separators, images
