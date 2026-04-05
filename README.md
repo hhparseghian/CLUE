@@ -19,10 +19,12 @@ A lightweight C99 GUI toolkit for Linux with OpenGL ES 2 rendering and multiple 
 - **Widgets**: buttons, labels, text inputs, checkboxes, radio buttons, sliders, dropdowns, progress bars, toggle switches, spinboxes, separators, images
 - **Containers**: boxes, grids, tabs, scroll, splitter, toolbar, statusbar
 - **Data views**: list views, tables, tree views
-- **Advanced**: multi-line text editor, canvas, color picker, file dialogs, menus, tooltips, dialogs
+- **Advanced**: multi-line text editor, canvas, color picker, file dialogs, menus, tooltips, dialogs, embedded overlays
 - **Text editing**: selection, copy/cut/paste, clipboard (system + internal)
 - **Keyboard shortcuts**: user-registered global keybindings
+- **Drawing primitives**: lines, circles, arcs, rounded rects, images, text
 - **Mouse cursors**: resize, text, crosshair, pointer (X11 + Wayland)
+- **Draggable scrollbars**: click and drag scrollbar thumbs in all scrollable widgets
 - **Backends**: Wayland, X11, DRM/KMS
 - **Theming**: built-in dark/light themes with full customization
 - **Signals**: signal/callback system with typed callbacks

@@ -280,6 +280,7 @@
   <a href="#treeview">Tree View</a>
   <div class="sidebar-section">Overlays</div>
   <a href="#dialog">Dialog</a>
+  <a href="#overlay">Overlay</a>
   <a href="#file_dialog">File Dialog</a>
   <a href="#menu">Menu</a>
   <div class="sidebar-section">Rendering</div>
@@ -1012,6 +1013,42 @@ make
   <div class="fn-block">
     <div class="fn-sig"><span class="type">ClueDialogResult</span> <span class="name">clue_dialog_run</span>(<span class="param">ClueDialog *dlg</span>)</div>
     <div class="fn-desc">Show the dialog and run its event loop. Blocks until closed. Returns the result code.</div>
+  </div>
+
+  <h2 id="overlay">Overlay</h2>
+  <p class="description">Embedded modal overlay rendered inside the main window. Works on headless/KMSDRM where separate OS windows are not available.</p>
+
+  <div class="struct-block">
+    <div class="struct-name">ClueOverlayResult</div>
+    <div class="enum-values">CLUE_OVERLAY_NONE | CLUE_OVERLAY_OK | CLUE_OVERLAY_CANCEL</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">ClueOverlay *</span><span class="name">clue_overlay_new</span>(<span class="param">const char *title</span>, <span class="param">int panel_w</span>, <span class="param">int panel_h</span>)</div>
+    <div class="fn-desc">Create an overlay with a title and panel dimensions.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_overlay_set_content</span>(<span class="param">ClueOverlay *ov</span>, <span class="param">ClueWidget *content</span>)</div>
+    <div class="fn-desc">Set the body content widget.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_overlay_add_button</span>(<span class="param">ClueOverlay *ov</span>, <span class="param">const char *label</span>, <span class="param">ClueOverlayResult result</span>)</div>
+    <div class="fn-desc">Add an action button to the overlay.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_overlay_set_callback</span>(<span class="param">ClueOverlay *ov</span>, <span class="param">ClueOverlayCallback cb</span>, <span class="param">void *user_data</span>)</div>
+    <div class="fn-desc">Set callback for when overlay closes.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_overlay_show</span>(<span class="param">ClueOverlay *ov</span>)</div>
+    <div class="fn-desc">Show the overlay. Becomes modal — only the overlay receives input events.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_overlay_dismiss</span>(<span class="param">ClueOverlay *ov</span>, <span class="param">ClueOverlayResult result</span>)</div>
+    <div class="fn-desc">Dismiss the overlay with a result code. Triggers the callback.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_overlay_destroy</span>(<span class="param">ClueOverlay *ov</span>)</div>
+    <div class="fn-desc">Destroy the overlay and free its resources.</div>
   </div>
 
   <h2 id="file_dialog">File Dialog</h2>
