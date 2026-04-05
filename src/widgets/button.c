@@ -52,12 +52,30 @@ static void button_draw(ClueWidget *w)
                            w->base.w, w->base.h, radius, bg);
 
     UIFont *font = button_font(b);
-    if (font) {
+    UIColor fg = w->style.fg_color.a > 0.001f ? w->style.fg_color : th->button.fg;
+
+    if (b->icon && font) {
+        /* Icon + label layout: icon centered above, label below */
+        int thh = clue_font_line_height(font);
+        int spacing = 6;
+        int total_h = b->icon_h + spacing + thh;
+        int top_y = w->base.y + (w->base.h - total_h) / 2 + press_offset;
+
+        /* Icon */
+        int ix = w->base.x + (w->base.w - b->icon_w) / 2;
+        clue_draw_image(b->icon, ix, top_y, b->icon_w, b->icon_h);
+
+        /* Label */
+        int tw = clue_font_text_width(font, b->label);
+        int tx = w->base.x + (w->base.w - tw) / 2;
+        int ty = top_y + b->icon_h + spacing;
+        clue_draw_text(tx, ty, b->label, font, fg);
+    } else if (font) {
+        /* Label only (original behaviour) */
         int tw = clue_font_text_width(font, b->label);
         int thh = clue_font_line_height(font);
         int tx = w->base.x + (w->base.w - tw) / 2;
         int ty = w->base.y + (w->base.h - thh) / 2 + press_offset;
-        UIColor fg = w->style.fg_color.a > 0.001f ? w->style.fg_color : th->button.fg;
         clue_draw_text(tx, ty, b->label, font, fg);
     }
 }
@@ -76,8 +94,19 @@ static void button_layout(ClueWidget *w)
     if (pad_h == 0) pad_h = 32;
     if (pad_v == 0) pad_v = 16;
 
-    w->base.w = clue_font_text_width(font, b->label) + pad_h;
-    w->base.h = clue_font_line_height(font) + pad_v;
+    int text_w = clue_font_text_width(font, b->label);
+    int text_h = clue_font_line_height(font);
+
+    if (b->icon) {
+        /* Icon + label: use the wider of icon/text, stack vertically */
+        int content_w = b->icon_w > text_w ? b->icon_w : text_w;
+        int content_h = b->icon_h + 6 + text_h;
+        w->base.w = content_w + pad_h;
+        w->base.h = content_h + pad_v;
+    } else {
+        w->base.w = text_w + pad_h;
+        w->base.h = text_h + pad_v;
+    }
 }
 
 static int button_handle_event(ClueWidget *w, UIEvent *event)
@@ -144,6 +173,9 @@ ClueButton *clue_button_new(const char *label)
     clue_cwidget_init(&b->base, &button_vtable);
     b->label = label ? strdup(label) : strdup("");
     b->state = CLUE_BUTTON_NORMAL;
+    b->icon = 0;
+    b->icon_w = 0;
+    b->icon_h = 0;
 
     button_layout(&b->base);
 
@@ -155,5 +187,14 @@ void clue_button_set_label(ClueButton *button, const char *label)
     if (!button) return;
     free(button->label);
     button->label = label ? strdup(label) : strdup("");
+    button_layout(&button->base);
+}
+
+void clue_button_set_icon(ClueButton *button, UITexture icon, int w, int h)
+{
+    if (!button) return;
+    button->icon = icon;
+    button->icon_w = w;
+    button->icon_h = h;
     button_layout(&button->base);
 }
