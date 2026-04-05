@@ -146,6 +146,15 @@ static int tabs_handle_event(ClueWidget *w, UIEvent *event)
         return 0;
     }
 
+    /* Forward scroll events to active page */
+    if (event->type == UI_EVENT_MOUSE_SCROLL) {
+        if (t->active >= 0 && t->active < t->tab_count && t->tab_pages[t->active]) {
+            return clue_widget_dispatch_event(
+                &t->tab_pages[t->active]->base, event);
+        }
+        return 0;
+    }
+
     if (event->type == UI_EVENT_MOUSE_BUTTON &&
         event->mouse_button.pressed && event->mouse_button.btn == 0 && font) {
         int mx = event->mouse_button.x;

@@ -19,6 +19,14 @@ static void clamp_scroll(ClueScroll *s)
     if (s->scroll_x < 0) s->scroll_x = 0;
 }
 
+static void offset_tree(ClueWidget *w, int dx, int dy)
+{
+    w->base.x += dx;
+    w->base.y += dy;
+    for (int i = 0; i < w->base.child_count; i++)
+        offset_tree((ClueWidget *)w->base.children[i], dx, dy);
+}
+
 static void scroll_draw(ClueWidget *w)
 {
     ClueScroll *s = (ClueScroll *)w;
@@ -31,21 +39,14 @@ static void scroll_draw(ClueWidget *w)
                                w->style.corner_radius, w->style.bg_color);
     }
 
-    /* Clip and draw children with scroll offset */
+    /* Clip and draw children with scroll offset applied to all descendants */
     clue_set_clip_rect(x, y, bw, bh);
 
     for (int i = 0; i < w->base.child_count; i++) {
         ClueWidget *child = (ClueWidget *)w->base.children[i];
-        /* Temporarily offset children for drawing */
-        int orig_x = child->base.x;
-        int orig_y = child->base.y;
-        child->base.x -= s->scroll_x;
-        child->base.y -= s->scroll_y;
-
+        offset_tree(child, -s->scroll_x, -s->scroll_y);
         clue_cwidget_draw_tree(child);
-
-        child->base.x = orig_x;
-        child->base.y = orig_y;
+        offset_tree(child, s->scroll_x, s->scroll_y);
     }
 
     clue_reset_clip_rect();
@@ -64,20 +65,37 @@ static void scroll_draw(ClueWidget *w)
     }
 }
 
+/* Recursively compute the bounding box of all descendants */
+static void measure_content(ClueWidget *root, ClueWidget *w, int *max_w, int *max_h)
+{
+    int r = w->base.x + w->base.w - root->base.x;
+    int b = w->base.y + w->base.h - root->base.y;
+    if (r > *max_w) *max_w = r;
+    if (b > *max_h) *max_h = b;
+    for (int i = 0; i < w->base.child_count; i++)
+        measure_content(root, (ClueWidget *)w->base.children[i], max_w, max_h);
+}
+
 static void scroll_layout(ClueWidget *w)
 {
     ClueScroll *s = (ClueScroll *)w;
 
-    /* Calculate total content size from children */
-    int max_w = 0, max_h = 0;
-
+    /* Give children the scroll's position and width, but reset height
+     * so they compute their natural (unconstrained) content height. */
     for (int i = 0; i < w->base.child_count; i++) {
         ClueWidget *child = (ClueWidget *)w->base.children[i];
-        int r = child->base.x + child->base.w - w->base.x;
-        int b = child->base.y + child->base.h - w->base.y;
-        if (r > max_w) max_w = r;
-        if (b > max_h) max_h = b;
+        child->base.x = w->base.x;
+        child->base.y = w->base.y;
+        if (child->style.hexpand)
+            child->base.w = w->base.w;
+        child->base.h = 0;
+        clue_cwidget_layout_tree(child);
     }
+
+    /* Measure full content bounds from all descendants */
+    int max_w = 0, max_h = 0;
+    for (int i = 0; i < w->base.child_count; i++)
+        measure_content(w, (ClueWidget *)w->base.children[i], &max_w, &max_h);
 
     s->content_w = max_w;
     s->content_h = max_h;

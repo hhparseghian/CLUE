@@ -136,13 +136,24 @@ static void on_show_free(ClueButton *button, void *data)
     clue_dialog_destroy(dlg);
 }
 
-ClueBox *build_widgets_page(ClueApp *app)
+static ClueLabel *section_title(const char *text)
 {
-    ClueBox *page = clue_box_new(CLUE_VERTICAL, 10);
+    ClueLabel *lbl = clue_label_new(text);
+    lbl->base.style.fg_color = UI_RGB(255, 255, 255);
+    lbl->base.style.margin_top = 6;
+    return lbl;
+}
+
+ClueScroll *build_widgets_page(ClueApp *app)
+{
+    ClueScroll *scroll = clue_scroll_new();
+    scroll->base.style.hexpand = true;
+    scroll->base.style.vexpand = true;
+
+    ClueBox *page = clue_box_new(CLUE_VERTICAL, 6);
     clue_style_set_padding(&page->base.style, 12);
     page->base.style.corner_radius = 0;
     page->base.style.hexpand = true;
-    page->base.style.vexpand = true;
     page->base.style.h_align = CLUE_ALIGN_CENTER;
 
     ClueBox *btn_row = clue_box_new(CLUE_HORIZONTAL, 8);
@@ -225,15 +236,6 @@ ClueBox *build_widgets_page(ClueApp *app)
     clue_tooltip_set(btn_free, "Independent window, no blocking");
     clue_tooltip_set(g_progress, "Animated progress bar (timer)");
 
-    input->base.style.margin_top = 4;
-    check_row->base.style.margin_top = 4;
-    radio_row->base.style.margin_top = 4;
-    slider_row->base.style.margin_top = 8;
-    dd->base.style.margin_top = 4;
-    progress_row->base.style.margin_top = 8;
-    g_timer_label->base.style.margin_top = 8;
-    dlg_row->base.style.margin_top = 8;
-
     ClueBox *spin_row = clue_box_new(CLUE_HORIZONTAL, 8);
     ClueLabel *spin_lbl = clue_label_new("Quantity:");
     spin_lbl->base.style.fg_color = UI_RGB(180, 180, 190);
@@ -242,28 +244,7 @@ ClueBox *build_widgets_page(ClueApp *app)
     clue_signal_connect(spinner, "changed", on_spinner, NULL);
     clue_container_add(spin_row, spin_lbl);
     clue_container_add(spin_row, spinner);
-    spin_row->base.style.margin_top = 4;
 
-    ClueSeparator *sep1 = clue_separator_new(CLUE_HORIZONTAL);
-    ClueSeparator *sep2 = clue_separator_new(CLUE_HORIZONTAL);
-    ClueSeparator *sep3 = clue_separator_new(CLUE_HORIZONTAL);
-
-    clue_container_add(page, btn_row);
-    clue_container_add(page, input);
-    clue_container_add(page, sep1);
-    clue_container_add(page, check_row);
-    clue_container_add(page, radio_row);
-    clue_container_add(page, slider_row);
-    clue_container_add(page, dd);
-    clue_container_add(page, sep2);
-    clue_container_add(page, spin_row);
-    clue_container_add(page, progress_row);
-    clue_container_add(page, g_timer_label);
-    clue_container_add(page, sep3);
-    clue_container_add(page, dlg_row);
-
-    /* Wrapped label */
-    ClueSeparator *sep4 = clue_separator_new(CLUE_HORIZONTAL);
     ClueLabel *wrap_lbl = clue_label_new(
         "CLUE is a C99 GUI toolkit for Linux with OpenGL ES 2 rendering. "
         "It supports Wayland, X11, and DRM/KMS backends.\n\n"
@@ -271,11 +252,40 @@ ClueBox *build_widgets_page(ClueApp *app)
     wrap_lbl->base.base.w = 350;
     wrap_lbl->base.style.fg_color = UI_RGB(180, 180, 190);
     clue_label_set_wrap(wrap_lbl, true);
-    clue_container_add(page, sep4);
+
+    /* Layout with section titles */
+    clue_container_add(page, section_title("Buttons"));
+    clue_container_add(page, btn_row);
+
+    clue_container_add(page, section_title("Text Input"));
+    clue_container_add(page, input);
+
+    clue_container_add(page, clue_separator_new(CLUE_HORIZONTAL));
+    clue_container_add(page, section_title("Toggles"));
+    clue_container_add(page, check_row);
+    clue_container_add(page, radio_row);
+
+    clue_container_add(page, section_title("Range"));
+    clue_container_add(page, slider_row);
+    clue_container_add(page, spin_row);
+    clue_container_add(page, dd);
+
+    clue_container_add(page, clue_separator_new(CLUE_HORIZONTAL));
+    clue_container_add(page, section_title("Progress & Timer"));
+    clue_container_add(page, progress_row);
+    clue_container_add(page, g_timer_label);
+
+    clue_container_add(page, clue_separator_new(CLUE_HORIZONTAL));
+    clue_container_add(page, section_title("Dialogs"));
+    clue_container_add(page, dlg_row);
+
+    clue_container_add(page, clue_separator_new(CLUE_HORIZONTAL));
+    clue_container_add(page, section_title("About"));
     clue_container_add(page, wrap_lbl);
 
     clue_timer_repeat(1000, on_tick_clock, NULL);
     clue_timer_repeat(16, on_tick_progress, NULL);
 
-    return page;
+    clue_container_add(scroll, page);
+    return scroll;
 }

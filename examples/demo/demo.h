@@ -14,7 +14,7 @@ extern const char *fruits[];
 extern const char *fruit_item(int index, void *user_data);
 
 /* Page builders */
-ClueBox *build_widgets_page(ClueApp *app);
+ClueScroll *build_widgets_page(ClueApp *app);
 ClueBox *build_list_page(void);
 ClueBox *build_grid_page(void);
 ClueBox *build_tree_page(void);
