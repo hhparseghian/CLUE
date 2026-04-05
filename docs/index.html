@@ -398,7 +398,7 @@ make
     <div class="fn-desc">Return the current application instance (singleton).</div>
   </div>
   <div class="fn-block">
-    <div class="fn-sig"><span class="type">UIFont *</span><span class="name">clue_app_default_font</span>(<span class="param">void</span>)</div>
+    <div class="fn-sig"><span class="type">ClueFont *</span><span class="name">clue_app_default_font</span>(<span class="param">void</span>)</div>
     <div class="fn-desc">Return the application's default font.</div>
   </div>
   <div class="fn-block">
@@ -419,27 +419,27 @@ make
   <p class="description">Window management. Most apps use <code>ClueApp</code> which handles this internally.</p>
 
   <div class="struct-block">
-    <div class="struct-name">UIWindowType</div>
-    <div class="enum-values">UI_WINDOW_NORMAL | UI_WINDOW_DIALOG | UI_WINDOW_POPUP</div>
+    <div class="struct-name">ClueWindowType</div>
+    <div class="enum-values">CLUE_WINDOW_NORMAL | CLUE_WINDOW_DIALOG | CLUE_WINDOW_POPUP</div>
   </div>
   <div class="fn-block">
-    <div class="fn-sig"><span class="type">UIWindow *</span><span class="name">clue_window_create</span>(<span class="param">int w</span>, <span class="param">int h</span>, <span class="param">const char *title</span>)</div>
+    <div class="fn-sig"><span class="type">ClueWindow *</span><span class="name">clue_window_create</span>(<span class="param">int w</span>, <span class="param">int h</span>, <span class="param">const char *title</span>)</div>
     <div class="fn-desc">Create a new window with the given dimensions and title.</div>
   </div>
   <div class="fn-block">
-    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_window_destroy</span>(<span class="param">UIWindow *win</span>)</div>
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_window_destroy</span>(<span class="param">ClueWindow *win</span>)</div>
     <div class="fn-desc">Destroy a window and free its resources.</div>
   </div>
   <div class="fn-block">
-    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_window_set_type</span>(<span class="param">UIWindow *win</span>, <span class="param">UIWindowType type</span>)</div>
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_window_set_type</span>(<span class="param">ClueWindow *win</span>, <span class="param">ClueWindowType type</span>)</div>
     <div class="fn-desc">Set the window type (normal, dialog, or popup).</div>
   </div>
   <div class="fn-block">
-    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_window_set_visible</span>(<span class="param">UIWindow *win</span>, <span class="param">bool visible</span>)</div>
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_window_set_visible</span>(<span class="param">ClueWindow *win</span>, <span class="param">bool visible</span>)</div>
     <div class="fn-desc">Show or hide the window.</div>
   </div>
   <div class="fn-block">
-    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_window_mark_dirty</span>(<span class="param">UIWindow *win</span>)</div>
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_window_mark_dirty</span>(<span class="param">ClueWindow *win</span>)</div>
     <div class="fn-desc">Mark the window as needing a redraw.</div>
   </div>
 
@@ -448,11 +448,11 @@ make
   <p class="description">Input and window events. Events are dispatched automatically by the app loop.</p>
 
   <div class="struct-block">
-    <div class="struct-name">UIEventType</div>
-    <div class="enum-values">UI_EVENT_NONE | UI_EVENT_MOUSE_MOVE | UI_EVENT_MOUSE_BUTTON | UI_EVENT_MOUSE_SCROLL | UI_EVENT_KEY | UI_EVENT_RESIZE | UI_EVENT_CLOSE</div>
+    <div class="struct-name">ClueEventType</div>
+    <div class="enum-values">CLUE_EVENT_NONE | CLUE_EVENT_MOUSE_MOVE | CLUE_EVENT_MOUSE_BUTTON | CLUE_EVENT_MOUSE_SCROLL | CLUE_EVENT_KEY | CLUE_EVENT_RESIZE | CLUE_EVENT_CLOSE</div>
   </div>
   <div class="fn-block">
-    <div class="fn-sig"><span class="type">int</span> <span class="name">clue_event_dispatch</span>(<span class="param">UIEvent *event</span>)</div>
+    <div class="fn-sig"><span class="type">int</span> <span class="name">clue_event_dispatch</span>(<span class="param">ClueEvent *event</span>)</div>
     <div class="fn-desc">Dispatch an event through the widget tree. Returns 1 if handled.</div>
   </div>
 
@@ -523,7 +523,7 @@ make
     <div class="fn-desc">Update the button's label text.</div>
   </div>
   <div class="fn-block">
-    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_button_set_icon</span>(<span class="param">ClueButton *button</span>, <span class="param">UITexture icon</span>, <span class="param">int w</span>, <span class="param">int h</span>)</div>
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_button_set_icon</span>(<span class="param">ClueButton *button</span>, <span class="param">ClueTexture icon</span>, <span class="param">int w</span>, <span class="param">int h</span>)</div>
     <div class="fn-desc">Set an icon texture displayed above the label. Pass 0 to remove the icon.</div>
   </div>
   <div class="signal-tag">Signal: "clicked"</div>
@@ -737,15 +737,15 @@ make
     <div class="fn-desc">Create a color picker with a default Tango palette.</div>
   </div>
   <div class="fn-block">
-    <div class="fn-sig"><span class="type">UIColor</span> <span class="name">clue_colorpicker_get_color</span>(<span class="param">ClueColorPicker *cp</span>)</div>
+    <div class="fn-sig"><span class="type">ClueColor</span> <span class="name">clue_colorpicker_get_color</span>(<span class="param">ClueColorPicker *cp</span>)</div>
     <div class="fn-desc">Get the currently selected color.</div>
   </div>
   <div class="fn-block">
-    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_colorpicker_set_color</span>(<span class="param">ClueColorPicker *cp</span>, <span class="param">UIColor color</span>)</div>
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_colorpicker_set_color</span>(<span class="param">ClueColorPicker *cp</span>, <span class="param">ClueColor color</span>)</div>
     <div class="fn-desc">Set the selected color. Updates the HSV gradient position to match.</div>
   </div>
   <div class="fn-block">
-    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_colorpicker_add_color</span>(<span class="param">ClueColorPicker *cp</span>, <span class="param">UIColor color</span>)</div>
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_colorpicker_add_color</span>(<span class="param">ClueColorPicker *cp</span>, <span class="param">ClueColor color</span>)</div>
     <div class="fn-desc">Add a custom color to the palette grid.</div>
   </div>
   <div class="signal-tag">Signal: "changed"</div>
@@ -783,7 +783,7 @@ make
     <div class="fn-desc">Create an image widget from a file (PNG, JPG, etc.).</div>
   </div>
   <div class="fn-block">
-    <div class="fn-sig"><span class="type">ClueImage *</span><span class="name">clue_image_new_from_texture</span>(<span class="param">UITexture tex</span>, <span class="param">int w</span>, <span class="param">int h</span>)</div>
+    <div class="fn-sig"><span class="type">ClueImage *</span><span class="name">clue_image_new_from_texture</span>(<span class="param">ClueTexture tex</span>, <span class="param">int w</span>, <span class="param">int h</span>)</div>
     <div class="fn-desc">Create an image widget from an existing texture.</div>
   </div>
   <div class="fn-block">
@@ -861,7 +861,7 @@ make
     <div class="fn-desc">Switch to the tab at the given index.</div>
   </div>
   <div class="signal-tag">Signal: "changed"</div>
-  <p>Set <code>tabs-&gt;page_bg</code> to a <code>UIColor</code> to give the tab content area a background color. The active tab blends seamlessly into the page.</p>
+  <p>Set <code>tabs-&gt;page_bg</code> to a <code>ClueColor</code> to give the tab content area a background color. The active tab blends seamlessly into the page.</p>
 
   <h2 id="splitter">Splitter</h2>
   <p class="description">A two-pane resizable container with a draggable divider. Add exactly two children.</p>
@@ -1138,47 +1138,47 @@ make
   <p class="description">Low-level drawing primitives. Use these for custom widget rendering.</p>
 
   <div class="fn-block">
-    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_fill_rect</span>(<span class="param">int x</span>, <span class="param">int y</span>, <span class="param">int w</span>, <span class="param">int h</span>, <span class="param">UIColor color</span>)</div>
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_fill_rect</span>(<span class="param">int x</span>, <span class="param">int y</span>, <span class="param">int w</span>, <span class="param">int h</span>, <span class="param">ClueColor color</span>)</div>
     <div class="fn-desc">Draw a filled rectangle.</div>
   </div>
   <div class="fn-block">
-    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_fill_rounded_rect</span>(<span class="param">int x</span>, <span class="param">int y</span>, <span class="param">int w</span>, <span class="param">int h</span>, <span class="param">float radius</span>, <span class="param">UIColor color</span>)</div>
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_fill_rounded_rect</span>(<span class="param">int x</span>, <span class="param">int y</span>, <span class="param">int w</span>, <span class="param">int h</span>, <span class="param">float radius</span>, <span class="param">ClueColor color</span>)</div>
     <div class="fn-desc">Draw a filled rectangle with rounded corners.</div>
   </div>
   <div class="fn-block">
-    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_draw_rect</span>(<span class="param">int x</span>, <span class="param">int y</span>, <span class="param">int w</span>, <span class="param">int h</span>, <span class="param">float thickness</span>, <span class="param">UIColor color</span>)</div>
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_draw_rect</span>(<span class="param">int x</span>, <span class="param">int y</span>, <span class="param">int w</span>, <span class="param">int h</span>, <span class="param">float thickness</span>, <span class="param">ClueColor color</span>)</div>
     <div class="fn-desc">Draw a rectangle outline.</div>
   </div>
   <div class="fn-block">
-    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_draw_rounded_rect</span>(<span class="param">int x</span>, <span class="param">int y</span>, <span class="param">int w</span>, <span class="param">int h</span>, <span class="param">float radius</span>, <span class="param">float thickness</span>, <span class="param">UIColor color</span>)</div>
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_draw_rounded_rect</span>(<span class="param">int x</span>, <span class="param">int y</span>, <span class="param">int w</span>, <span class="param">int h</span>, <span class="param">float radius</span>, <span class="param">float thickness</span>, <span class="param">ClueColor color</span>)</div>
     <div class="fn-desc">Draw a rounded rectangle outline.</div>
   </div>
   <div class="fn-block">
-    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_draw_line</span>(<span class="param">int x0</span>, <span class="param">int y0</span>, <span class="param">int x1</span>, <span class="param">int y1</span>, <span class="param">float thickness</span>, <span class="param">UIColor color</span>)</div>
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_draw_line</span>(<span class="param">int x0</span>, <span class="param">int y0</span>, <span class="param">int x1</span>, <span class="param">int y1</span>, <span class="param">float thickness</span>, <span class="param">ClueColor color</span>)</div>
     <div class="fn-desc">Draw a line between two points.</div>
   </div>
   <div class="fn-block">
-    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_fill_circle</span>(<span class="param">int cx</span>, <span class="param">int cy</span>, <span class="param">int radius</span>, <span class="param">UIColor color</span>)</div>
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_fill_circle</span>(<span class="param">int cx</span>, <span class="param">int cy</span>, <span class="param">int radius</span>, <span class="param">ClueColor color</span>)</div>
     <div class="fn-desc">Draw a filled circle.</div>
   </div>
   <div class="fn-block">
-    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_draw_circle</span>(<span class="param">int cx</span>, <span class="param">int cy</span>, <span class="param">int radius</span>, <span class="param">float thickness</span>, <span class="param">UIColor color</span>)</div>
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_draw_circle</span>(<span class="param">int cx</span>, <span class="param">int cy</span>, <span class="param">int radius</span>, <span class="param">float thickness</span>, <span class="param">ClueColor color</span>)</div>
     <div class="fn-desc">Draw a circle outline.</div>
   </div>
   <div class="fn-block">
-    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_draw_arc</span>(<span class="param">int cx</span>, <span class="param">int cy</span>, <span class="param">int radius</span>, <span class="param">float start_rad</span>, <span class="param">float end_rad</span>, <span class="param">float thickness</span>, <span class="param">UIColor color</span>)</div>
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_draw_arc</span>(<span class="param">int cx</span>, <span class="param">int cy</span>, <span class="param">int radius</span>, <span class="param">float start_rad</span>, <span class="param">float end_rad</span>, <span class="param">float thickness</span>, <span class="param">ClueColor color</span>)</div>
     <div class="fn-desc">Draw a smooth arc (partial circle outline). Angles are in radians. Adjacent arcs at the same radius meet cleanly with no seam.</div>
   </div>
   <div class="fn-block">
-    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_draw_text</span>(<span class="param">int x</span>, <span class="param">int y</span>, <span class="param">const char *text</span>, <span class="param">UIFont *font</span>, <span class="param">UIColor color</span>)</div>
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_draw_text</span>(<span class="param">int x</span>, <span class="param">int y</span>, <span class="param">const char *text</span>, <span class="param">ClueFont *font</span>, <span class="param">ClueColor color</span>)</div>
     <div class="fn-desc">Draw text at the given position with a specific font.</div>
   </div>
   <div class="fn-block">
-    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_draw_text_default</span>(<span class="param">int x</span>, <span class="param">int y</span>, <span class="param">const char *text</span>, <span class="param">UIColor color</span>)</div>
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_draw_text_default</span>(<span class="param">int x</span>, <span class="param">int y</span>, <span class="param">const char *text</span>, <span class="param">ClueColor color</span>)</div>
     <div class="fn-desc">Draw text using the application's default font.</div>
   </div>
   <div class="fn-block">
-    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_draw_image</span>(<span class="param">UITexture tex</span>, <span class="param">int x</span>, <span class="param">int y</span>, <span class="param">int w</span>, <span class="param">int h</span>)</div>
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_draw_image</span>(<span class="param">ClueTexture tex</span>, <span class="param">int x</span>, <span class="param">int y</span>, <span class="param">int w</span>, <span class="param">int h</span>)</div>
     <div class="fn-desc">Draw a texture at the given position and size.</div>
   </div>
   <div class="fn-block">
@@ -1198,15 +1198,15 @@ make
   <p class="description">Load and manage image textures for drawing.</p>
 
   <div class="fn-block">
-    <div class="fn-sig"><span class="type">UITexture</span> <span class="name">clue_texture_load</span>(<span class="param">const char *path</span>)</div>
+    <div class="fn-sig"><span class="type">ClueTexture</span> <span class="name">clue_texture_load</span>(<span class="param">const char *path</span>)</div>
     <div class="fn-desc">Load a texture from an image file (PNG, JPG, BMP). Returns 0 on failure.</div>
   </div>
   <div class="fn-block">
-    <div class="fn-sig"><span class="type">UITexture</span> <span class="name">clue_texture_load_rgba</span>(<span class="param">const unsigned char *pixels</span>, <span class="param">int w</span>, <span class="param">int h</span>)</div>
+    <div class="fn-sig"><span class="type">ClueTexture</span> <span class="name">clue_texture_load_rgba</span>(<span class="param">const unsigned char *pixels</span>, <span class="param">int w</span>, <span class="param">int h</span>)</div>
     <div class="fn-desc">Load a texture from raw RGBA pixel data.</div>
   </div>
   <div class="fn-block">
-    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_texture_destroy</span>(<span class="param">UITexture tex</span>)</div>
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_texture_destroy</span>(<span class="param">ClueTexture tex</span>)</div>
     <div class="fn-desc">Free a loaded texture.</div>
   </div>
 
@@ -1214,23 +1214,23 @@ make
   <p class="description">FreeType-based font loading and text measurement.</p>
 
   <div class="fn-block">
-    <div class="fn-sig"><span class="type">UIFont *</span><span class="name">clue_font_load</span>(<span class="param">const char *path</span>, <span class="param">int size_px</span>)</div>
+    <div class="fn-sig"><span class="type">ClueFont *</span><span class="name">clue_font_load</span>(<span class="param">const char *path</span>, <span class="param">int size_px</span>)</div>
     <div class="fn-desc">Load a TrueType font from a file at the given pixel size.</div>
   </div>
   <div class="fn-block">
-    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_font_destroy</span>(<span class="param">UIFont *font</span>)</div>
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_font_destroy</span>(<span class="param">ClueFont *font</span>)</div>
     <div class="fn-desc">Free a loaded font.</div>
   </div>
   <div class="fn-block">
-    <div class="fn-sig"><span class="type">int</span> <span class="name">clue_font_text_width</span>(<span class="param">UIFont *font</span>, <span class="param">const char *text</span>)</div>
+    <div class="fn-sig"><span class="type">int</span> <span class="name">clue_font_text_width</span>(<span class="param">ClueFont *font</span>, <span class="param">const char *text</span>)</div>
     <div class="fn-desc">Measure the width of a string in pixels.</div>
   </div>
   <div class="fn-block">
-    <div class="fn-sig"><span class="type">int</span> <span class="name">clue_font_line_height</span>(<span class="param">UIFont *font</span>)</div>
+    <div class="fn-sig"><span class="type">int</span> <span class="name">clue_font_line_height</span>(<span class="param">ClueFont *font</span>)</div>
     <div class="fn-desc">Get the line height in pixels.</div>
   </div>
   <div class="fn-block">
-    <div class="fn-sig"><span class="type">int</span> <span class="name">clue_font_ascent</span>(<span class="param">UIFont *font</span>)</div>
+    <div class="fn-sig"><span class="type">int</span> <span class="name">clue_font_ascent</span>(<span class="param">ClueFont *font</span>)</div>
     <div class="fn-desc">Get the font ascent (baseline to top) in pixels.</div>
   </div>
 
@@ -1238,12 +1238,12 @@ make
   <p class="description">Change the mouse cursor shape for a window. Supported on X11 and Wayland.</p>
 
   <div class="struct-block">
-    <div class="struct-name">UICursorShape</div>
-    <div class="enum-values">UI_CURSOR_DEFAULT | UI_CURSOR_POINTER | UI_CURSOR_TEXT | UI_CURSOR_RESIZE_H | UI_CURSOR_RESIZE_V | UI_CURSOR_MOVE | UI_CURSOR_CROSSHAIR</div>
+    <div class="struct-name">ClueCursorShape</div>
+    <div class="enum-values">CLUE_CURSOR_DEFAULT | CLUE_CURSOR_POINTER | CLUE_CURSOR_TEXT | CLUE_CURSOR_RESIZE_H | CLUE_CURSOR_RESIZE_V | CLUE_CURSOR_MOVE | CLUE_CURSOR_CROSSHAIR</div>
   </div>
   <div class="fn-block">
-    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_window_set_cursor</span>(<span class="param">UIWindow *win</span>, <span class="param">UICursorShape cursor</span>)</div>
-    <div class="fn-desc">Set the mouse cursor shape for a window. Use <code>UI_CURSOR_DEFAULT</code> to restore the normal arrow.</div>
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_window_set_cursor</span>(<span class="param">ClueWindow *win</span>, <span class="param">ClueCursorShape cursor</span>)</div>
+    <div class="fn-desc">Set the mouse cursor shape for a window. Use <code>CLUE_CURSOR_DEFAULT</code> to restore the normal arrow.</div>
   </div>
 
   <h2 id="style">Style</h2>
