@@ -220,12 +220,38 @@ static int file_icon_cb(int index, int x, int y, int h, void *user_data)
 /* Widget callbacks                                                    */
 /* ------------------------------------------------------------------ */
 
+/* Truncate path from the left if too long for the dialog width.
+ * Shows ".../<tail>" when the full path won't fit. */
+static void set_path_label(FileDialogState *s)
+{
+    UIFont *font = clue_app_default_font();
+    int max_w = DIALOG_W - 40;  /* padding + some margin */
+    const char *path = s->current_dir;
+
+    if (font && clue_font_text_width(font, path) > max_w) {
+        /* Walk forward through path separators until it fits */
+        const char *p = path;
+        while (*p) {
+            const char *slash = strchr(p + 1, '/');
+            if (!slash) break;
+            char buf[1024];
+            snprintf(buf, sizeof(buf), "...%s", slash);
+            if (clue_font_text_width(font, buf) <= max_w) {
+                clue_label_set_text(s->path_label, buf);
+                return;
+            }
+            p = slash;
+        }
+    }
+    clue_label_set_text(s->path_label, path);
+}
+
 static void navigate_to(FileDialogState *s, const char *dir)
 {
     if (realpath(dir, s->current_dir) == NULL) {
         strncpy(s->current_dir, dir, sizeof(s->current_dir) - 1);
     }
-    clue_label_set_text(s->path_label, s->current_dir);
+    set_path_label(s);
     scan_directory(s);
     clue_listview_set_data(s->list, s->entry_count, list_item_cb, s);
     clue_listview_set_selected(s->list, -1);
@@ -293,19 +319,17 @@ static void build_ui(FileDialogState *s)
     s->root->base.style.vexpand = true;
 
     /* Top bar: Up button + path label */
-    ClueBox *top_row = clue_box_new(CLUE_HORIZONTAL, 8);
+    /* Top: Up button + path label on separate rows so path can wrap */
     s->btn_up = clue_button_new("Up");
     clue_signal_connect(s->btn_up, "clicked", on_up, s);
 
-    s->path_label = clue_label_new(s->current_dir);
+    s->path_label = clue_label_new("");
     s->path_label->base.style.fg_color = th->fg;
-
-    clue_container_add(top_row, s->btn_up);
-    clue_container_add(top_row, s->path_label);
+    s->path_label->base.style.hexpand = true;
+    set_path_label(s);
 
     /* File list */
     s->list = clue_listview_new();
-    s->list->base.base.w = DIALOG_W - 24;
     s->list->base.base.h = 280;
     s->list->base.style.hexpand = true;
     s->list->base.style.vexpand = true;
@@ -316,7 +340,6 @@ static void build_ui(FileDialogState *s)
     /* Filename input */
     s->filename_input = clue_text_input_new(
         s->mode == CLUE_FILE_SAVE ? "Enter filename..." : "Select a file...");
-    s->filename_input->base.base.w = DIALOG_W - 24;
     s->filename_input->base.style.hexpand = true;
 
     /* Separator */
@@ -340,7 +363,6 @@ static void build_ui(FileDialogState *s)
     /* Filter dropdown (if filters provided) */
     if (s->filters && s->filter_count > 0) {
         s->filter_dd = clue_dropdown_new("All Files");
-        s->filter_dd->base.base.w = DIALOG_W - 24;
         s->filter_dd->base.style.hexpand = true;
         s->filter_dd->max_visible = 3;
         for (int i = 0; i < s->filter_count; i++) {
@@ -355,7 +377,8 @@ static void build_ui(FileDialogState *s)
     }
 
     /* Assemble */
-    clue_container_add(s->root, top_row);
+    clue_container_add(s->root, s->btn_up);
+    clue_container_add(s->root, s->path_label);
     if (s->filter_dd)
         clue_container_add(s->root, s->filter_dd);
     clue_container_add(s->root, s->list);
@@ -451,13 +474,17 @@ static ClueFileDialogResult run_file_dialog(ClueFileDialogMode mode,
                 break;
             }
 
+            if (events[i].window == win &&
+                events[i].type == UI_EVENT_MOUSE_MOVE) {
+                clue_window_set_cursor(win, UI_CURSOR_DEFAULT);
+            }
+
             if (events[i].window == win) {
                 if (app->captured_widget &&
                     (events[i].type == UI_EVENT_MOUSE_MOVE ||
                      events[i].type == UI_EVENT_MOUSE_BUTTON ||
                      events[i].type == UI_EVENT_MOUSE_SCROLL)) {
-                    if (app->captured_widget->on_event)
-                        app->captured_widget->on_event(app->captured_widget, &events[i]);
+                    clue_widget_dispatch_event(app->captured_widget, &events[i]);
                 } else {
                     clue_widget_dispatch_event(&state.root->base.base, &events[i]);
                 }
