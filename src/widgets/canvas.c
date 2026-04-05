@@ -52,7 +52,7 @@ static void canvas_draw(ClueWidget *w)
 
     /* Background */
     if (c->draw_background) {
-        UIColor bg = w->style.bg_color.a > 0.001f ? w->style.bg_color : th->surface;
+        ClueColor bg = w->style.bg_color.a > 0.001f ? w->style.bg_color : th->surface;
         clue_fill_rect(x, y, bw, bh, bg);
         clue_draw_rect(x, y, bw, bh, 1.0f, th->surface_border);
     }
@@ -82,17 +82,17 @@ static void fire_event(ClueCanvas *c, ClueCanvasEvent *ev)
         c->event_cb(ev, c->event_data);
 }
 
-static int canvas_handle_event(ClueWidget *w, UIEvent *event)
+static int canvas_handle_event(ClueWidget *w, ClueEvent *event)
 {
     ClueCanvas *c = (ClueCanvas *)w;
     int x = w->base.x, y = w->base.y;
     int bw = w->base.w, bh = w->base.h;
 
-    if (event->type == UI_EVENT_MOUSE_MOVE) {
+    if (event->type == CLUE_EVENT_MOUSE_MOVE) {
         int mx = event->mouse_move.x, my = event->mouse_move.y;
         bool inside = mx >= x && mx < x + bw && my >= y && my < y + bh;
         if (inside && event->window)
-            clue_window_set_cursor(event->window, UI_CURSOR_CROSSHAIR);
+            clue_window_set_cursor(event->window, CLUE_CURSOR_CROSSHAIR);
 
         if (c->painting || inside) {
             ClueCanvasEvent ev = {0};
@@ -109,7 +109,7 @@ static int canvas_handle_event(ClueWidget *w, UIEvent *event)
         return 0;
     }
 
-    if (event->type == UI_EVENT_MOUSE_BUTTON) {
+    if (event->type == CLUE_EVENT_MOUSE_BUTTON) {
         int mx = event->mouse_button.x, my = event->mouse_button.y;
         bool inside = mx >= x && mx < x + bw && my >= y && my < y + bh;
 
@@ -149,7 +149,7 @@ static int canvas_handle_event(ClueWidget *w, UIEvent *event)
         }
     }
 
-    if (event->type == UI_EVENT_MOUSE_SCROLL) {
+    if (event->type == CLUE_EVENT_MOUSE_SCROLL) {
         int mx = event->mouse_scroll.x, my = event->mouse_scroll.y;
         if (mx >= x && mx < x + bw && my >= y && my < y + bh) {
             ClueCanvasEvent ev = {0};
@@ -163,7 +163,7 @@ static int canvas_handle_event(ClueWidget *w, UIEvent *event)
         }
     }
 
-    if (event->type == UI_EVENT_KEY && c->focusable_canvas && w->base.focused) {
+    if (event->type == CLUE_EVENT_KEY && c->focusable_canvas && w->base.focused) {
         ClueCanvasEvent ev = {0};
         ev.type = CLUE_CANVAS_KEY;
         ev.keycode = event->key.keycode;

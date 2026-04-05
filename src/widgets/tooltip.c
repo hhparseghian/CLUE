@@ -73,7 +73,7 @@ void clue_tooltip_draw(int mouse_x, int mouse_y)
 
     const char *text = (const char *)g_hovered->base.user_data;
     const ClueTheme *th = clue_theme_get();
-    UIFont *font = clue_app_default_font();
+    ClueFont *font = clue_app_default_font();
     if (!font) return;
 
     int tw = clue_font_text_width(font, text);
@@ -95,7 +95,7 @@ void clue_tooltip_draw(int mouse_x, int mouse_y)
 
     /* Drop shadow */
     clue_fill_rounded_rect(x + 2, y + 3, w, h, 5.0f,
-                           UI_RGBAF(0, 0, 0, 0.3f));
+                           CLUE_RGBAF(0, 0, 0, 0.3f));
 
     /* Background + border */
     clue_fill_rounded_rect(x, y, w, h, 5.0f, th->surface);

@@ -10,7 +10,7 @@
 
 #define LV_PAD 6
 
-static UIFont *lv_font(ClueListView *lv)
+static ClueFont *lv_font(ClueListView *lv)
 {
     return lv->base.style.font ? lv->base.style.font : clue_app_default_font();
 }
@@ -31,7 +31,7 @@ static void clamp_scroll(ClueListView *lv)
 static void listview_draw(ClueWidget *w)
 {
     ClueListView *lv = (ClueListView *)w;
-    UIFont *font = lv_font(lv);
+    ClueFont *font = lv_font(lv);
     const ClueTheme *th = clue_theme_get();
     int x = w->base.x, y = w->base.y;
     int bw = w->base.w, bh = w->base.h;
@@ -72,7 +72,7 @@ static void listview_draw(ClueWidget *w)
 
         const char *text = lv->item_cb(i, lv->item_data);
         if (text) {
-            UIColor fg = (i == lv->selected) ? th->list.selected_fg : th->list.fg;
+            ClueColor fg = (i == lv->selected) ? th->list.selected_fg : th->list.fg;
             int ty = iy + (lv->item_height - clue_font_line_height(font)) / 2;
             clue_draw_text(x + text_offset, ty, text, font, fg);
         }
@@ -88,7 +88,7 @@ static void listview_draw(ClueWidget *w)
 static void listview_layout(ClueWidget *w)
 {
     ClueListView *lv = (ClueListView *)w;
-    UIFont *font = lv_font(lv);
+    ClueFont *font = lv_font(lv);
 
     if (lv->item_height == 0 && font) {
         lv->item_height = clue_font_line_height(font) + LV_PAD * 2;
@@ -99,7 +99,7 @@ static void listview_layout(ClueWidget *w)
     clamp_scroll(lv);
 }
 
-static int listview_handle_event(ClueWidget *w, UIEvent *event)
+static int listview_handle_event(ClueWidget *w, ClueEvent *event)
 {
     ClueListView *lv = (ClueListView *)w;
     int x = w->base.x, y = w->base.y;
@@ -114,7 +114,7 @@ static int listview_handle_event(ClueWidget *w, UIEvent *event)
     }
 
     switch (event->type) {
-    case UI_EVENT_MOUSE_MOVE: {
+    case CLUE_EVENT_MOUSE_MOVE: {
         int mx = event->mouse_move.x;
         int my = event->mouse_move.y;
         if (mx >= x && mx < x + bw && my >= y && my < y + bh) {
@@ -126,7 +126,7 @@ static int listview_handle_event(ClueWidget *w, UIEvent *event)
         return 0;
     }
 
-    case UI_EVENT_MOUSE_BUTTON: {
+    case CLUE_EVENT_MOUSE_BUTTON: {
         int mx = event->mouse_button.x;
         int my = event->mouse_button.y;
         if (mx >= x && mx < x + bw && my >= y && my < y + bh) {
@@ -143,7 +143,7 @@ static int listview_handle_event(ClueWidget *w, UIEvent *event)
         return 0;
     }
 
-    case UI_EVENT_KEY: {
+    case CLUE_EVENT_KEY: {
         if (!w->base.focused || !event->key.pressed) return 0;
 
         int key = event->key.keycode;
@@ -220,7 +220,7 @@ static int listview_handle_event(ClueWidget *w, UIEvent *event)
         return 0;
     }
 
-    case UI_EVENT_MOUSE_SCROLL: {
+    case CLUE_EVENT_MOUSE_SCROLL: {
         int mx = event->mouse_scroll.x;
         int my = event->mouse_scroll.y;
         if (mx >= x && mx < x + bw && my >= y && my < y + bh) {

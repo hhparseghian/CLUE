@@ -38,7 +38,7 @@ typedef struct {
     float    u1, v1;
 } GlyphInfo;
 
-struct UIFont {
+struct ClueFont {
     FT_Face     face;
     int         size_px;
     int         ascent;
@@ -81,7 +81,7 @@ static void ft_shutdown(void)
 /* Glyph rasterization                                                 */
 /* ------------------------------------------------------------------ */
 
-static GlyphInfo *ensure_glyph(UIFont *font, unsigned int codepoint)
+static GlyphInfo *ensure_glyph(ClueFont *font, unsigned int codepoint)
 {
     if (codepoint >= MAX_GLYPHS) return NULL;
 
@@ -150,11 +150,11 @@ static GlyphInfo *ensure_glyph(UIFont *font, unsigned int codepoint)
 /* Public API                                                          */
 /* ------------------------------------------------------------------ */
 
-UIFont *clue_font_load(const char *path, int size_px)
+ClueFont *clue_font_load(const char *path, int size_px)
 {
     if (ft_init() != 0) return NULL;
 
-    UIFont *font = calloc(1, sizeof(UIFont));
+    ClueFont *font = calloc(1, sizeof(ClueFont));
     if (!font) {
         ft_shutdown();
         return NULL;
@@ -198,7 +198,7 @@ UIFont *clue_font_load(const char *path, int size_px)
     return font;
 }
 
-void clue_font_destroy(UIFont *font)
+void clue_font_destroy(ClueFont *font)
 {
     if (!font) return;
     if (font->atlas_tex) glDeleteTextures(1, &font->atlas_tex);
@@ -207,7 +207,7 @@ void clue_font_destroy(UIFont *font)
     ft_shutdown();
 }
 
-int clue_font_text_width(UIFont *font, const char *text)
+int clue_font_text_width(ClueFont *font, const char *text)
 {
     if (!font || !text) return 0;
     int width = 0;
@@ -218,12 +218,12 @@ int clue_font_text_width(UIFont *font, const char *text)
     return width;
 }
 
-int clue_font_line_height(UIFont *font)
+int clue_font_line_height(ClueFont *font)
 {
     return font ? font->line_height : 0;
 }
 
-int clue_font_ascent(UIFont *font)
+int clue_font_ascent(ClueFont *font)
 {
     return font ? font->ascent : 0;
 }
@@ -321,7 +321,7 @@ void clue_font_renderer_shutdown(void)
 }
 
 void clue_font_draw_text(int x, int y, const char *text,
-                         UIFont *font, UIColor color,
+                         ClueFont *font, ClueColor color,
                          int vp_w, int vp_h)
 {
     if (!font || !text || !text_prog) return;

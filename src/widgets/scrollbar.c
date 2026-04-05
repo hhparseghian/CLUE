@@ -45,11 +45,11 @@ void clue_scrollbar_draw(const ClueScrollbar *sb,
                     area_x, area_w, &tx, &ty, &th))
         return;
 
-    UIColor col = sb->dragging
-        ? UI_RGBA(180, 185, 195, 220)
+    ClueColor col = sb->dragging
+        ? CLUE_RGBA(180, 185, 195, 220)
         : sb->hovered
-            ? UI_RGBA(160, 165, 175, 180)
-            : UI_RGBA(130, 135, 145, 150);
+            ? CLUE_RGBA(160, 165, 175, 180)
+            : CLUE_RGBA(130, 135, 145, 150);
     clue_fill_rounded_rect(tx, ty, CLUE_SCROLLBAR_W, th,
                            CLUE_SCROLLBAR_W / 2.0f, col);
 }
@@ -59,7 +59,7 @@ bool clue_scrollbar_handle_event(ClueScrollbar *sb,
                                  int content_h, int *scroll_y,
                                  void *event_ptr, void *widget_base)
 {
-    UIEvent *event = (UIEvent *)event_ptr;
+    ClueEvent *event = (ClueEvent *)event_ptr;
     UIWidget *wb = (UIWidget *)widget_base;
 
     if (content_h <= area_h) {
@@ -72,17 +72,17 @@ bool clue_scrollbar_handle_event(ClueScrollbar *sb,
                                 area_x, area_w, &tx, &ty, &th);
 
     /* Track hover state + set cursor */
-    if (event->type == UI_EVENT_MOUSE_MOVE && has_thumb && !sb->dragging) {
+    if (event->type == CLUE_EVENT_MOUSE_MOVE && has_thumb && !sb->dragging) {
         int mx = event->mouse_move.x;
         int my = event->mouse_move.y;
         sb->hovered = mx >= tx - 4 && mx <= tx + CLUE_SCROLLBAR_W + 4 &&
                       my >= area_y && my < area_y + area_h;
         if (sb->hovered && event->window)
-            clue_window_set_cursor(event->window, UI_CURSOR_POINTER);
+            clue_window_set_cursor(event->window, CLUE_CURSOR_POINTER);
     }
 
     /* Drag in progress — track mouse move */
-    if (sb->dragging && event->type == UI_EVENT_MOUSE_MOVE) {
+    if (sb->dragging && event->type == CLUE_EVENT_MOUSE_MOVE) {
         int my = event->mouse_move.y;
         int track = area_h - th;
         if (track > 0) {
@@ -97,7 +97,7 @@ bool clue_scrollbar_handle_event(ClueScrollbar *sb,
     }
 
     /* Mouse button */
-    if (event->type == UI_EVENT_MOUSE_BUTTON && event->mouse_button.btn == 0) {
+    if (event->type == CLUE_EVENT_MOUSE_BUTTON && event->mouse_button.btn == 0) {
         int mx = event->mouse_button.x;
         int my = event->mouse_button.y;
 
@@ -137,7 +137,7 @@ bool clue_scrollbar_handle_event(ClueScrollbar *sb,
                 sb->dragging = false;
                 clue_release_mouse();
                 if (event->window)
-                    clue_window_set_cursor(event->window, UI_CURSOR_DEFAULT);
+                    clue_window_set_cursor(event->window, CLUE_CURSOR_DEFAULT);
                 return true;
             }
         }

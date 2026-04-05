@@ -7,8 +7,8 @@
 /* Color picker -- gradient SV square + hue bar + palette swatches */
 typedef struct {
     ClueWidget  base;       /* MUST be first */
-    UIColor     color;      /* currently selected color */
-    UIColor    *palette;    /* array of colors */
+    ClueColor     color;      /* currently selected color */
+    ClueColor    *palette;    /* array of colors */
     int         palette_count;
     int         cols;       /* columns in the grid */
     int         swatch_size;/* pixel size of each swatch */
@@ -27,13 +27,13 @@ typedef struct {
 ClueColorPicker *clue_colorpicker_new(void);
 
 /* Get the selected color */
-UIColor clue_colorpicker_get_color(ClueColorPicker *cp);
+ClueColor clue_colorpicker_get_color(ClueColorPicker *cp);
 
 /* Set the selected color */
-void clue_colorpicker_set_color(ClueColorPicker *cp, UIColor color);
+void clue_colorpicker_set_color(ClueColorPicker *cp, ClueColor color);
 
 /* Add a color to the palette */
-void clue_colorpicker_add_color(ClueColorPicker *cp, UIColor color);
+void clue_colorpicker_add_color(ClueColorPicker *cp, ClueColor color);
 
 /* Signals: "changed" -- emitted when color selection changes */
 

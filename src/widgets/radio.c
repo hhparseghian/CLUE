@@ -11,7 +11,7 @@
 #define CIRCLE_GAP    10
 #define INNER_RADIUS   5
 
-static UIFont *radio_font(ClueRadio *r)
+static ClueFont *radio_font(ClueRadio *r)
 {
     return r->base.style.font ? r->base.style.font : clue_app_default_font();
 }
@@ -20,7 +20,7 @@ static void radio_draw(ClueWidget *w)
 {
     ClueRadio *r = (ClueRadio *)w;
     int x = w->base.x, y = w->base.y;
-    UIFont *font = radio_font(r);
+    ClueFont *font = radio_font(r);
     int cy = y + w->base.h / 2;
     int cx = x + CIRCLE_RADIUS;
 
@@ -38,7 +38,7 @@ static void radio_draw(ClueWidget *w)
     }
 
     if (font && r->label && r->label[0]) {
-        UIColor fg = w->style.fg_color.a > 0.001f ? w->style.fg_color : th->checkbox.fg;
+        ClueColor fg = w->style.fg_color.a > 0.001f ? w->style.fg_color : th->checkbox.fg;
         int text_y = y + (w->base.h - clue_font_line_height(font)) / 2;
         clue_draw_text(x + CIRCLE_RADIUS * 2 + CIRCLE_GAP, text_y,
                        r->label, font, fg);
@@ -48,7 +48,7 @@ static void radio_draw(ClueWidget *w)
 static void radio_layout(ClueWidget *w)
 {
     ClueRadio *r = (ClueRadio *)w;
-    UIFont *font = radio_font(r);
+    ClueFont *font = radio_font(r);
     if (!font) return;
 
     int tw = r->label ? clue_font_text_width(font, r->label) : 0;
@@ -72,11 +72,11 @@ static void radio_select(ClueRadio *r)
     clue_signal_emit(r, "changed");
 }
 
-static int radio_handle_event(ClueWidget *w, UIEvent *event)
+static int radio_handle_event(ClueWidget *w, ClueEvent *event)
 {
     ClueRadio *r = (ClueRadio *)w;
 
-    if (event->type == UI_EVENT_MOUSE_BUTTON &&
+    if (event->type == CLUE_EVENT_MOUSE_BUTTON &&
         event->mouse_button.pressed &&
         event->mouse_button.btn == 0) {
         int mx = event->mouse_button.x;

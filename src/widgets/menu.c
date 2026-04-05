@@ -24,7 +24,7 @@ static void menubar_set_modal(ClueMenuBar *bar, bool on)
 /* Popup Menu                                                          */
 /* ------------------------------------------------------------------ */
 
-static UIFont *menu_font(void)
+static ClueFont *menu_font(void)
 {
     return clue_app_default_font();
 }
@@ -44,7 +44,7 @@ static int menu_total_height(ClueMenu *m)
 
 static int menu_width(ClueMenu *m)
 {
-    UIFont *font = menu_font();
+    ClueFont *font = menu_font();
     if (!font) return 150;
     int max_w = 100;
     for (int i = 0; i < m->item_count; i++) {
@@ -63,7 +63,7 @@ static void menu_draw(ClueWidget *w)
     if (!m->open) return;
 
     const ClueTheme *th = clue_theme_get();
-    UIFont *font = menu_font();
+    ClueFont *font = menu_font();
     int x = m->popup_x, y = m->popup_y;
     int mw = menu_width(m);
     int mh = menu_total_height(m);
@@ -86,7 +86,7 @@ static void menu_draw(ClueWidget *w)
                 clue_fill_rect(x + 2, iy, mw - 4, ih, th->accent);
             }
 
-            UIColor fg = (i == m->hovered) ? th->fg_bright :
+            ClueColor fg = (i == m->hovered) ? th->fg_bright :
                          item->enabled ? th->fg : th->fg_dim;
 
             if (font) {
@@ -104,7 +104,7 @@ static void menu_draw(ClueWidget *w)
     }
 }
 
-static int menu_handle_event(ClueWidget *w, UIEvent *event)
+static int menu_handle_event(ClueWidget *w, ClueEvent *event)
 {
     ClueMenu *m = (ClueMenu *)w;
     if (!m->open) return 0;
@@ -113,7 +113,7 @@ static int menu_handle_event(ClueWidget *w, UIEvent *event)
     int mw = menu_width(m);
     int mh = menu_total_height(m);
 
-    if (event->type == UI_EVENT_MOUSE_MOVE) {
+    if (event->type == CLUE_EVENT_MOUSE_MOVE) {
         int mx = event->mouse_move.x;
         int my = event->mouse_move.y;
         m->hovered = -1;
@@ -134,7 +134,7 @@ static int menu_handle_event(ClueWidget *w, UIEvent *event)
         return 0;
     }
 
-    if (event->type == UI_EVENT_MOUSE_BUTTON &&
+    if (event->type == CLUE_EVENT_MOUSE_BUTTON &&
         event->mouse_button.pressed && event->mouse_button.btn == 0) {
         int mx = event->mouse_button.x;
         int my = event->mouse_button.y;
@@ -229,7 +229,7 @@ static void menubar_draw(ClueWidget *w)
 {
     ClueMenuBar *bar = (ClueMenuBar *)w;
     const ClueTheme *th = clue_theme_get();
-    UIFont *font = menu_font();
+    ClueFont *font = menu_font();
     int x = w->base.x, y = w->base.y;
     int bw = w->base.w, bh = w->base.h;
 
@@ -248,7 +248,7 @@ static void menubar_draw(ClueWidget *w)
             clue_fill_rect(tx, y, tw, bh, th->surface_hover);
         }
 
-        UIColor fg = (i == bar->active) ? th->fg_bright : th->fg;
+        ClueColor fg = (i == bar->active) ? th->fg_bright : th->fg;
         int ty = y + (bh - clue_font_line_height(font)) / 2;
         clue_draw_text(tx + MENUBAR_PAD_H, ty, bar->labels[i], font, fg);
 
@@ -260,14 +260,14 @@ static void menubar_draw(ClueWidget *w)
 
 static void menubar_layout(ClueWidget *w)
 {
-    UIFont *font = menu_font();
+    ClueFont *font = menu_font();
     w->base.h = font ? clue_font_line_height(font) + MENUBAR_PAD_V * 2 : 30;
 }
 
-static int menubar_handle_event(ClueWidget *w, UIEvent *event)
+static int menubar_handle_event(ClueWidget *w, ClueEvent *event)
 {
     ClueMenuBar *bar = (ClueMenuBar *)w;
-    UIFont *font = menu_font();
+    ClueFont *font = menu_font();
     int x = w->base.x, y = w->base.y, bh = w->base.h;
 
     /* Forward to active menu first */
@@ -287,7 +287,7 @@ static int menubar_handle_event(ClueWidget *w, UIEvent *event)
 
     if (!font) return 0;
 
-    if (event->type == UI_EVENT_MOUSE_MOVE) {
+    if (event->type == CLUE_EVENT_MOUSE_MOVE) {
         int mx = event->mouse_move.x;
         int my = event->mouse_move.y;
         bar->hovered = -1;
@@ -312,7 +312,7 @@ static int menubar_handle_event(ClueWidget *w, UIEvent *event)
         return 0;
     }
 
-    if (event->type == UI_EVENT_MOUSE_BUTTON &&
+    if (event->type == CLUE_EVENT_MOUSE_BUTTON &&
         event->mouse_button.pressed && event->mouse_button.btn == 0) {
         int mx = event->mouse_button.x;
         int my = event->mouse_button.y;
@@ -353,9 +353,9 @@ static int menubar_handle_event(ClueWidget *w, UIEvent *event)
     /* While a menu is open, consume all mouse events */
     if (bar->active >= 0 && bar->menus[bar->active] &&
         bar->menus[bar->active]->open &&
-        (event->type == UI_EVENT_MOUSE_BUTTON ||
-         event->type == UI_EVENT_MOUSE_MOVE ||
-         event->type == UI_EVENT_MOUSE_SCROLL)) {
+        (event->type == CLUE_EVENT_MOUSE_BUTTON ||
+         event->type == CLUE_EVENT_MOUSE_MOVE ||
+         event->type == CLUE_EVENT_MOUSE_SCROLL)) {
         return 1;
     }
 
@@ -432,7 +432,7 @@ void clue_context_menu_draw(void)
         menu_draw(&g_context_menu->base);
 }
 
-int clue_context_menu_dispatch(UIEvent *event)
+int clue_context_menu_dispatch(ClueEvent *event)
 {
     if (!g_context_menu || !g_context_menu->open) return 0;
     int r = menu_handle_event(&g_context_menu->base, event);

@@ -9,7 +9,7 @@ ClueBox *build_editor_page(void)
     page->base.style.vexpand = true;
 
     ClueLabel *lbl = clue_label_new("Multi-line text editor:");
-    lbl->base.style.fg_color = UI_RGB(180, 180, 190);
+    lbl->base.style.fg_color = CLUE_RGB(180, 180, 190);
 
     ClueTextEditor *ed = clue_text_editor_new();
     ed->base.base.w = 500;

@@ -10,7 +10,7 @@ void clue_font_renderer_shutdown(void);
 
 /* Called by gl_renderer draw_text */
 void clue_font_draw_text(int x, int y, const char *text,
-                         UIFont *font, UIColor color,
+                         ClueFont *font, ClueColor color,
                          int vp_w, int vp_h);
 
 #endif /* CLUE_FONT_INTERNAL_H */

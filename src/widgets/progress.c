@@ -36,7 +36,7 @@ static void progress_draw(ClueWidget *w)
     }
 
     /* Percentage text (drawn inside the reserved right margin) */
-    UIFont *font = clue_app_default_font();
+    ClueFont *font = clue_app_default_font();
     if (font) {
         char buf[8];
         snprintf(buf, sizeof(buf), "%d%%", (int)(v * 100.0f));

@@ -54,10 +54,10 @@ static const char *font_paths[] = {
     NULL,
 };
 
-static UIFont *load_default_font(int size)
+static ClueFont *load_default_font(int size)
 {
     for (int i = 0; font_paths[i]; i++) {
-        UIFont *f = clue_font_load(font_paths[i], size);
+        ClueFont *f = clue_font_load(font_paths[i], size);
         if (f) return f;
     }
     fprintf(stderr, "clue-app: no default font found\n");
@@ -122,22 +122,22 @@ void clue_app_run(ClueApp *app)
     int mouse_x = 0, mouse_y = 0;
 
     while (app->running) {
-        UIEvent events[32];
+        ClueEvent events[32];
         int count = clue_poll_events(events, 32);
 
         for (int i = 0; i < count; i++) {
-            if (events[i].type == UI_EVENT_CLOSE) {
+            if (events[i].type == CLUE_EVENT_CLOSE) {
                 app->running = false;
                 break;
             }
-            if (events[i].type == UI_EVENT_MOUSE_MOVE) {
+            if (events[i].type == CLUE_EVENT_MOUSE_MOVE) {
                 mouse_x = events[i].mouse_move.x;
                 mouse_y = events[i].mouse_move.y;
                 /* Reset cursor before dispatch; widgets override if needed */
-                clue_window_set_cursor(app->window, UI_CURSOR_DEFAULT);
+                clue_window_set_cursor(app->window, CLUE_CURSOR_DEFAULT);
             }
             /* Global keyboard shortcuts */
-            if (events[i].type == UI_EVENT_KEY && events[i].key.pressed) {
+            if (events[i].type == CLUE_EVENT_KEY && events[i].key.pressed) {
                 if (clue_shortcut_dispatch(events[i].key.keycode,
                                            events[i].key.modifiers))
                     continue;
@@ -149,9 +149,9 @@ void clue_app_run(ClueApp *app)
 
             /* If a widget has captured the mouse, send mouse events to it */
             if (app->captured_widget &&
-                (events[i].type == UI_EVENT_MOUSE_MOVE ||
-                 events[i].type == UI_EVENT_MOUSE_BUTTON ||
-                 events[i].type == UI_EVENT_MOUSE_SCROLL)) {
+                (events[i].type == CLUE_EVENT_MOUSE_MOVE ||
+                 events[i].type == CLUE_EVENT_MOUSE_BUTTON ||
+                 events[i].type == CLUE_EVENT_MOUSE_SCROLL)) {
                 if (app->captured_widget->on_event)
                     app->captured_widget->on_event(app->captured_widget, &events[i]);
             } else if (app->modal_widget) {
@@ -161,7 +161,7 @@ void clue_app_run(ClueApp *app)
                 int consumed = clue_widget_dispatch_event(&app->root->base, &events[i]);
                 /* Click on empty space clears focus */
                 if (!consumed &&
-                    events[i].type == UI_EVENT_MOUSE_BUTTON &&
+                    events[i].type == CLUE_EVENT_MOUSE_BUTTON &&
                     events[i].mouse_button.pressed) {
                     clue_focus_widget(NULL);
                 }
@@ -252,7 +252,7 @@ ClueApp *clue_app_get(void)
     return g_app;
 }
 
-UIFont *clue_app_default_font(void)
+ClueFont *clue_app_default_font(void)
 {
     return g_app ? g_app->default_font : NULL;
 }

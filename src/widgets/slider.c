@@ -46,15 +46,15 @@ static void slider_draw(ClueWidget *w)
     /* Thumb shadow */
     int thumb_x = track_x + fill_w;
     clue_fill_circle(thumb_x + 1, cy + 2, THUMB_R,
-                     UI_RGBAF(0, 0, 0, 0.25f));
+                     CLUE_RGBAF(0, 0, 0, 0.25f));
 
     /* Thumb */
-    UIColor thumb_color = s->dragging ? th->slider.thumb_active : th->slider.thumb;
+    ClueColor thumb_color = s->dragging ? th->slider.thumb_active : th->slider.thumb;
     clue_fill_circle(thumb_x, cy, THUMB_R, thumb_color);
 
     /* Thumb border */
     clue_draw_circle(thumb_x, cy, THUMB_R, 1.5f,
-                     UI_RGBAF(0, 0, 0, 0.15f));
+                     CLUE_RGBAF(0, 0, 0, 0.15f));
 }
 
 static void slider_layout(ClueWidget *w)
@@ -77,14 +77,14 @@ static void update_value_from_x(ClueSlider *s, int mx)
     }
 }
 
-static int slider_handle_event(ClueWidget *w, UIEvent *event)
+static int slider_handle_event(ClueWidget *w, ClueEvent *event)
 {
     ClueSlider *s = (ClueSlider *)w;
     int x = w->base.x, y = w->base.y;
     int bw = w->base.w, bh = w->base.h;
 
     switch (event->type) {
-    case UI_EVENT_MOUSE_BUTTON: {
+    case CLUE_EVENT_MOUSE_BUTTON: {
         int mx = event->mouse_button.x;
         int my = event->mouse_button.y;
         bool inside = mx >= x && mx < x + bw && my >= y && my < y + bh;
@@ -105,7 +105,7 @@ static int slider_handle_event(ClueWidget *w, UIEvent *event)
         return 0;
     }
 
-    case UI_EVENT_MOUSE_MOVE:
+    case CLUE_EVENT_MOUSE_MOVE:
         if (s->dragging) {
             update_value_from_x(s, event->mouse_move.x);
             return 1;

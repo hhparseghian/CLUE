@@ -16,7 +16,7 @@ static void splitter_draw(ClueWidget *w)
     int bw = w->base.w, bh = w->base.h;
 
     /* Divider */
-    UIColor div_col = s->dragging ? th->accent : th->surface_border;
+    ClueColor div_col = s->dragging ? th->accent : th->surface_border;
     if (s->orientation == CLUE_HORIZONTAL) {
         int dx = x + (int)(bw * s->ratio) - s->divider_px / 2;
         clue_fill_rect(dx, y, s->divider_px, bh, div_col);
@@ -89,21 +89,21 @@ static void set_resize_cursor(ClueSplitter *s, bool active)
     ClueApp *app = clue_app_get();
     if (!app || !app->window) return;
     if (active) {
-        UICursorShape shape = s->orientation == CLUE_HORIZONTAL
-            ? UI_CURSOR_RESIZE_H : UI_CURSOR_RESIZE_V;
+        ClueCursorShape shape = s->orientation == CLUE_HORIZONTAL
+            ? CLUE_CURSOR_RESIZE_H : CLUE_CURSOR_RESIZE_V;
         clue_window_set_cursor(app->window, shape);
     } else {
-        clue_window_set_cursor(app->window, UI_CURSOR_DEFAULT);
+        clue_window_set_cursor(app->window, CLUE_CURSOR_DEFAULT);
     }
 }
 
-static int splitter_handle_event(ClueWidget *w, UIEvent *event)
+static int splitter_handle_event(ClueWidget *w, ClueEvent *event)
 {
     ClueSplitter *s = (ClueSplitter *)w;
     int x = w->base.x, y = w->base.y;
     int bw = w->base.w, bh = w->base.h;
 
-    if (event->type == UI_EVENT_MOUSE_MOVE) {
+    if (event->type == CLUE_EVENT_MOUSE_MOVE) {
         int mx = event->mouse_move.x, my = event->mouse_move.y;
         if (s->dragging) {
             float new_ratio;
@@ -125,7 +125,7 @@ static int splitter_handle_event(ClueWidget *w, UIEvent *event)
         return 0;
     }
 
-    if (event->type == UI_EVENT_MOUSE_BUTTON && event->mouse_button.btn == 0) {
+    if (event->type == CLUE_EVENT_MOUSE_BUTTON && event->mouse_button.btn == 0) {
         int mx = event->mouse_button.x, my = event->mouse_button.y;
         if (event->mouse_button.pressed) {
             if (on_divider(s, mx, my)) {

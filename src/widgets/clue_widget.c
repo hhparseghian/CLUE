@@ -2,7 +2,7 @@
 #include "clue/clue_widget.h"
 
 /* Event trampoline: bridges UIWidget dispatch to ClueWidget vtable */
-static int cwidget_event_handler(UIWidget *base, UIEvent *event)
+static int cwidget_event_handler(UIWidget *base, ClueEvent *event)
 {
     ClueWidget *w = (ClueWidget *)base;
     if (w->vtable && w->vtable->handle_event) {

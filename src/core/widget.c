@@ -60,7 +60,7 @@ int clue_widget_remove_child(UIWidget *parent, UIWidget *child)
     return -1;
 }
 
-int clue_widget_dispatch_event(UIWidget *widget, UIEvent *event)
+int clue_widget_dispatch_event(UIWidget *widget, ClueEvent *event)
 {
     if (!widget || !widget->visible) return 0;
 

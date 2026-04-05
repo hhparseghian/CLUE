@@ -119,7 +119,7 @@ static int ed_word_end(const char *text, int len, int pos)
 }
 #define CURSOR_BLINK_MS 530
 
-static UIFont *ed_font(ClueTextEditor *ed)
+static ClueFont *ed_font(ClueTextEditor *ed)
 {
     return ed->base.style.font ? ed->base.style.font : clue_app_default_font();
 }
@@ -227,7 +227,7 @@ static int line_n_start(const char *text, int len, int line)
     return i;
 }
 
-static int text_width_range(UIFont *font, const char *text, int from, int to)
+static int text_width_range(ClueFont *font, const char *text, int from, int to)
 {
     if (!font || from >= to) return 0;
     char buf[512];
@@ -326,7 +326,7 @@ static void ensure_grow(ClueTextEditor *ed, int need)
 
 static void ensure_cursor_visible(ClueTextEditor *ed)
 {
-    UIFont *font = ed_font(ed);
+    ClueFont *font = ed_font(ed);
     if (!font) return;
     int lh = clue_font_line_height(font);
     int gutter = ed->line_numbers ? GUTTER_W : 0;
@@ -355,7 +355,7 @@ static void ensure_cursor_visible(ClueTextEditor *ed)
 /* Place cursor at pixel position */
 static int cursor_from_xy(ClueTextEditor *ed, int mx, int my)
 {
-    UIFont *font = ed_font(ed);
+    ClueFont *font = ed_font(ed);
     if (!font) return 0;
     int lh = clue_font_line_height(font);
     int gutter = ed->line_numbers ? GUTTER_W : 0;
@@ -383,7 +383,7 @@ static void text_editor_draw(ClueWidget *w)
 {
     ClueTextEditor *ed = (ClueTextEditor *)w;
     const ClueTheme *th = clue_theme_get();
-    UIFont *font = ed_font(ed);
+    ClueFont *font = ed_font(ed);
     if (!font) return;
 
     if (!w->base.focused && ed->blink_timer_id) {
@@ -399,7 +399,7 @@ static void text_editor_draw(ClueWidget *w)
 
     /* Background */
     clue_fill_rounded_rect(x, y, bw, bh, radius, th->input.bg);
-    UIColor border = w->base.focused ? th->input.focus_border : th->input.border;
+    ClueColor border = w->base.focused ? th->input.focus_border : th->input.border;
     clue_draw_rounded_rect(x, y, bw, bh, radius, 1.5f, border);
 
     /* Gutter */
@@ -417,7 +417,7 @@ static void text_editor_draw(ClueWidget *w)
 
     int s_lo = has_sel(ed) ? sel_lo(ed) : -1;
     int s_hi = has_sel(ed) ? sel_hi(ed) : -1;
-    UIColor sel_color = UI_RGBAF(th->accent.r, th->accent.g, th->accent.b, 0.35f);
+    ClueColor sel_color = CLUE_RGBAF(th->accent.r, th->accent.g, th->accent.b, 0.35f);
 
     for (int ln = first_vis; ln < last_vis; ln++) {
         int ls = line_n_start(ed->text, ed->text_len, ln);
@@ -487,7 +487,7 @@ static void text_editor_layout(ClueWidget *w)
 
 /* --- Event handling --- */
 
-static int text_editor_handle_event(ClueWidget *w, UIEvent *event)
+static int text_editor_handle_event(ClueWidget *w, ClueEvent *event)
 {
     ClueTextEditor *ed = (ClueTextEditor *)w;
     int x = w->base.x, y = w->base.y;
@@ -495,7 +495,7 @@ static int text_editor_handle_event(ClueWidget *w, UIEvent *event)
 
     /* Scrollbar drag */
     {
-        UIFont *sbfont = ed->base.style.font ? ed->base.style.font : clue_app_default_font();
+        ClueFont *sbfont = ed->base.style.font ? ed->base.style.font : clue_app_default_font();
         int sblh = sbfont ? clue_font_line_height(sbfont) : 16;
         int sb_total = (count_lines(ed->text, ed->text_len) + 1) * sblh;
         int sb_visible = bh - PAD * 2;
@@ -506,11 +506,11 @@ static int text_editor_handle_event(ClueWidget *w, UIEvent *event)
         }
     }
 
-    if (event->type == UI_EVENT_MOUSE_MOVE) {
+    if (event->type == CLUE_EVENT_MOUSE_MOVE) {
         int mx = event->mouse_move.x, my = event->mouse_move.y;
         if (mx >= x && mx < x + bw && my >= y && my < y + bh) {
             if (event->window && !ed->sb.hovered)
-                clue_window_set_cursor(event->window, UI_CURSOR_TEXT);
+                clue_window_set_cursor(event->window, CLUE_CURSOR_TEXT);
         }
         if (ed->mouse_selecting) {
             ed->cursor = cursor_from_xy(ed, mx, my);
@@ -521,7 +521,7 @@ static int text_editor_handle_event(ClueWidget *w, UIEvent *event)
         return 0;
     }
 
-    if (event->type == UI_EVENT_MOUSE_BUTTON) {
+    if (event->type == CLUE_EVENT_MOUSE_BUTTON) {
         int mx = event->mouse_button.x, my = event->mouse_button.y;
         bool inside = mx >= x && mx < x + bw && my >= y && my < y + bh;
 
@@ -565,10 +565,10 @@ static int text_editor_handle_event(ClueWidget *w, UIEvent *event)
         return 0;
     }
 
-    if (event->type == UI_EVENT_MOUSE_SCROLL) {
+    if (event->type == CLUE_EVENT_MOUSE_SCROLL) {
         int mx = event->mouse_scroll.x, my = event->mouse_scroll.y;
         if (mx >= x && mx < x + bw && my >= y && my < y + bh) {
-            UIFont *font = ed_font(ed);
+            ClueFont *font = ed_font(ed);
             int lh = font ? clue_font_line_height(font) : 16;
             ed->scroll_y -= (int)(event->mouse_scroll.dy * lh * 3);
             if (ed->scroll_y < 0) ed->scroll_y = 0;
@@ -580,14 +580,14 @@ static int text_editor_handle_event(ClueWidget *w, UIEvent *event)
         }
     }
 
-    if (event->type == UI_EVENT_KEY && w->base.focused && event->key.pressed) {
+    if (event->type == CLUE_EVENT_KEY && w->base.focused && event->key.pressed) {
         stop_blink(ed);
         start_blink(ed);
 
         int key = event->key.keycode;
         int mods = event->key.modifiers;
-        bool shift = mods & UI_MOD_SHIFT;
-        bool ctrl = mods & UI_MOD_CTRL;
+        bool shift = mods & CLUE_MOD_SHIFT;
+        bool ctrl = mods & CLUE_MOD_CTRL;
 
         /* Ctrl+Z: undo, Ctrl+Shift+Z / Ctrl+Y: redo */
         if (ctrl && (key == XKB_KEY_z || key == XKB_KEY_Z)) {

@@ -17,7 +17,7 @@ typedef struct {
     ClueWidget       base;   /* MUST be first */
     char            *label;
     ClueButtonState  state;
-    UITexture        icon;       /* optional icon texture (0 = none) */
+    ClueTexture        icon;       /* optional icon texture (0 = none) */
     int              icon_w;     /* display width for the icon */
     int              icon_h;     /* display height for the icon */
 } ClueButton;
@@ -30,6 +30,6 @@ void clue_button_set_label(ClueButton *button, const char *label);
 
 /* Set an icon texture to display above the label.
  * Pass 0 to remove the icon. w/h set the display size. */
-void clue_button_set_icon(ClueButton *button, UITexture icon, int w, int h);
+void clue_button_set_icon(ClueButton *button, ClueTexture icon, int w, int h);
 
 #endif /* CLUE_BUTTON_H */

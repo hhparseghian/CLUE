@@ -8,7 +8,7 @@
 #include "clue/theme.h"
 #include "clue/app.h"
 
-static UIFont *button_font(ClueButton *b)
+static ClueFont *button_font(ClueButton *b)
 {
     return b->base.style.font ? b->base.style.font : clue_app_default_font();
 }
@@ -20,7 +20,7 @@ static void button_draw(ClueWidget *w)
 
     const ClueTheme *th = clue_theme_get();
 
-    UIColor bg;
+    ClueColor bg;
     switch (b->state) {
     case CLUE_BUTTON_HOVER:   bg = th->button.bg_hover;   break;
     case CLUE_BUTTON_PRESSED: bg = th->button.bg_pressed;  break;
@@ -43,7 +43,7 @@ static void button_draw(ClueWidget *w)
     if (b->state != CLUE_BUTTON_PRESSED) {
         clue_fill_rounded_rect(w->base.x + 1, w->base.y + 2,
                                w->base.w, w->base.h, radius,
-                               UI_RGBAF(0, 0, 0, 0.2f));
+                               CLUE_RGBAF(0, 0, 0, 0.2f));
     }
 
     /* Button face */
@@ -51,8 +51,8 @@ static void button_draw(ClueWidget *w)
     clue_fill_rounded_rect(w->base.x, w->base.y + press_offset,
                            w->base.w, w->base.h, radius, bg);
 
-    UIFont *font = button_font(b);
-    UIColor fg = w->style.fg_color.a > 0.001f ? w->style.fg_color : th->button.fg;
+    ClueFont *font = button_font(b);
+    ClueColor fg = w->style.fg_color.a > 0.001f ? w->style.fg_color : th->button.fg;
 
     if (b->icon && font) {
         bool has_label = b->label && b->label[0];
@@ -89,7 +89,7 @@ static void button_draw(ClueWidget *w)
 static void button_layout(ClueWidget *w)
 {
     ClueButton *b = (ClueButton *)w;
-    UIFont *font = button_font(b);
+    ClueFont *font = button_font(b);
     if (!font || !b->label) return;
 
     ClueStyle *s = &w->style;
@@ -115,13 +115,13 @@ static void button_layout(ClueWidget *w)
     }
 }
 
-static int button_handle_event(ClueWidget *w, UIEvent *event)
+static int button_handle_event(ClueWidget *w, ClueEvent *event)
 {
     ClueButton *b = (ClueButton *)w;
     int mx, my;
 
     switch (event->type) {
-    case UI_EVENT_MOUSE_MOVE:
+    case CLUE_EVENT_MOUSE_MOVE:
         mx = event->mouse_move.x;
         my = event->mouse_move.y;
         if (mx >= w->base.x && mx < w->base.x + w->base.w &&
@@ -133,7 +133,7 @@ static int button_handle_event(ClueWidget *w, UIEvent *event)
         b->state = CLUE_BUTTON_NORMAL;
         return 0;
 
-    case UI_EVENT_MOUSE_BUTTON:
+    case CLUE_EVENT_MOUSE_BUTTON:
         mx = event->mouse_button.x;
         my = event->mouse_button.y;
         if (mx >= w->base.x && mx < w->base.x + w->base.w &&
@@ -196,7 +196,7 @@ void clue_button_set_label(ClueButton *button, const char *label)
     button_layout(&button->base);
 }
 
-void clue_button_set_icon(ClueButton *button, UITexture icon, int w, int h)
+void clue_button_set_icon(ClueButton *button, ClueTexture icon, int w, int h)
 {
     if (!button) return;
     button->icon = icon;

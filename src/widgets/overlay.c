@@ -26,13 +26,13 @@ static void overlay_draw(ClueWidget *w)
     if (!app) return;
 
     const ClueTheme *th = clue_theme_get();
-    UIFont *font = clue_app_default_font();
+    ClueFont *font = clue_app_default_font();
 
     int win_w = app->window->w;
     int win_h = app->window->h;
 
     /* Dim background */
-    clue_fill_rect(0, 0, win_w, win_h, UI_RGBA(0, 0, 0, 160));
+    clue_fill_rect(0, 0, win_w, win_h, CLUE_RGBA(0, 0, 0, 160));
 
     /* Panel centered */
     int pw = ov->panel_w;
@@ -91,7 +91,7 @@ static void overlay_draw(ClueWidget *w)
 
 /* ---- event handling ---- */
 
-static int overlay_handle_event(ClueWidget *w, UIEvent *event)
+static int overlay_handle_event(ClueWidget *w, ClueEvent *event)
 {
     ClueOverlay *ov = (ClueOverlay *)w;
     if (!ov->visible) return 0;

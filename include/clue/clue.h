@@ -63,10 +63,10 @@ void clue_shutdown(void);
 
 /* Poll for pending events. Fills the events array up to max entries.
  * Returns the number of events written. */
-int clue_poll_events(UIEvent *events, int max);
+int clue_poll_events(ClueEvent *events, int max);
 
 /* Get the active renderer */
-UIRenderer *clue_get_renderer(void);
+ClueRenderer *clue_get_renderer(void);
 
 
 /* ------------------------------------------------------------------ */

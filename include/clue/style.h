@@ -4,7 +4,7 @@
 #include "renderer.h"
 
 /* Forward declaration */
-struct UIFont;
+struct ClueFont;
 
 /* Alignment for positioning children within their parent */
 typedef enum {
@@ -17,10 +17,10 @@ typedef enum {
 typedef struct {
     int      padding_top, padding_right, padding_bottom, padding_left;
     int      margin_top, margin_right, margin_bottom, margin_left;
-    UIColor  bg_color;
-    UIColor  fg_color;
+    ClueColor  bg_color;
+    ClueColor  fg_color;
     float    corner_radius;
-    struct UIFont *font;   /* NULL = use app default */
+    struct ClueFont *font;   /* NULL = use app default */
     ClueAlign     h_align; /* horizontal alignment of children */
     ClueAlign     v_align; /* vertical alignment of children */
     bool          hexpand; /* expand to fill parent width */

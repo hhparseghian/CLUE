@@ -7,21 +7,21 @@ static float g_brush_size = 3.0f;
 
 typedef struct {
     int x, y;
-    UIColor color;
+    ClueColor color;
     float size;
 } PaintPoint;
 
 static PaintPoint g_paint_points[PAINT_MAX];
 static int g_paint_count = 0;
 static int g_paint_last_x = -1, g_paint_last_y = -1;
-static UIColor g_paint_color = {0.86f, 0.86f, 1.0f, 1.0f};
+static ClueColor g_paint_color = {0.86f, 0.86f, 1.0f, 1.0f};
 static ClueCanvas *g_paint_canvas = NULL;
 
 /* Forward declarations */
 static ClueMenu *get_canvas_context_menu(void);
 
 /* Stamp circles along a line using Bresenham */
-static void stamp_line(int x0, int y0, int x1, int y1, int r, UIColor col)
+static void stamp_line(int x0, int y0, int x1, int y1, int r, ClueColor col)
 {
     int dx = abs(x1 - x0), dy = abs(y1 - y0);
     int sx = x0 < x1 ? 1 : -1, sy = y0 < y1 ? 1 : -1;
@@ -55,7 +55,7 @@ static void canvas_draw_cb(int x, int y, int w, int h, void *data)
     }
     if (g_paint_count == 0) {
         clue_draw_text_default(x + 10, y + 10, "Draw here with the mouse!",
-                               UI_RGB(100, 100, 120));
+                               CLUE_RGB(100, 100, 120));
     }
 }
 
@@ -138,7 +138,7 @@ ClueBox *build_canvas_page(void)
 
     ClueBox *top = clue_box_new(CLUE_HORIZONTAL, 8);
     ClueLabel *lbl = clue_label_new("Paint:");
-    lbl->base.style.fg_color = UI_RGB(180, 180, 190);
+    lbl->base.style.fg_color = CLUE_RGB(180, 180, 190);
     ClueButton *clear_btn = clue_button_new("Clear");
     clue_signal_connect(clear_btn, "clicked", on_canvas_clear, NULL);
     clue_container_add(top, lbl);

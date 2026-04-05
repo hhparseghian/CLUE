@@ -11,7 +11,7 @@
 #define TABLE_PAD 6
 #define SCROLLBAR_W 6
 
-static UIFont *table_font(ClueTable *t)
+static ClueFont *table_font(ClueTable *t)
 {
     return t->base.style.font ? t->base.style.font : clue_app_default_font();
 }
@@ -30,7 +30,7 @@ static void table_draw(ClueWidget *w)
 {
     ClueTable *t = (ClueTable *)w;
     const ClueTheme *th = clue_theme_get();
-    UIFont *font = table_font(t);
+    ClueFont *font = table_font(t);
     int x = w->base.x, y = w->base.y;
     int bw = w->base.w, bh = w->base.h;
 
@@ -87,7 +87,7 @@ static void table_draw(ClueWidget *w)
         for (int c = 0; c < t->col_count; c++) {
             const char *text = t->cell_cb(r, c, t->cell_data);
             if (text) {
-                UIColor fg = (r == t->selected_row) ? th->list.selected_fg : th->list.fg;
+                ClueColor fg = (r == t->selected_row) ? th->list.selected_fg : th->list.fg;
                 int ty = ry + (t->row_height - clue_font_line_height(font)) / 2;
                 clue_set_clip_rect(cx, body_y, t->col_widths[c], body_h);
                 clue_draw_text(cx + TABLE_PAD, ty, text, font, fg);
@@ -109,7 +109,7 @@ static void table_draw(ClueWidget *w)
 static void table_layout(ClueWidget *w)
 {
     ClueTable *t = (ClueTable *)w;
-    UIFont *font = table_font(t);
+    ClueFont *font = table_font(t);
     if (font) {
         if (t->row_height == 0)
             t->row_height = clue_font_line_height(font) + TABLE_PAD * 2;
@@ -125,7 +125,7 @@ static void table_layout(ClueWidget *w)
     clamp_scroll(t);
 }
 
-static int table_handle_event(ClueWidget *w, UIEvent *event)
+static int table_handle_event(ClueWidget *w, ClueEvent *event)
 {
     ClueTable *t = (ClueTable *)w;
     int x = w->base.x, y = w->base.y;
@@ -144,7 +144,7 @@ static int table_handle_event(ClueWidget *w, UIEvent *event)
     }
 
     switch (event->type) {
-    case UI_EVENT_MOUSE_MOVE: {
+    case CLUE_EVENT_MOUSE_MOVE: {
         int mx = event->mouse_move.x;
         int my = event->mouse_move.y;
         t->hovered_row = -1;
@@ -157,7 +157,7 @@ static int table_handle_event(ClueWidget *w, UIEvent *event)
         return 0;
     }
 
-    case UI_EVENT_MOUSE_BUTTON: {
+    case CLUE_EVENT_MOUSE_BUTTON: {
         int mx = event->mouse_button.x;
         int my = event->mouse_button.y;
         if (mx >= x && mx < x + bw && my >= body_y && my < y + bh) {
@@ -174,7 +174,7 @@ static int table_handle_event(ClueWidget *w, UIEvent *event)
         return 0;
     }
 
-    case UI_EVENT_MOUSE_SCROLL: {
+    case CLUE_EVENT_MOUSE_SCROLL: {
         int mx = event->mouse_scroll.x;
         int my = event->mouse_scroll.y;
         if (mx >= x && mx < x + bw && my >= y && my < y + bh) {

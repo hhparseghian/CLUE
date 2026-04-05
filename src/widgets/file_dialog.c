@@ -200,13 +200,13 @@ static int file_icon_cb(int index, int x, int y, int h, void *user_data)
 
     if (s->is_dir[index]) {
         /* Folder icon: yellow rectangle with a tab */
-        UIColor folder = UI_RGB(220, 180, 50);
+        ClueColor folder = CLUE_RGB(220, 180, 50);
         clue_fill_rounded_rect(ix, iy + 3, icon_size, icon_size - 3, 2.0f, folder);
         clue_fill_rounded_rect(ix, iy, icon_size / 2, 4, 1.0f, folder);
     } else {
         /* File icon: white/gray document outline */
-        UIColor file_bg = UI_RGB(180, 185, 195);
-        UIColor fold = UI_RGB(140, 145, 155);
+        ClueColor file_bg = CLUE_RGB(180, 185, 195);
+        ClueColor fold = CLUE_RGB(140, 145, 155);
         clue_fill_rounded_rect(ix, iy, icon_size - 2, icon_size, 1.5f, file_bg);
         /* Dog-ear fold in top-right */
         int fx = ix + icon_size - 6;
@@ -224,7 +224,7 @@ static int file_icon_cb(int index, int x, int y, int h, void *user_data)
  * Shows ".../<tail>" when the full path won't fit. */
 static void set_path_label(FileDialogState *s)
 {
-    UIFont *font = clue_app_default_font();
+    ClueFont *font = clue_app_default_font();
     int max_w = DIALOG_W - 40;  /* padding + some margin */
     const char *path = s->current_dir;
 
@@ -447,7 +447,7 @@ static ClueFileDialogResult run_file_dialog(ClueFileDialogMode mode,
 
     /* Create window */
     int dlg_h = (filter_count > 0) ? DIALOG_H_FILTERS : DIALOG_H;
-    UIWindow *win = clue_window_create(DIALOG_W, dlg_h,
+    ClueWindow *win = clue_window_create(DIALOG_W, dlg_h,
                                         title ? title : "File");
     if (!win) {
         clear_entries(&state);
@@ -455,35 +455,35 @@ static ClueFileDialogResult run_file_dialog(ClueFileDialogMode mode,
         return result;
     }
 
-    clue_window_set_type(win, UI_WINDOW_DIALOG);
+    clue_window_set_type(win, CLUE_WINDOW_DIALOG);
     clue_window_set_parent(win, app->window);
 
     /* Nested event loop */
     while (state.running) {
-        UIEvent events[32];
+        ClueEvent events[32];
         int count = clue_poll_events(events, 32);
 
         for (int i = 0; i < count; i++) {
-            if (events[i].type == UI_EVENT_CLOSE && events[i].window == win) {
+            if (events[i].type == CLUE_EVENT_CLOSE && events[i].window == win) {
                 state.running = false;
                 break;
             }
-            if (events[i].type == UI_EVENT_CLOSE && events[i].window == app->window) {
+            if (events[i].type == CLUE_EVENT_CLOSE && events[i].window == app->window) {
                 state.running = false;
                 app->running = false;
                 break;
             }
 
             if (events[i].window == win &&
-                events[i].type == UI_EVENT_MOUSE_MOVE) {
-                clue_window_set_cursor(win, UI_CURSOR_DEFAULT);
+                events[i].type == CLUE_EVENT_MOUSE_MOVE) {
+                clue_window_set_cursor(win, CLUE_CURSOR_DEFAULT);
             }
 
             if (events[i].window == win) {
                 if (app->captured_widget &&
-                    (events[i].type == UI_EVENT_MOUSE_MOVE ||
-                     events[i].type == UI_EVENT_MOUSE_BUTTON ||
-                     events[i].type == UI_EVENT_MOUSE_SCROLL)) {
+                    (events[i].type == CLUE_EVENT_MOUSE_MOVE ||
+                     events[i].type == CLUE_EVENT_MOUSE_BUTTON ||
+                     events[i].type == CLUE_EVENT_MOUSE_SCROLL)) {
                     clue_widget_dispatch_event(app->captured_widget, &events[i]);
                 } else {
                     clue_widget_dispatch_event(&state.root->base.base, &events[i]);

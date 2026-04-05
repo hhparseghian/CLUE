@@ -11,7 +11,7 @@
 #define ARROW_SIZE 8
 #define SCROLLBAR_W 6
 
-static UIFont *tv_font(ClueTreeView *tv)
+static ClueFont *tv_font(ClueTreeView *tv)
 {
     return tv->base.style.font ? tv->base.style.font : clue_app_default_font();
 }
@@ -56,7 +56,7 @@ static int draw_tree_nodes(ClueTreeView *tv, ClueTreeNode *node,
                            int x, int y, int bw, int *row,
                            int clip_top, int clip_bottom)
 {
-    UIFont *font = tv_font(tv);
+    ClueFont *font = tv_font(tv);
     const ClueTheme *th = clue_theme_get();
     int ih = tv->item_height;
     int drawn = 0;
@@ -96,7 +96,7 @@ static int draw_tree_nodes(ClueTreeView *tv, ClueTreeNode *node,
 
             /* Label */
             if (font && child->label) {
-                UIColor fg = (child == tv->selected) ? th->list.selected_fg : th->list.fg;
+                ClueColor fg = (child == tv->selected) ? th->list.selected_fg : th->list.fg;
                 int lx = indent + tv->indent;
                 int ty = iy + (ih - clue_font_line_height(font)) / 2;
                 clue_draw_text(lx, ty, child->label, font, fg);
@@ -142,7 +142,7 @@ static void treeview_draw(ClueWidget *w)
 static void treeview_layout(ClueWidget *w)
 {
     ClueTreeView *tv = (ClueTreeView *)w;
-    UIFont *font = tv_font(tv);
+    ClueFont *font = tv_font(tv);
     if (font && tv->item_height == 0)
         tv->item_height = clue_font_line_height(font) + 8;
     if (w->base.w == 0) w->base.w = 250;
@@ -158,7 +158,7 @@ static void clamp_scroll(ClueTreeView *tv)
     if (tv->scroll_y < 0) tv->scroll_y = 0;
 }
 
-static int treeview_handle_event(ClueWidget *w, UIEvent *event)
+static int treeview_handle_event(ClueWidget *w, ClueEvent *event)
 {
     ClueTreeView *tv = (ClueTreeView *)w;
     int x = w->base.x, y = w->base.y;
@@ -173,7 +173,7 @@ static int treeview_handle_event(ClueWidget *w, UIEvent *event)
     }
 
     switch (event->type) {
-    case UI_EVENT_MOUSE_MOVE: {
+    case CLUE_EVENT_MOUSE_MOVE: {
         int mx = event->mouse_move.x;
         int my = event->mouse_move.y;
         tv->hovered = NULL;
@@ -185,7 +185,7 @@ static int treeview_handle_event(ClueWidget *w, UIEvent *event)
         return 0;
     }
 
-    case UI_EVENT_MOUSE_BUTTON: {
+    case CLUE_EVENT_MOUSE_BUTTON: {
         int mx = event->mouse_button.x;
         int my = event->mouse_button.y;
         if (!(mx >= x && mx < x + bw && my >= y && my < y + bh))
@@ -210,7 +210,7 @@ static int treeview_handle_event(ClueWidget *w, UIEvent *event)
         return 1;
     }
 
-    case UI_EVENT_MOUSE_SCROLL: {
+    case CLUE_EVENT_MOUSE_SCROLL: {
         int mx = event->mouse_scroll.x;
         int my = event->mouse_scroll.y;
         if (mx >= x && mx < x + bw && my >= y && my < y + bh) {

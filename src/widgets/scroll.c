@@ -91,7 +91,7 @@ static void scroll_layout(ClueWidget *w)
     clamp_scroll(s);
 }
 
-static int scroll_handle_event(ClueWidget *w, UIEvent *event)
+static int scroll_handle_event(ClueWidget *w, ClueEvent *event)
 {
     ClueScroll *s = (ClueScroll *)w;
     int x = w->base.x, y = w->base.y;
@@ -105,7 +105,7 @@ static int scroll_handle_event(ClueWidget *w, UIEvent *event)
         return 1;
     }
 
-    if (event->type == UI_EVENT_MOUSE_SCROLL) {
+    if (event->type == CLUE_EVENT_MOUSE_SCROLL) {
         int mx = event->mouse_scroll.x;
         int my = event->mouse_scroll.y;
         if (mx >= x && mx < x + bw && my >= y && my < y + bh) {
@@ -116,10 +116,10 @@ static int scroll_handle_event(ClueWidget *w, UIEvent *event)
     }
 
     /* Translate mouse events for children */
-    if (event->type == UI_EVENT_MOUSE_MOVE) {
+    if (event->type == CLUE_EVENT_MOUSE_MOVE) {
         event->mouse_move.x += s->scroll_x;
         event->mouse_move.y += s->scroll_y;
-    } else if (event->type == UI_EVENT_MOUSE_BUTTON) {
+    } else if (event->type == CLUE_EVENT_MOUSE_BUTTON) {
         event->mouse_button.x += s->scroll_x;
         event->mouse_button.y += s->scroll_y;
     }

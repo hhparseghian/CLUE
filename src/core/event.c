@@ -2,20 +2,20 @@
 
 /* Dispatch an event to the appropriate window/widget tree.
  * Returns 1 if the event was consumed, 0 otherwise. */
-int clue_event_dispatch(UIEvent *event)
+int clue_event_dispatch(ClueEvent *event)
 {
-    if (!event || event->type == UI_EVENT_NONE) return 0;
+    if (!event || event->type == CLUE_EVENT_NONE) return 0;
 
-    UIWindow *win = event->window;
+    ClueWindow *win = event->window;
     if (!win) return 0;
 
     /* Handle close events at the window manager level */
-    if (event->type == UI_EVENT_CLOSE) {
+    if (event->type == CLUE_EVENT_CLOSE) {
         return 1;
     }
 
     /* Handle resize events by updating window dimensions */
-    if (event->type == UI_EVENT_RESIZE) {
+    if (event->type == CLUE_EVENT_RESIZE) {
         win->w     = event->resize.w;
         win->h     = event->resize.h;
         win->dirty = true;

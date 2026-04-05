@@ -7,7 +7,7 @@
 #include "signal.h"
 
 /* Forward declarations */
-struct UIWindow;
+struct ClueWindow;
 
 #include "clue_widget.h"
 #include "button.h"

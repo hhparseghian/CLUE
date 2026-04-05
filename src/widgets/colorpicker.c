@@ -16,7 +16,7 @@
 
 /* --- HSV conversion --- */
 
-static UIColor hsv_to_rgb(float h, float s, float v)
+static ClueColor hsv_to_rgb(float h, float s, float v)
 {
     float c = v * s;
     float hp = fmodf(h / 60.0f, 6.0f);
@@ -31,10 +31,10 @@ static UIColor hsv_to_rgb(float h, float s, float v)
     else if (hp < 5) { r = x; b = c; }
     else             { r = c; b = x; }
 
-    return (UIColor){r + m, g + m, b + m, 1.0f};
+    return (ClueColor){r + m, g + m, b + m, 1.0f};
 }
 
-static void rgb_to_hsv(UIColor c, float *h, float *s, float *v)
+static void rgb_to_hsv(ClueColor c, float *h, float *s, float *v)
 {
     float mx = c.r > c.g ? (c.r > c.b ? c.r : c.b) : (c.g > c.b ? c.g : c.b);
     float mn = c.r < c.g ? (c.r < c.b ? c.r : c.b) : (c.g < c.b ? c.g : c.b);
@@ -82,7 +82,7 @@ static void colorpicker_draw(ClueWidget *w)
         float v = 1.0f - (float)row / (float)gs;
         for (int col = 0; col < gs; col += step) {
             float s = (float)col / (float)gs;
-            UIColor c = hsv_to_rgb(cp->hue, s, v);
+            ClueColor c = hsv_to_rgb(cp->hue, s, v);
             int bw = (col + step <= gs) ? step : gs - col;
             int bh = (row + step <= gs) ? step : gs - row;
             clue_fill_rect(x + col, gy + row, bw, bh, c);
@@ -93,14 +93,14 @@ static void colorpicker_draw(ClueWidget *w)
     /* SV crosshair */
     int cx = x + (int)(cp->sat * gs);
     int cy = gy + (int)((1.0f - cp->val) * gs);
-    clue_draw_circle(cx, cy, 5, 2.0f, (UIColor){1, 1, 1, 1});
-    clue_draw_circle(cx, cy, 4, 1.0f, (UIColor){0, 0, 0, 1});
+    clue_draw_circle(cx, cy, 5, 2.0f, (ClueColor){1, 1, 1, 1});
+    clue_draw_circle(cx, cy, 4, 1.0f, (ClueColor){0, 0, 0, 1});
 
     /* Hue bar */
     int hx = x + gs + HUE_BAR_GAP;
     for (int row = 0; row < gs; row += step) {
         float h = (float)row / (float)gs * 360.0f;
-        UIColor c = hsv_to_rgb(h, 1.0f, 1.0f);
+        ClueColor c = hsv_to_rgb(h, 1.0f, 1.0f);
         int bh = (row + step <= gs) ? step : gs - row;
         clue_fill_rect(hx, gy + row, cp->hue_bar_w, bh, c);
     }
@@ -108,8 +108,8 @@ static void colorpicker_draw(ClueWidget *w)
 
     /* Hue indicator */
     int hy = gy + (int)(cp->hue / 360.0f * gs);
-    clue_fill_rect(hx - 2, hy - 1, cp->hue_bar_w + 4, 3, (UIColor){1, 1, 1, 1});
-    clue_draw_rect(hx - 2, hy - 1, cp->hue_bar_w + 4, 3, 1.0f, (UIColor){0, 0, 0, 1});
+    clue_fill_rect(hx - 2, hy - 1, cp->hue_bar_w + 4, 3, (ClueColor){1, 1, 1, 1});
+    clue_draw_rect(hx - 2, hy - 1, cp->hue_bar_w + 4, 3, 1.0f, (ClueColor){0, 0, 0, 1});
 
     /* Palette grid */
     int py = palette_y(cp);
@@ -125,7 +125,7 @@ static void colorpicker_draw(ClueWidget *w)
         if (i == cp->hovered)
             clue_draw_rect(sx - 1, sy - 1, sz + 2, sz + 2, 2.0f, th->fg_bright);
 
-        UIColor c = cp->color, p = cp->palette[i];
+        ClueColor c = cp->color, p = cp->palette[i];
         if (fabsf(c.r - p.r) < 0.01f && fabsf(c.g - p.g) < 0.01f && fabsf(c.b - p.b) < 0.01f)
             clue_draw_rect(sx, sy, sz, sz, 2.0f, th->fg_bright);
     }
@@ -155,7 +155,7 @@ static void update_color_from_hsv(ClueColorPicker *cp)
     cp->color = hsv_to_rgb(cp->hue, cp->sat, cp->val);
 }
 
-static int colorpicker_handle_event(ClueWidget *w, UIEvent *event)
+static int colorpicker_handle_event(ClueWidget *w, ClueEvent *event)
 {
     ClueColorPicker *cp = (ClueColorPicker *)w;
     int x = w->base.x;
@@ -165,7 +165,7 @@ static int colorpicker_handle_event(ClueWidget *w, UIEvent *event)
     int py = palette_y(cp);
     int sz = cp->swatch_size;
 
-    if (event->type == UI_EVENT_MOUSE_MOVE) {
+    if (event->type == CLUE_EVENT_MOUSE_MOVE) {
         int mx = event->mouse_move.x, my = event->mouse_move.y;
 
         /* Drag SV */
@@ -202,7 +202,7 @@ static int colorpicker_handle_event(ClueWidget *w, UIEvent *event)
         return 0;
     }
 
-    if (event->type == UI_EVENT_MOUSE_BUTTON && event->mouse_button.btn == 0) {
+    if (event->type == CLUE_EVENT_MOUSE_BUTTON && event->mouse_button.btn == 0) {
         int mx = event->mouse_button.x, my = event->mouse_button.y;
 
         if (event->mouse_button.pressed) {
@@ -274,7 +274,7 @@ static const ClueWidgetVTable colorpicker_vtable = {
  * 3 columns: light / mid / dark for each hue family.
  * https://tango-project.org/tango_icon_theme_guidelines */
 #define C(r,g,b) {(r)/255.0f, (g)/255.0f, (b)/255.0f, 1.0f}
-static const UIColor default_palette[] = {
+static const ClueColor default_palette[] = {
     /* Row 1: Light */
     C(255,255,255), C(85,87,83),    C(239,41,41),   C(252,175,62),
     C(252,233,79),  C(138,226,52),  C(114,159,207), C(173,127,168), C(233,185,110),
@@ -305,9 +305,9 @@ ClueColorPicker *clue_colorpicker_new(void)
     cp->color = hsv_to_rgb(0, 1.0f, 1.0f);
 
     int n = sizeof(default_palette) / sizeof(default_palette[0]);
-    cp->palette = malloc(n * sizeof(UIColor));
+    cp->palette = malloc(n * sizeof(ClueColor));
     if (cp->palette) {
-        memcpy(cp->palette, default_palette, n * sizeof(UIColor));
+        memcpy(cp->palette, default_palette, n * sizeof(ClueColor));
         cp->palette_count = n;
     }
 
@@ -315,23 +315,23 @@ ClueColorPicker *clue_colorpicker_new(void)
     return cp;
 }
 
-UIColor clue_colorpicker_get_color(ClueColorPicker *cp)
+ClueColor clue_colorpicker_get_color(ClueColorPicker *cp)
 {
     if (cp) return cp->color;
-    return (UIColor){0, 0, 0, 1};
+    return (ClueColor){0, 0, 0, 1};
 }
 
-void clue_colorpicker_set_color(ClueColorPicker *cp, UIColor color)
+void clue_colorpicker_set_color(ClueColorPicker *cp, ClueColor color)
 {
     if (!cp) return;
     cp->color = color;
     rgb_to_hsv(color, &cp->hue, &cp->sat, &cp->val);
 }
 
-void clue_colorpicker_add_color(ClueColorPicker *cp, UIColor color)
+void clue_colorpicker_add_color(ClueColorPicker *cp, ClueColor color)
 {
     if (!cp) return;
-    UIColor *new_pal = realloc(cp->palette, (cp->palette_count + 1) * sizeof(UIColor));
+    ClueColor *new_pal = realloc(cp->palette, (cp->palette_count + 1) * sizeof(ClueColor));
     if (!new_pal) return;
     cp->palette = new_pal;
     cp->palette[cp->palette_count++] = color;

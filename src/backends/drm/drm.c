@@ -101,12 +101,12 @@ typedef struct {
     int                    pointer_y;
 
     /* Event queue: written by input callbacks, drained by poll_events */
-    UIEvent                event_queue[EVENT_QUEUE_SIZE];
+    ClueEvent                event_queue[EVENT_QUEUE_SIZE];
     int                    event_head;
     int                    event_tail;
 
     /* Window list for software compositing */
-    UIWindow              *windows[MAX_DRM_WINDOWS];
+    ClueWindow              *windows[MAX_DRM_WINDOWS];
     int                    window_count;
 
     /* Blit shader (compositing) */
@@ -122,7 +122,7 @@ static DRMState drm = {0};
 /* Event queue helpers                                                 */
 /* ------------------------------------------------------------------ */
 
-static void push_event(const UIEvent *ev)
+static void push_event(const ClueEvent *ev)
 {
     int next = (drm.event_head + 1) % EVENT_QUEUE_SIZE;
     if (next == drm.event_tail) return; /* full -- drop */
@@ -130,7 +130,7 @@ static void push_event(const UIEvent *ev)
     drm.event_head = next;
 }
 
-static bool pop_event(UIEvent *out)
+static bool pop_event(ClueEvent *out)
 {
     if (drm.event_tail == drm.event_head) return false;
     *out = drm.event_queue[drm.event_tail];
@@ -143,10 +143,10 @@ static bool pop_event(UIEvent *out)
 /* ------------------------------------------------------------------ */
 
 /* Find the topmost window containing (x, y). Last in list = topmost. */
-static UIWindow *find_window_at(int x, int y)
+static ClueWindow *find_window_at(int x, int y)
 {
     for (int i = drm.window_count - 1; i >= 0; i--) {
-        UIWindow *w = drm.windows[i];
+        ClueWindow *w = drm.windows[i];
         if (w->visible &&
             x >= w->x && x < w->x + w->w &&
             y >= w->y && y < w->y + w->h)
@@ -188,7 +188,7 @@ static const struct libinput_interface libinput_iface = {
 static void process_libinput_event(struct libinput_event *ev)
 {
     enum libinput_event_type type = libinput_event_get_type(ev);
-    UIWindowManager *wm = clue_wm_get();
+    ClueWindowManager *wm = clue_wm_get();
 
     switch (type) {
 
@@ -204,10 +204,10 @@ static void process_libinput_event(struct libinput_event *ev)
         if (drm.pointer_x >= drm.screen_w) drm.pointer_x = drm.screen_w - 1;
         if (drm.pointer_y >= drm.screen_h) drm.pointer_y = drm.screen_h - 1;
 
-        UIWindow *win = find_window_at(drm.pointer_x, drm.pointer_y);
+        ClueWindow *win = find_window_at(drm.pointer_x, drm.pointer_y);
         if (win) {
-            UIEvent uev = {0};
-            uev.type = UI_EVENT_MOUSE_MOVE;
+            ClueEvent uev = {0};
+            uev.type = CLUE_EVENT_MOUSE_MOVE;
             uev.window = win;
             uev.mouse_move.x = drm.pointer_x - win->x;
             uev.mouse_move.y = drm.pointer_y - win->y;
@@ -224,10 +224,10 @@ static void process_libinput_event(struct libinput_event *ev)
         drm.pointer_y = (int)libinput_event_pointer_get_absolute_y_transformed(
             p, drm.screen_h);
 
-        UIWindow *win = find_window_at(drm.pointer_x, drm.pointer_y);
+        ClueWindow *win = find_window_at(drm.pointer_x, drm.pointer_y);
         if (win) {
-            UIEvent uev = {0};
-            uev.type = UI_EVENT_MOUSE_MOVE;
+            ClueEvent uev = {0};
+            uev.type = CLUE_EVENT_MOUSE_MOVE;
             uev.window = win;
             uev.mouse_move.x = drm.pointer_x - win->x;
             uev.mouse_move.y = drm.pointer_y - win->y;
@@ -250,7 +250,7 @@ static void process_libinput_event(struct libinput_event *ev)
         default:         btn = (int)button; break;
         }
 
-        UIWindow *win = find_window_at(drm.pointer_x, drm.pointer_y);
+        ClueWindow *win = find_window_at(drm.pointer_x, drm.pointer_y);
 
         /* Update focus if clicking a different window */
         if (win && win != wm->focused &&
@@ -259,8 +259,8 @@ static void process_libinput_event(struct libinput_event *ev)
         }
 
         if (win) {
-            UIEvent uev = {0};
-            uev.type = UI_EVENT_MOUSE_BUTTON;
+            ClueEvent uev = {0};
+            uev.type = CLUE_EVENT_MOUSE_BUTTON;
             uev.window = win;
             uev.mouse_button.x = drm.pointer_x - win->x;
             uev.mouse_button.y = drm.pointer_y - win->y;
@@ -283,8 +283,8 @@ static void process_libinput_event(struct libinput_event *ev)
 
         bool pressed = (state == LIBINPUT_KEY_STATE_PRESSED);
 
-        UIEvent uev = {0};
-        uev.type = UI_EVENT_KEY;
+        ClueEvent uev = {0};
+        uev.type = CLUE_EVENT_KEY;
         uev.window = wm->focused;
         uev.key.keycode = (int)xkb_state_key_get_one_sym(drm.xkb_state, xkb_key);
         uev.key.pressed = pressed;
@@ -311,10 +311,10 @@ static void process_libinput_event(struct libinput_event *ev)
         drm.pointer_y = (int)libinput_event_touch_get_y_transformed(
             t, drm.screen_h);
 
-        UIWindow *win = find_window_at(drm.pointer_x, drm.pointer_y);
+        ClueWindow *win = find_window_at(drm.pointer_x, drm.pointer_y);
         if (win) {
-            UIEvent uev = {0};
-            uev.type = UI_EVENT_MOUSE_MOVE;
+            ClueEvent uev = {0};
+            uev.type = CLUE_EVENT_MOUSE_MOVE;
             uev.window = win;
             uev.mouse_move.x = drm.pointer_x - win->x;
             uev.mouse_move.y = drm.pointer_y - win->y;
@@ -322,8 +322,8 @@ static void process_libinput_event(struct libinput_event *ev)
 
             /* Treat touch-down as left button press */
             if (type == LIBINPUT_EVENT_TOUCH_DOWN) {
-                UIEvent btn_ev = {0};
-                btn_ev.type = UI_EVENT_MOUSE_BUTTON;
+                ClueEvent btn_ev = {0};
+                btn_ev.type = CLUE_EVENT_MOUSE_BUTTON;
                 btn_ev.window = win;
                 btn_ev.mouse_button.x = drm.pointer_x - win->x;
                 btn_ev.mouse_button.y = drm.pointer_y - win->y;
@@ -339,10 +339,10 @@ static void process_libinput_event(struct libinput_event *ev)
     }
 
     case LIBINPUT_EVENT_TOUCH_UP: {
-        UIWindow *win = find_window_at(drm.pointer_x, drm.pointer_y);
+        ClueWindow *win = find_window_at(drm.pointer_x, drm.pointer_y);
         if (win) {
-            UIEvent uev = {0};
-            uev.type = UI_EVENT_MOUSE_BUTTON;
+            ClueEvent uev = {0};
+            uev.type = CLUE_EVENT_MOUSE_BUTTON;
             uev.window = win;
             uev.mouse_button.x = drm.pointer_x - win->x;
             uev.mouse_button.y = drm.pointer_y - win->y;
@@ -815,7 +815,7 @@ static void drm_shutdown(void)
 {
     /* --- Destroy window FBOs --- */
     for (int i = 0; i < drm.window_count; i++) {
-        UIWindow *win = drm.windows[i];
+        ClueWindow *win = drm.windows[i];
         if (win && win->backend_data) {
             DRMWindowData *wd = win->backend_data;
             if (wd->fbo)       glDeleteFramebuffers(1, &wd->fbo);
@@ -877,7 +877,7 @@ static void drm_shutdown(void)
     drm.drm_fd = -1;
 }
 
-static int drm_create_window(struct UIWindow *win)
+static int drm_create_window(struct ClueWindow *win)
 {
     if (!win) return -1;
     if (drm.window_count >= MAX_DRM_WINDOWS) {
@@ -930,7 +930,7 @@ static int drm_create_window(struct UIWindow *win)
     return 0;
 }
 
-static void drm_destroy_window(struct UIWindow *win)
+static void drm_destroy_window(struct ClueWindow *win)
 {
     if (!win || !win->backend_data) return;
     DRMWindowData *wd = win->backend_data;
@@ -939,7 +939,7 @@ static void drm_destroy_window(struct UIWindow *win)
     for (int i = 0; i < drm.window_count; i++) {
         if (drm.windows[i] == win) {
             memmove(&drm.windows[i], &drm.windows[i + 1],
-                    sizeof(UIWindow *) * (drm.window_count - i - 1));
+                    sizeof(ClueWindow *) * (drm.window_count - i - 1));
             drm.window_count--;
             break;
         }
@@ -955,14 +955,14 @@ static void drm_destroy_window(struct UIWindow *win)
     win->backend_data = NULL;
 }
 
-static void drm_make_current(struct UIWindow *win)
+static void drm_make_current(struct ClueWindow *win)
 {
     (void)win;
     eglMakeCurrent(drm.egl_display, drm.egl_surface,
                    drm.egl_surface, drm.egl_context);
 }
 
-static void drm_swap_buffers(struct UIWindow *win)
+static void drm_swap_buffers(struct ClueWindow *win)
 {
     (void)win;
 
@@ -976,7 +976,7 @@ static void drm_swap_buffers(struct UIWindow *win)
     glClear(GL_COLOR_BUFFER_BIT);
 
     for (int i = 0; i < drm.window_count; i++) {
-        UIWindow *w = drm.windows[i];
+        ClueWindow *w = drm.windows[i];
         if (!w->visible) continue;
         DRMWindowData *wd = w->backend_data;
         if (!wd) continue;
@@ -1048,7 +1048,7 @@ static void drm_swap_buffers(struct UIWindow *win)
     drm.prev_fb = fb;
 }
 
-static int drm_poll_events(UIEvent *events, int max)
+static int drm_poll_events(ClueEvent *events, int max)
 {
     if (!events || max <= 0) return 0;
 

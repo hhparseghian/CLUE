@@ -44,7 +44,7 @@ struct ClueWidget;
 typedef struct {
     void (*draw)(struct ClueWidget *widget);
     void (*layout)(struct ClueWidget *widget);
-    int  (*handle_event)(struct ClueWidget *widget, UIEvent *event);
+    int  (*handle_event)(struct ClueWidget *widget, ClueEvent *event);
     void (*destroy)(struct ClueWidget *widget);
 } ClueWidgetVTable;
 

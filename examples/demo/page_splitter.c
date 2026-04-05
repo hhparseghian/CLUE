@@ -18,7 +18,7 @@ ClueBox *build_splitter_page(void)
     ClueBox *left = clue_box_new(CLUE_VERTICAL, 6);
     clue_style_set_padding(&left->base.style, 8);
     ClueLabel *left_title = clue_label_new("Left Pane");
-    left_title->base.style.fg_color = UI_RGB(255, 255, 255);
+    left_title->base.style.fg_color = CLUE_RGB(255, 255, 255);
     ClueListView *lv = clue_listview_new();
     lv->base.base.w = 200;
     lv->base.base.h = 300;
@@ -32,7 +32,7 @@ ClueBox *build_splitter_page(void)
     ClueBox *right = clue_box_new(CLUE_VERTICAL, 6);
     clue_style_set_padding(&right->base.style, 8);
     ClueLabel *right_title = clue_label_new("Right Pane");
-    right_title->base.style.fg_color = UI_RGB(255, 255, 255);
+    right_title->base.style.fg_color = CLUE_RGB(255, 255, 255);
     ClueTextEditor *ed = clue_text_editor_new();
     ed->base.base.w = 300;
     ed->base.base.h = 300;

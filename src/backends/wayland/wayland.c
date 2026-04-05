@@ -66,7 +66,7 @@ typedef struct {
     struct xkb_state       *xkb_state;
 
     /* Input tracking */
-    UIWindow               *pointer_window;
+    ClueWindow               *pointer_window;
     int                     pointer_x;
     int                     pointer_y;
 
@@ -76,7 +76,7 @@ typedef struct {
     uint32_t                 pointer_serial;
 
     /* Circular event queue: written by listeners, drained by poll_events */
-    UIEvent                 event_queue[EVENT_QUEUE_SIZE];
+    ClueEvent                 event_queue[EVENT_QUEUE_SIZE];
     int                     event_head;
     int                     event_tail;
 } WaylandState;
@@ -88,7 +88,7 @@ static WaylandState wl = {0};
 /* ------------------------------------------------------------------ */
 
 /* Push an event into the circular queue. Drops silently if full. */
-static void push_event(const UIEvent *ev)
+static void push_event(const ClueEvent *ev)
 {
     int next = (wl.event_head + 1) % EVENT_QUEUE_SIZE;
     if (next == wl.event_tail) {
@@ -99,7 +99,7 @@ static void push_event(const UIEvent *ev)
 }
 
 /* Pop one event. Returns false if the queue is empty. */
-static bool pop_event(UIEvent *out)
+static bool pop_event(ClueEvent *out)
 {
     if (wl.event_tail == wl.event_head) return false;
     *out = wl.event_queue[wl.event_tail];
@@ -111,10 +111,10 @@ static bool pop_event(UIEvent *out)
 /* Window lookup helper                                                */
 /* ------------------------------------------------------------------ */
 
-/* Find which UIWindow owns a given wl_surface */
-static UIWindow *find_window_by_surface(struct wl_surface *surface)
+/* Find which ClueWindow owns a given wl_surface */
+static ClueWindow *find_window_by_surface(struct wl_surface *surface)
 {
-    UIWindowManager *wm = clue_wm_get();
+    ClueWindowManager *wm = clue_wm_get();
     for (int i = 0; i < wm->count; i++) {
         WaylandWindowData *d = wm->windows[i]->backend_data;
         if (d && d->wl_surface == surface) {
@@ -184,8 +184,8 @@ static void pointer_handle_motion(void *data, struct wl_pointer *pointer,
     wl.pointer_y = wl_fixed_to_int(sy);
 
     if (wl.pointer_window) {
-        UIEvent ev = {0};
-        ev.type = UI_EVENT_MOUSE_MOVE;
+        ClueEvent ev = {0};
+        ev.type = CLUE_EVENT_MOUSE_MOVE;
         ev.window = wl.pointer_window;
         ev.mouse_move.x = wl.pointer_x;
         ev.mouse_move.y = wl.pointer_y;
@@ -208,8 +208,8 @@ static void pointer_handle_button(void *data, struct wl_pointer *pointer,
     default:         btn = (int)button; break;
     }
 
-    UIEvent ev = {0};
-    ev.type = UI_EVENT_MOUSE_BUTTON;
+    ClueEvent ev = {0};
+    ev.type = CLUE_EVENT_MOUSE_BUTTON;
     ev.window = wl.pointer_window;
     ev.mouse_button.x = wl.pointer_x;
     ev.mouse_button.y = wl.pointer_y;
@@ -223,7 +223,7 @@ static void pointer_handle_axis(void *data, struct wl_pointer *pointer,
                                 wl_fixed_t value)
 {
     (void)data; (void)pointer; (void)time; (void)axis; (void)value;
-    /* TODO: Scroll / axis events -- extend UIEventType if needed */
+    /* TODO: Scroll / axis events -- extend ClueEventType if needed */
 }
 
 static void pointer_handle_frame(void *data, struct wl_pointer *pointer)
@@ -312,9 +312,9 @@ static void keyboard_handle_enter(void *data, struct wl_keyboard *keyboard,
 {
     (void)data; (void)keyboard; (void)serial; (void)keys;
     /* Update the window manager focused window */
-    UIWindow *win = find_window_by_surface(surface);
+    ClueWindow *win = find_window_by_surface(surface);
     if (win) {
-        UIWindowManager *wm = clue_wm_get();
+        ClueWindowManager *wm = clue_wm_get();
         wm->focused = win;
     }
 }
@@ -331,29 +331,29 @@ static void keyboard_handle_key(void *data, struct wl_keyboard *keyboard,
 {
     (void)data; (void)keyboard; (void)serial; (void)time;
 
-    UIWindowManager *wm = clue_wm_get();
+    ClueWindowManager *wm = clue_wm_get();
     if (!wm->focused) return;
 
     /* Wayland keycodes are evdev codes; xkbcommon expects evdev + 8 */
     xkb_keycode_t xkb_key = key + 8;
 
-    UIEvent ev = {0};
-    ev.type = UI_EVENT_KEY;
+    ClueEvent ev = {0};
+    ev.type = CLUE_EVENT_KEY;
     ev.window = wm->focused;
     ev.key.keycode = (int)xkb_state_key_get_one_sym(wl.xkb_state, xkb_key);
     ev.key.pressed = (state == WL_KEYBOARD_KEY_STATE_PRESSED);
     ev.key.modifiers = 0;
     if (xkb_state_mod_name_is_active(wl.xkb_state, XKB_MOD_NAME_SHIFT, XKB_STATE_MODS_EFFECTIVE))
-        ev.key.modifiers |= UI_MOD_SHIFT;
+        ev.key.modifiers |= CLUE_MOD_SHIFT;
     if (xkb_state_mod_name_is_active(wl.xkb_state, XKB_MOD_NAME_CTRL, XKB_STATE_MODS_EFFECTIVE))
-        ev.key.modifiers |= UI_MOD_CTRL;
+        ev.key.modifiers |= CLUE_MOD_CTRL;
     if (xkb_state_mod_name_is_active(wl.xkb_state, XKB_MOD_NAME_ALT, XKB_STATE_MODS_EFFECTIVE))
-        ev.key.modifiers |= UI_MOD_ALT;
+        ev.key.modifiers |= CLUE_MOD_ALT;
     if (xkb_state_mod_name_is_active(wl.xkb_state, XKB_MOD_NAME_LOGO, XKB_STATE_MODS_EFFECTIVE))
-        ev.key.modifiers |= UI_MOD_SUPER;
+        ev.key.modifiers |= CLUE_MOD_SUPER;
 
     /* Get UTF-8 text for printable keys (skip for Ctrl combos) */
-    if (wl.xkb_state && ev.key.pressed && !(ev.key.modifiers & UI_MOD_CTRL)) {
+    if (wl.xkb_state && ev.key.pressed && !(ev.key.modifiers & CLUE_MOD_CTRL)) {
         xkb_state_key_get_utf8(wl.xkb_state, xkb_key,
                                ev.key.text, sizeof(ev.key.text));
     }
@@ -440,7 +440,7 @@ static void xdg_toplevel_handle_configure(void *data,
                                           struct wl_array *states)
 {
     (void)toplevel; (void)states;
-    UIWindow *win = data;
+    ClueWindow *win = data;
     if (!win) return;
 
     /* A zero size means the compositor has no preference */
@@ -457,8 +457,8 @@ static void xdg_toplevel_handle_configure(void *data,
             wl_egl_window_resize(wd->egl_window, width, height, 0, 0);
         }
 
-        UIEvent ev = {0};
-        ev.type = UI_EVENT_RESIZE;
+        ClueEvent ev = {0};
+        ev.type = CLUE_EVENT_RESIZE;
         ev.window = win;
         ev.resize.w = width;
         ev.resize.h = height;
@@ -470,14 +470,14 @@ static void xdg_toplevel_handle_close(void *data,
                                       struct xdg_toplevel *toplevel)
 {
     (void)toplevel;
-    UIWindow *win = data;
+    ClueWindow *win = data;
     if (!win) return;
 
     WaylandWindowData *wd = win->backend_data;
     if (wd) wd->close_requested = true;
 
-    UIEvent ev = {0};
-    ev.type = UI_EVENT_CLOSE;
+    ClueEvent ev = {0};
+    ev.type = CLUE_EVENT_CLOSE;
     ev.window = win;
     push_event(&ev);
 }
@@ -497,7 +497,7 @@ static void xdg_popup_handle_configure(void *data,
                                        int32_t width, int32_t height)
 {
     (void)popup;
-    UIWindow *win = data;
+    ClueWindow *win = data;
     if (!win) return;
 
     if (width > 0 && height > 0 && (width != win->w || height != win->h)) {
@@ -512,8 +512,8 @@ static void xdg_popup_handle_configure(void *data,
             wl_egl_window_resize(wd->egl_window, width, height, 0, 0);
         }
 
-        UIEvent ev = {0};
-        ev.type = UI_EVENT_RESIZE;
+        ClueEvent ev = {0};
+        ev.type = CLUE_EVENT_RESIZE;
         ev.window = win;
         ev.resize.w = width;
         ev.resize.h = height;
@@ -524,14 +524,14 @@ static void xdg_popup_handle_configure(void *data,
 static void xdg_popup_handle_done(void *data, struct xdg_popup *popup)
 {
     (void)popup;
-    UIWindow *win = data;
+    ClueWindow *win = data;
     if (!win) return;
 
     WaylandWindowData *wd = win->backend_data;
     if (wd) wd->close_requested = true;
 
-    UIEvent ev = {0};
-    ev.type = UI_EVENT_CLOSE;
+    ClueEvent ev = {0};
+    ev.type = CLUE_EVENT_CLOSE;
     ev.window = win;
     push_event(&ev);
 }
@@ -542,14 +542,14 @@ static const struct xdg_popup_listener popup_listener = {
 };
 
 /* ------------------------------------------------------------------ */
-/* Per-window xdg_surface listener (passes UIWindow* as user data)     */
+/* Per-window xdg_surface listener (passes ClueWindow* as user data)     */
 /* ------------------------------------------------------------------ */
 
 static void win_xdg_surface_handle_configure(void *data,
                                              struct xdg_surface *xdg_surface,
                                              uint32_t serial)
 {
-    UIWindow *win = data;
+    ClueWindow *win = data;
     xdg_surface_ack_configure(xdg_surface, serial);
 
     if (win) {
@@ -752,7 +752,7 @@ static void wayland_shutdown(void)
     memset(&wl, 0, sizeof(wl));
 }
 
-static int wayland_create_window(struct UIWindow *win)
+static int wayland_create_window(struct ClueWindow *win)
 {
     if (!win) return -1;
 
@@ -782,7 +782,7 @@ static int wayland_create_window(struct UIWindow *win)
     win->backend_data = wd;
 
     /* --- Role: toplevel or popup --- */
-    if (win->type == UI_WINDOW_POPUP && win->parent) {
+    if (win->type == CLUE_WINDOW_POPUP && win->parent) {
         WaylandWindowData *parent_wd = win->parent->backend_data;
 
         struct xdg_positioner *positioner =
@@ -823,7 +823,7 @@ static int wayland_create_window(struct UIWindow *win)
         }
 
         /* Set parent for dialog windows */
-        if (win->type == UI_WINDOW_DIALOG && win->parent) {
+        if (win->type == CLUE_WINDOW_DIALOG && win->parent) {
             WaylandWindowData *parent_wd = win->parent->backend_data;
             if (parent_wd && parent_wd->xdg_toplevel) {
                 xdg_toplevel_set_parent(wd->xdg_toplevel,
@@ -864,7 +864,7 @@ fail_role:
     return -1;
 }
 
-static void wayland_destroy_window(struct UIWindow *win)
+static void wayland_destroy_window(struct ClueWindow *win)
 {
     if (!win || !win->backend_data) return;
     WaylandWindowData *wd = win->backend_data;
@@ -892,7 +892,7 @@ static void wayland_destroy_window(struct UIWindow *win)
     win->backend_data = NULL;
 }
 
-static void wayland_make_current(struct UIWindow *win)
+static void wayland_make_current(struct ClueWindow *win)
 {
     if (!win || !win->backend_data) return;
     WaylandWindowData *wd = win->backend_data;
@@ -900,7 +900,7 @@ static void wayland_make_current(struct UIWindow *win)
                    wd->egl_surface, wl.egl_context);
 }
 
-static void wayland_swap_buffers(struct UIWindow *win)
+static void wayland_swap_buffers(struct ClueWindow *win)
 {
     if (!win || !win->backend_data) return;
     WaylandWindowData *wd = win->backend_data;
@@ -910,7 +910,7 @@ static void wayland_swap_buffers(struct UIWindow *win)
     eglSwapBuffers(wl.egl_display, wd->egl_surface);
 }
 
-static int wayland_poll_events(UIEvent *events, int max)
+static int wayland_poll_events(ClueEvent *events, int max)
 {
     if (!events || max <= 0) return 0;
 
@@ -941,19 +941,19 @@ static int wayland_poll_events(UIEvent *events, int max)
  *       and wp_viewporter when needed
  */
 
-static void wayland_set_cursor(UIWindow *win, int shape)
+static void wayland_set_cursor(ClueWindow *win, int shape)
 {
     (void)win;
     if (!wl.cursor_theme || !wl.cursor_surface || !wl.pointer) return;
 
     const char *name;
     switch (shape) {
-    case 1:  name = "pointer";       break; /* UI_CURSOR_POINTER */
-    case 2:  name = "text";          break; /* UI_CURSOR_TEXT */
-    case 3:  name = "col-resize";    break; /* UI_CURSOR_RESIZE_H */
-    case 4:  name = "row-resize";    break; /* UI_CURSOR_RESIZE_V */
-    case 5:  name = "move";          break; /* UI_CURSOR_MOVE */
-    case 6:  name = "crosshair";     break; /* UI_CURSOR_CROSSHAIR */
+    case 1:  name = "pointer";       break; /* CLUE_CURSOR_POINTER */
+    case 2:  name = "text";          break; /* CLUE_CURSOR_TEXT */
+    case 3:  name = "col-resize";    break; /* CLUE_CURSOR_RESIZE_H */
+    case 4:  name = "row-resize";    break; /* CLUE_CURSOR_RESIZE_V */
+    case 5:  name = "move";          break; /* CLUE_CURSOR_MOVE */
+    case 6:  name = "crosshair";     break; /* CLUE_CURSOR_CROSSHAIR */
     default: name = "default";       break;
     }
 

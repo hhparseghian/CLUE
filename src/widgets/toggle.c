@@ -15,7 +15,7 @@
 #define LABEL_GAP 10
 #define ANIM_STEP 0.15f
 
-static UIFont *toggle_font(ClueToggle *t)
+static ClueFont *toggle_font(ClueToggle *t)
 {
     return t->base.style.font ? t->base.style.font : clue_app_default_font();
 }
@@ -38,17 +38,17 @@ static void toggle_draw(ClueWidget *w)
 {
     ClueToggle *t = (ClueToggle *)w;
     const ClueTheme *th = clue_theme_get();
-    UIFont *font = toggle_font(t);
+    ClueFont *font = toggle_font(t);
 
     int x = w->base.x, y = w->base.y;
     int track_y = y + (w->base.h - TRACK_H) / 2;
 
     /* Track */
     float r = TRACK_H / 2.0f;
-    UIColor track_off = th->input.border;
-    UIColor track_on  = th->checkbox.box_checked;
+    ClueColor track_off = th->input.border;
+    ClueColor track_on  = th->checkbox.box_checked;
     float p = t->anim_pos;
-    UIColor track = {
+    ClueColor track = {
         track_off.r + (track_on.r - track_off.r) * p,
         track_off.g + (track_on.g - track_off.g) * p,
         track_off.b + (track_on.b - track_off.b) * p,
@@ -65,7 +65,7 @@ static void toggle_draw(ClueWidget *w)
 
     /* Label */
     if (font && t->label && t->label[0]) {
-        UIColor fg = w->style.fg_color.a > 0.001f ? w->style.fg_color : th->checkbox.fg;
+        ClueColor fg = w->style.fg_color.a > 0.001f ? w->style.fg_color : th->checkbox.fg;
         int text_y = y + (w->base.h - clue_font_line_height(font)) / 2;
         clue_draw_text(x + TRACK_W + LABEL_GAP, text_y, t->label, font, fg);
     }
@@ -74,7 +74,7 @@ static void toggle_draw(ClueWidget *w)
 static void toggle_layout(ClueWidget *w)
 {
     ClueToggle *t = (ClueToggle *)w;
-    UIFont *font = toggle_font(t);
+    ClueFont *font = toggle_font(t);
     if (!font) return;
 
     int tw = t->label ? clue_font_text_width(font, t->label) : 0;
@@ -83,11 +83,11 @@ static void toggle_layout(ClueWidget *w)
     if (w->base.h < TRACK_H) w->base.h = TRACK_H;
 }
 
-static int toggle_handle_event(ClueWidget *w, UIEvent *event)
+static int toggle_handle_event(ClueWidget *w, ClueEvent *event)
 {
     ClueToggle *t = (ClueToggle *)w;
 
-    if (event->type == UI_EVENT_MOUSE_BUTTON &&
+    if (event->type == CLUE_EVENT_MOUSE_BUTTON &&
         event->mouse_button.pressed &&
         event->mouse_button.btn == 0) {
         int mx = event->mouse_button.x;

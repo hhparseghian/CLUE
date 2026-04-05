@@ -22,7 +22,7 @@ static void toolbar_draw(ClueWidget *w)
 static void toolbar_layout(ClueWidget *w)
 {
     ClueToolbar *tb = (ClueToolbar *)w;
-    UIFont *font = clue_app_default_font();
+    ClueFont *font = clue_app_default_font();
     int max_h = font ? clue_font_line_height(font) + TB_PAD * 2 : 32;
 
     /* Layout children horizontally */

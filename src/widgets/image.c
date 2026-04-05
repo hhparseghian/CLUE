@@ -35,7 +35,7 @@ static const ClueWidgetVTable image_vtable = {
 
 ClueImage *clue_image_new(const char *path)
 {
-    UITexture tex = clue_texture_load(path);
+    ClueTexture tex = clue_texture_load(path);
     if (!tex) return NULL;
 
     ClueImage *img = calloc(1, sizeof(ClueImage));
@@ -58,7 +58,7 @@ ClueImage *clue_image_new(const char *path)
     return img;
 }
 
-ClueImage *clue_image_new_from_texture(UITexture tex, int w, int h)
+ClueImage *clue_image_new_from_texture(ClueTexture tex, int w, int h)
 {
     ClueImage *img = calloc(1, sizeof(ClueImage));
     if (!img) return NULL;

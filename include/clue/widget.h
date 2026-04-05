@@ -8,7 +8,7 @@
 struct UIWidget;
 
 /* Widget event handler callback */
-typedef int (*UIWidgetEventHandler)(struct UIWidget *widget, UIEvent *event);
+typedef int (*ClueWidgetEventHandler)(struct UIWidget *widget, ClueEvent *event);
 
 /* Base widget -- all UI elements derive from this */
 typedef struct UIWidget {
@@ -22,7 +22,7 @@ typedef struct UIWidget {
     struct UIWidget   **children;
     int                 child_count;
     int                 child_capacity;
-    UIWidgetEventHandler on_event;
+    ClueWidgetEventHandler on_event;
     void               *user_data;
 } UIWidget;
 
@@ -37,6 +37,6 @@ int clue_widget_remove_child(UIWidget *parent, UIWidget *child);
 
 /* Deliver an event to a widget and its children (depth-first).
  * Returns 1 if the event was consumed, 0 otherwise. */
-int clue_widget_dispatch_event(UIWidget *widget, UIEvent *event);
+int clue_widget_dispatch_event(UIWidget *widget, ClueEvent *event);
 
 #endif /* CLUE_WIDGET_H */

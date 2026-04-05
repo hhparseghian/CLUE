@@ -54,7 +54,7 @@ typedef struct {
     struct xkb_state   *xkb_state;
 
     /* Event queue */
-    UIEvent            event_queue[EVENT_QUEUE_SIZE];
+    ClueEvent            event_queue[EVENT_QUEUE_SIZE];
     int                event_head;
     int                event_tail;
 } X11State;
@@ -65,7 +65,7 @@ static X11State x11 = {0};
 /* Event queue helpers                                                 */
 /* ------------------------------------------------------------------ */
 
-static void push_event(const UIEvent *ev)
+static void push_event(const ClueEvent *ev)
 {
     int next = (x11.event_head + 1) % EVENT_QUEUE_SIZE;
     if (next == x11.event_tail) return;
@@ -73,7 +73,7 @@ static void push_event(const UIEvent *ev)
     x11.event_head = next;
 }
 
-static bool pop_event(UIEvent *out)
+static bool pop_event(ClueEvent *out)
 {
     if (x11.event_tail == x11.event_head) return false;
     *out = x11.event_queue[x11.event_tail];
@@ -85,9 +85,9 @@ static bool pop_event(UIEvent *out)
 /* Window lookup                                                       */
 /* ------------------------------------------------------------------ */
 
-static UIWindow *find_window_by_xwin(Window xwin)
+static ClueWindow *find_window_by_xwin(Window xwin)
 {
-    UIWindowManager *wm = clue_wm_get();
+    ClueWindowManager *wm = clue_wm_get();
     for (int i = 0; i < wm->count; i++) {
         X11WindowData *d = wm->windows[i]->backend_data;
         if (d && d->xwin == xwin) {
@@ -258,7 +258,7 @@ static void x11_shutdown(void)
     memset(&x11, 0, sizeof(x11));
 }
 
-static int x11_create_window(struct UIWindow *win)
+static int x11_create_window(struct ClueWindow *win)
 {
     if (!win) return -1;
 
@@ -303,7 +303,7 @@ static int x11_create_window(struct UIWindow *win)
     XSetWMProtocols(x11.display, wd->xwin, &x11.wm_delete_window, 1);
 
     /* Set parent hint for dialogs */
-    if (win->type == UI_WINDOW_DIALOG && win->parent) {
+    if (win->type == CLUE_WINDOW_DIALOG && win->parent) {
         X11WindowData *parent_wd = win->parent->backend_data;
         if (parent_wd) {
             XSetTransientForHint(x11.display, wd->xwin, parent_wd->xwin);
@@ -333,7 +333,7 @@ static int x11_create_window(struct UIWindow *win)
     return 0;
 }
 
-static void x11_destroy_window(struct UIWindow *win)
+static void x11_destroy_window(struct ClueWindow *win)
 {
     if (!win || !win->backend_data) return;
     X11WindowData *wd = win->backend_data;
@@ -349,12 +349,12 @@ static void x11_destroy_window(struct UIWindow *win)
     win->backend_data = NULL;
 }
 
-static void x11_set_window_type(struct UIWindow *win, int type)
+static void x11_set_window_type(struct ClueWindow *win, int type)
 {
     (void)type;
     if (!win || !win->backend_data) return;
     X11WindowData *wd = win->backend_data;
-    if (win->type == UI_WINDOW_DIALOG && win->parent) {
+    if (win->type == CLUE_WINDOW_DIALOG && win->parent) {
         X11WindowData *parent_wd = win->parent->backend_data;
         if (parent_wd)
             XSetTransientForHint(x11.display, wd->xwin, parent_wd->xwin);
@@ -362,12 +362,12 @@ static void x11_set_window_type(struct UIWindow *win, int type)
     XFlush(x11.display);
 }
 
-static void x11_set_window_parent(struct UIWindow *win, struct UIWindow *parent)
+static void x11_set_window_parent(struct ClueWindow *win, struct ClueWindow *parent)
 {
     (void)parent;
     if (!win || !win->backend_data) return;
     X11WindowData *wd = win->backend_data;
-    if (win->type == UI_WINDOW_DIALOG && win->parent) {
+    if (win->type == CLUE_WINDOW_DIALOG && win->parent) {
         X11WindowData *parent_wd = win->parent->backend_data;
         if (parent_wd) {
             XSetTransientForHint(x11.display, wd->xwin, parent_wd->xwin);
@@ -384,7 +384,7 @@ static void x11_set_window_parent(struct UIWindow *win, struct UIWindow *parent)
     XFlush(x11.display);
 }
 
-static void x11_set_window_position(struct UIWindow *win, int px, int py)
+static void x11_set_window_position(struct ClueWindow *win, int px, int py)
 {
     if (!win || !win->backend_data) return;
     X11WindowData *wd = win->backend_data;
@@ -392,7 +392,7 @@ static void x11_set_window_position(struct UIWindow *win, int px, int py)
     XFlush(x11.display);
 }
 
-static void x11_make_current(struct UIWindow *win)
+static void x11_make_current(struct ClueWindow *win)
 {
     if (!win || !win->backend_data) return;
     X11WindowData *wd = win->backend_data;
@@ -400,7 +400,7 @@ static void x11_make_current(struct UIWindow *win)
                    wd->egl_surface, x11.egl_context);
 }
 
-static void x11_swap_buffers(struct UIWindow *win)
+static void x11_swap_buffers(struct ClueWindow *win)
 {
     if (!win || !win->backend_data) return;
     X11WindowData *wd = win->backend_data;
@@ -412,14 +412,14 @@ static void x11_swap_buffers(struct UIWindow *win)
 
 static void process_x_event(XEvent *xev)
 {
-    UIEvent ev = {0};
+    ClueEvent ev = {0};
 
     switch (xev->type) {
 
     case MotionNotify: {
-        UIWindow *win = find_window_by_xwin(xev->xmotion.window);
+        ClueWindow *win = find_window_by_xwin(xev->xmotion.window);
         if (!win) break;
-        ev.type = UI_EVENT_MOUSE_MOVE;
+        ev.type = CLUE_EVENT_MOUSE_MOVE;
         ev.window = win;
         ev.mouse_move.x = xev->xmotion.x;
         ev.mouse_move.y = xev->xmotion.y;
@@ -429,13 +429,13 @@ static void process_x_event(XEvent *xev)
 
     case ButtonPress:
     case ButtonRelease: {
-        UIWindow *win = find_window_by_xwin(xev->xbutton.window);
+        ClueWindow *win = find_window_by_xwin(xev->xbutton.window);
         if (!win) break;
 
         /* Scroll wheel (buttons 4-7) */
         if (xev->xbutton.button >= Button4 && xev->xbutton.button <= 7 &&
             xev->type == ButtonPress) {
-            ev.type = UI_EVENT_MOUSE_SCROLL;
+            ev.type = CLUE_EVENT_MOUSE_SCROLL;
             ev.window = win;
             ev.mouse_scroll.x = xev->xbutton.x;
             ev.mouse_scroll.y = xev->xbutton.y;
@@ -448,7 +448,7 @@ static void process_x_event(XEvent *xev)
             break;
         }
 
-        ev.type = UI_EVENT_MOUSE_BUTTON;
+        ev.type = CLUE_EVENT_MOUSE_BUTTON;
         ev.window = win;
         ev.mouse_button.x = xev->xbutton.x;
         ev.mouse_button.y = xev->xbutton.y;
@@ -460,30 +460,30 @@ static void process_x_event(XEvent *xev)
 
     case KeyPress:
     case KeyRelease: {
-        UIWindow *win = find_window_by_xwin(xev->xkey.window);
+        ClueWindow *win = find_window_by_xwin(xev->xkey.window);
         if (!win) break;
 
         /* X11 keycode = xkb keycode (no +8 needed, X already uses XKB codes) */
         xkb_keycode_t keycode = (xkb_keycode_t)xev->xkey.keycode;
         bool pressed = (xev->type == KeyPress);
 
-        ev.type = UI_EVENT_KEY;
+        ev.type = CLUE_EVENT_KEY;
         ev.window = win;
         ev.key.keycode = (int)xkb_state_key_get_one_sym(x11.xkb_state, keycode);
         ev.key.pressed = pressed;
         ev.key.modifiers = 0;
         if (xkb_state_mod_name_is_active(x11.xkb_state, XKB_MOD_NAME_SHIFT, XKB_STATE_MODS_EFFECTIVE))
-            ev.key.modifiers |= UI_MOD_SHIFT;
+            ev.key.modifiers |= CLUE_MOD_SHIFT;
         if (xkb_state_mod_name_is_active(x11.xkb_state, XKB_MOD_NAME_CTRL, XKB_STATE_MODS_EFFECTIVE))
-            ev.key.modifiers |= UI_MOD_CTRL;
+            ev.key.modifiers |= CLUE_MOD_CTRL;
         if (xkb_state_mod_name_is_active(x11.xkb_state, XKB_MOD_NAME_ALT, XKB_STATE_MODS_EFFECTIVE))
-            ev.key.modifiers |= UI_MOD_ALT;
+            ev.key.modifiers |= CLUE_MOD_ALT;
         if (xkb_state_mod_name_is_active(x11.xkb_state, XKB_MOD_NAME_LOGO, XKB_STATE_MODS_EFFECTIVE))
-            ev.key.modifiers |= UI_MOD_SUPER;
+            ev.key.modifiers |= CLUE_MOD_SUPER;
 
         if (pressed && x11.xkb_state) {
             /* Don't generate text for Ctrl combos */
-            if (!(ev.key.modifiers & UI_MOD_CTRL))
+            if (!(ev.key.modifiers & CLUE_MOD_CTRL))
                 xkb_state_key_get_utf8(x11.xkb_state, keycode,
                                        ev.key.text, sizeof(ev.key.text));
         }
@@ -496,7 +496,7 @@ static void process_x_event(XEvent *xev)
     }
 
     case ConfigureNotify: {
-        UIWindow *win = find_window_by_xwin(xev->xconfigure.window);
+        ClueWindow *win = find_window_by_xwin(xev->xconfigure.window);
         if (!win) break;
 
         int new_w = xev->xconfigure.width;
@@ -507,7 +507,7 @@ static void process_x_event(XEvent *xev)
             win->h = new_h;
             win->dirty = true;
 
-            ev.type = UI_EVENT_RESIZE;
+            ev.type = CLUE_EVENT_RESIZE;
             ev.window = win;
             ev.resize.w = new_w;
             ev.resize.h = new_h;
@@ -518,13 +518,13 @@ static void process_x_event(XEvent *xev)
 
     case ClientMessage: {
         if ((Atom)xev->xclient.data.l[0] == x11.wm_delete_window) {
-            UIWindow *win = find_window_by_xwin(xev->xclient.window);
+            ClueWindow *win = find_window_by_xwin(xev->xclient.window);
             if (!win) break;
 
             X11WindowData *wd = win->backend_data;
             if (wd) wd->close_requested = true;
 
-            ev.type = UI_EVENT_CLOSE;
+            ev.type = CLUE_EVENT_CLOSE;
             ev.window = win;
             push_event(&ev);
         }
@@ -536,7 +536,7 @@ static void process_x_event(XEvent *xev)
     }
 }
 
-static int x11_poll_events(UIEvent *events, int max)
+static int x11_poll_events(ClueEvent *events, int max)
 {
     if (!events || max <= 0) return 0;
 
@@ -562,7 +562,7 @@ static int x11_poll_events(UIEvent *events, int max)
 
 #include <X11/cursorfont.h>
 
-static void x11_set_cursor(UIWindow *win, int shape)
+static void x11_set_cursor(ClueWindow *win, int shape)
 {
     if (!win || !x11.display) return;
     X11WindowData *wd = win->backend_data;
@@ -570,12 +570,12 @@ static void x11_set_cursor(UIWindow *win, int shape)
 
     unsigned int xfont;
     switch (shape) {
-    case 1:  xfont = XC_hand2;            break; /* UI_CURSOR_POINTER */
-    case 2:  xfont = XC_xterm;            break; /* UI_CURSOR_TEXT */
-    case 3:  xfont = XC_sb_h_double_arrow; break; /* UI_CURSOR_RESIZE_H */
-    case 4:  xfont = XC_sb_v_double_arrow; break; /* UI_CURSOR_RESIZE_V */
-    case 5:  xfont = XC_fleur;            break; /* UI_CURSOR_MOVE */
-    case 6:  xfont = XC_crosshair;        break; /* UI_CURSOR_CROSSHAIR */
+    case 1:  xfont = XC_hand2;            break; /* CLUE_CURSOR_POINTER */
+    case 2:  xfont = XC_xterm;            break; /* CLUE_CURSOR_TEXT */
+    case 3:  xfont = XC_sb_h_double_arrow; break; /* CLUE_CURSOR_RESIZE_H */
+    case 4:  xfont = XC_sb_v_double_arrow; break; /* CLUE_CURSOR_RESIZE_V */
+    case 5:  xfont = XC_fleur;            break; /* CLUE_CURSOR_MOVE */
+    case 6:  xfont = XC_crosshair;        break; /* CLUE_CURSOR_CROSSHAIR */
     default: xfont = 0; break;
     }
 

@@ -31,10 +31,10 @@
 /* Internal: render dialog content into its window                     */
 /* ------------------------------------------------------------------ */
 
-static void dialog_render(ClueDialog *d, UIWindow *win, UIRenderer *r)
+static void dialog_render(ClueDialog *d, ClueWindow *win, ClueRenderer *r)
 {
     const ClueTheme *th = clue_theme_get();
-    UIFont *font = clue_app_default_font();
+    ClueFont *font = clue_app_default_font();
 
     /* Make the dialog window's EGL surface current */
     clue_window_make_current(win);
@@ -165,12 +165,12 @@ ClueDialogResult clue_dialog_run(ClueDialog *dlg)
     if (!app) return CLUE_DIALOG_NONE;
 
     /* Create a real OS window for the dialog */
-    UIWindow *win = clue_window_create(dlg->dialog_w, dlg->dialog_h,
+    ClueWindow *win = clue_window_create(dlg->dialog_w, dlg->dialog_h,
                                        dlg->title ? dlg->title : "Dialog");
     if (!win) return CLUE_DIALOG_NONE;
 
     if (dlg->flags & CLUE_DIALOG_FLAG_ON_TOP) {
-        clue_window_set_type(win, UI_WINDOW_DIALOG);
+        clue_window_set_type(win, CLUE_WINDOW_DIALOG);
         clue_window_set_parent(win, app->window);
     }
 
@@ -185,12 +185,12 @@ ClueDialogResult clue_dialog_run(ClueDialog *dlg)
 
     /* Nested event loop -- blocks until a button is clicked or window closed */
     while (dlg->running) {
-        UIEvent events[32];
+        ClueEvent events[32];
         int count = clue_poll_events(events, 32);
 
         for (int i = 0; i < count; i++) {
             /* Close event on the dialog window */
-            if (events[i].type == UI_EVENT_CLOSE &&
+            if (events[i].type == CLUE_EVENT_CLOSE &&
                 events[i].window == win) {
                 dlg->result = CLUE_DIALOG_CANCEL;
                 dlg->running = false;
@@ -198,7 +198,7 @@ ClueDialogResult clue_dialog_run(ClueDialog *dlg)
             }
 
             /* Close event on the main window -- propagate quit */
-            if (events[i].type == UI_EVENT_CLOSE &&
+            if (events[i].type == CLUE_EVENT_CLOSE &&
                 events[i].window == app->window) {
                 dlg->result = CLUE_DIALOG_CANCEL;
                 dlg->running = false;

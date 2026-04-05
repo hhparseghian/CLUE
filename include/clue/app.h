@@ -7,13 +7,13 @@
 #include "clue_widget.h"
 
 /* Forward declaration */
-struct UIWindow;
+struct ClueWindow;
 
 /* Application context */
 typedef struct ClueApp {
-    struct UIWindow *window;
-    UIRenderer      *renderer;
-    UIFont          *default_font;
+    struct ClueWindow *window;
+    ClueRenderer      *renderer;
+    ClueFont          *default_font;
     ClueWidget      *root;
     UIWidget        *focused_widget;  /* currently focused widget */
     UIWidget        *captured_widget; /* receives all mouse events while set */
@@ -40,7 +40,7 @@ void clue_app_destroy(ClueApp *app);
 ClueApp *clue_app_get(void);
 
 /* Get the app's default font */
-UIFont *clue_app_default_font(void);
+ClueFont *clue_app_default_font(void);
 
 /* Set focus to a widget (clears focus on the previous one) */
 void clue_focus_widget(UIWidget *widget);

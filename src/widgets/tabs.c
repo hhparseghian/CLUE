@@ -11,7 +11,7 @@
 #define TAB_PAD_H 16
 #define TAB_PAD_V 8
 
-static UIFont *tabs_font(ClueTabs *t)
+static ClueFont *tabs_font(ClueTabs *t)
 {
     return t->base.style.font ? t->base.style.font : clue_app_default_font();
 }
@@ -19,14 +19,14 @@ static UIFont *tabs_font(ClueTabs *t)
 static void tabs_draw(ClueWidget *w)
 {
     ClueTabs *t = (ClueTabs *)w;
-    UIFont *font = tabs_font(t);
+    ClueFont *font = tabs_font(t);
     const ClueTheme *th = clue_theme_get();
     int x = w->base.x, y = w->base.y, bw = w->base.w;
 
     int content_y = y + t->tab_height;
     int content_h = w->base.h - t->tab_height;
     bool has_page_bg = t->page_bg.a > 0.001f;
-    UIColor page_bg = has_page_bg ? t->page_bg : th->bg;
+    ClueColor page_bg = has_page_bg ? t->page_bg : th->bg;
 
     /* Measure total tab bar width */
     int tabs_width = 0;
@@ -63,7 +63,7 @@ static void tabs_draw(ClueWidget *w)
 
         /* Tab label */
         if (font) {
-            UIColor fg = (i == t->active) ? th->fg_bright : th->fg_dim;
+            ClueColor fg = (i == t->active) ? th->fg_bright : th->fg_dim;
             int text_y = y + (t->tab_height - clue_font_line_height(font)) / 2;
             clue_draw_text(tx + TAB_PAD_H, text_y, t->tab_labels[i], font, fg);
         }
@@ -91,7 +91,7 @@ static void tabs_draw(ClueWidget *w)
 static void tabs_layout(ClueWidget *w)
 {
     ClueTabs *t = (ClueTabs *)w;
-    UIFont *font = tabs_font(t);
+    ClueFont *font = tabs_font(t);
 
     t->tab_height = font ? clue_font_line_height(font) + TAB_PAD_V * 2 : 36;
 
@@ -116,13 +116,13 @@ static void tabs_layout(ClueWidget *w)
     }
 }
 
-static int tabs_handle_event(ClueWidget *w, UIEvent *event)
+static int tabs_handle_event(ClueWidget *w, ClueEvent *event)
 {
     ClueTabs *t = (ClueTabs *)w;
-    UIFont *font = tabs_font(t);
+    ClueFont *font = tabs_font(t);
     int x = w->base.x, y = w->base.y;
 
-    if (event->type == UI_EVENT_MOUSE_MOVE && font) {
+    if (event->type == CLUE_EVENT_MOUSE_MOVE && font) {
         int mx = event->mouse_move.x;
         int my = event->mouse_move.y;
         t->hovered = -1;
@@ -147,7 +147,7 @@ static int tabs_handle_event(ClueWidget *w, UIEvent *event)
     }
 
     /* Forward scroll events to active page */
-    if (event->type == UI_EVENT_MOUSE_SCROLL) {
+    if (event->type == CLUE_EVENT_MOUSE_SCROLL) {
         if (t->active >= 0 && t->active < t->tab_count && t->tab_pages[t->active]) {
             return clue_widget_dispatch_event(
                 &t->tab_pages[t->active]->base, event);
@@ -155,7 +155,7 @@ static int tabs_handle_event(ClueWidget *w, UIEvent *event)
         return 0;
     }
 
-    if (event->type == UI_EVENT_MOUSE_BUTTON &&
+    if (event->type == CLUE_EVENT_MOUSE_BUTTON &&
         event->mouse_button.pressed && event->mouse_button.btn == 0 && font) {
         int mx = event->mouse_button.x;
         int my = event->mouse_button.y;

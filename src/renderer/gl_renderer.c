@@ -362,7 +362,7 @@ static void emit_quad(float x, float y, float w, float h)
  * The quad is padded for AA; u_size holds the true shape dimensions. */
 static void draw_shape(int x, int y, int w, int h,
                        float radius, float thickness,
-                       int shape, UIColor color)
+                       int shape, ClueColor color)
 {
     if (!gl.prog) return;
 
@@ -390,7 +390,7 @@ static void draw_shape(int x, int y, int w, int h,
 /* Drawing primitives                                                  */
 /* ------------------------------------------------------------------ */
 
-static void gl_fill_rect(int x, int y, int w, int h, UIColor color)
+static void gl_fill_rect(int x, int y, int w, int h, ClueColor color)
 {
     if (!gl.flat_prog) return;
     glUseProgram(gl.flat_prog);
@@ -409,24 +409,24 @@ static void gl_fill_rect(int x, int y, int w, int h, UIColor color)
 }
 
 static void gl_fill_rounded_rect(int x, int y, int w, int h,
-                                 float radius, UIColor color)
+                                 float radius, ClueColor color)
 {
     draw_shape(x, y, w, h, radius, 0.0f, 0, color);
 }
 
 static void gl_draw_rect(int x, int y, int w, int h,
-                         float thickness, UIColor color)
+                         float thickness, ClueColor color)
 {
     draw_shape(x, y, w, h, 0.0f, thickness, 0, color);
 }
 
 static void gl_draw_rounded_rect(int x, int y, int w, int h,
-                                 float radius, float thickness, UIColor color)
+                                 float radius, float thickness, ClueColor color)
 {
     draw_shape(x, y, w, h, radius, thickness, 0, color);
 }
 
-static void gl_fill_circle(int cx, int cy, int radius, UIColor color)
+static void gl_fill_circle(int cx, int cy, int radius, ClueColor color)
 {
     if (!gl.flat_prog || radius <= 0) return;
 
@@ -455,7 +455,7 @@ static void gl_fill_circle(int cx, int cy, int radius, UIColor color)
 }
 
 static void gl_draw_circle(int cx, int cy, int radius,
-                           float thickness, UIColor color)
+                           float thickness, ClueColor color)
 {
     int d = radius * 2;
     draw_shape(cx - radius, cy - radius, d, d, 0.0f, thickness, 1, color);
@@ -463,7 +463,7 @@ static void gl_draw_circle(int cx, int cy, int radius,
 
 static void gl_draw_arc(int cx, int cy, int radius,
                         float start_rad, float end_rad,
-                        float thickness, UIColor color)
+                        float thickness, ClueColor color)
 {
     if (!gl.prog || radius <= 0) return;
 
@@ -490,7 +490,7 @@ static void gl_draw_arc(int cx, int cy, int radius,
 }
 
 static void gl_draw_line(int x0, int y0, int x1, int y1,
-                         float thickness, UIColor color)
+                         float thickness, ClueColor color)
 {
     if (!gl.line_prog) return;
 
@@ -542,7 +542,7 @@ static void gl_draw_line(int x0, int y0, int x1, int y1,
 /* Images                                                              */
 /* ------------------------------------------------------------------ */
 
-static void gl_draw_image(UITexture tex, int x, int y, int w, int h)
+static void gl_draw_image(ClueTexture tex, int x, int y, int w, int h)
 {
     if (!gl.img_prog || !tex) return;
 
@@ -599,7 +599,7 @@ static void gl_reset_clip_rect(void)
 /* Texture loading                                                     */
 /* ------------------------------------------------------------------ */
 
-UITexture clue_texture_load(const char *path)
+ClueTexture clue_texture_load(const char *path)
 {
     int w, h, channels;
     unsigned char *data = stbi_load(path, &w, &h, &channels, 4);
@@ -608,12 +608,12 @@ UITexture clue_texture_load(const char *path)
         return 0;
     }
 
-    UITexture tex = clue_texture_load_rgba(data, w, h);
+    ClueTexture tex = clue_texture_load_rgba(data, w, h);
     stbi_image_free(data);
     return tex;
 }
 
-UITexture clue_texture_load_rgba(const unsigned char *pixels, int w, int h)
+ClueTexture clue_texture_load_rgba(const unsigned char *pixels, int w, int h)
 {
     GLuint tex;
     glGenTextures(1, &tex);
@@ -625,10 +625,10 @@ UITexture clue_texture_load_rgba(const unsigned char *pixels, int w, int h)
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
                  GL_RGBA, GL_UNSIGNED_BYTE, pixels);
-    return (UITexture)tex;
+    return (ClueTexture)tex;
 }
 
-void clue_texture_destroy(UITexture tex)
+void clue_texture_destroy(ClueTexture tex)
 {
     GLuint t = (GLuint)tex;
     if (t) glDeleteTextures(1, &t);
@@ -639,7 +639,7 @@ void clue_texture_destroy(UITexture tex)
 /* ------------------------------------------------------------------ */
 
 static void gl_draw_text(int x, int y, const char *text,
-                         struct UIFont *font, UIColor color)
+                         struct ClueFont *font, ClueColor color)
 {
     clue_font_draw_text(x, y, text, font, color, gl.vp_w, gl.vp_h);
 }
@@ -664,7 +664,7 @@ static void gl_shutdown(void)
     if (gl.img_prog)  { glDeleteProgram(gl.img_prog);  gl.img_prog = 0; }
 }
 
-static void gl_begin_frame(struct UIWindow *win)
+static void gl_begin_frame(struct ClueWindow *win)
 {
     if (!win) return;
     gl.vp_w = win->w;
@@ -672,7 +672,7 @@ static void gl_begin_frame(struct UIWindow *win)
     glViewport(0, 0, win->w, win->h);
 }
 
-static void gl_end_frame(struct UIWindow *win)
+static void gl_end_frame(struct ClueWindow *win)
 {
     (void)win;
     glFlush();
@@ -688,7 +688,7 @@ static void gl_clear(float r, float g, float b, float a)
 /* Public API                                                          */
 /* ------------------------------------------------------------------ */
 
-static UIRenderer g_gl_renderer = {
+static ClueRenderer g_gl_renderer = {
     .init              = gl_init,
     .shutdown          = gl_shutdown,
     .begin_frame       = gl_begin_frame,
@@ -708,7 +708,7 @@ static UIRenderer g_gl_renderer = {
     .reset_clip_rect   = gl_reset_clip_rect,
 };
 
-UIRenderer *clue_gl_renderer_create(void)
+ClueRenderer *clue_gl_renderer_create(void)
 {
     if (g_gl_renderer.init) {
         if (g_gl_renderer.init() != 0) {
@@ -719,7 +719,7 @@ UIRenderer *clue_gl_renderer_create(void)
     return &g_gl_renderer;
 }
 
-void clue_gl_renderer_destroy(UIRenderer *renderer)
+void clue_gl_renderer_destroy(ClueRenderer *renderer)
 {
     if (renderer && renderer->shutdown) {
         renderer->shutdown();

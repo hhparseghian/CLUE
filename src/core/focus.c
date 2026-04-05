@@ -2,18 +2,18 @@
 #include "clue/clue.h"
 
 /* Set keyboard focus to a specific window */
-void clue_focus_window(UIWindow *win)
+void clue_focus_window(ClueWindow *win)
 {
-    UIWindowManager *wm = clue_wm_get();
+    ClueWindowManager *wm = clue_wm_get();
     if (wm && win && win->visible) {
         wm->focused = win;
     }
 }
 
 /* Get the currently focused window, or NULL if none */
-UIWindow *clue_focus_get_window(void)
+ClueWindow *clue_focus_get_window(void)
 {
-    UIWindowManager *wm = clue_wm_get();
+    ClueWindowManager *wm = clue_wm_get();
     return wm ? wm->focused : NULL;
 }
 
@@ -21,7 +21,7 @@ UIWindow *clue_focus_get_window(void)
  * Wraps around to the first window after the last. */
 void clue_focus_next_window(void)
 {
-    UIWindowManager *wm = clue_wm_get();
+    ClueWindowManager *wm = clue_wm_get();
     if (!wm || wm->count == 0) return;
 
     int idx = 0;

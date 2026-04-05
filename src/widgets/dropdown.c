@@ -12,21 +12,21 @@
 #define DD_ARROW_W 28
 #define DD_ITEM_PAD 6
 
-static UIFont *dd_font(ClueDropdown *dd)
+static ClueFont *dd_font(ClueDropdown *dd)
 {
     return dd->base.style.font ? dd->base.style.font : clue_app_default_font();
 }
 
 static int item_height(ClueDropdown *dd)
 {
-    UIFont *font = dd_font(dd);
+    ClueFont *font = dd_font(dd);
     return font ? clue_font_line_height(font) + DD_ITEM_PAD * 2 : 28;
 }
 
 static void dropdown_draw(ClueWidget *w)
 {
     ClueDropdown *dd = (ClueDropdown *)w;
-    UIFont *font = dd_font(dd);
+    ClueFont *font = dd_font(dd);
     int x = w->base.x, y = w->base.y;
     int bw = w->base.w, bh = w->base.h;
 
@@ -35,10 +35,10 @@ static void dropdown_draw(ClueWidget *w)
 
     /* Subtle shadow */
     clue_fill_rounded_rect(x + 1, y + 2, bw, bh, cr,
-                           UI_RGBAF(0, 0, 0, 0.1f));
+                           CLUE_RGBAF(0, 0, 0, 0.1f));
 
     /* Background */
-    UIColor bg = w->style.bg_color.a > 0.001f ? w->style.bg_color : th->dropdown.bg;
+    ClueColor bg = w->style.bg_color.a > 0.001f ? w->style.bg_color : th->dropdown.bg;
     clue_fill_rounded_rect(x, y, bw, bh, cr, bg);
     clue_draw_rounded_rect(x, y, bw, bh, cr, 1.5f, th->dropdown.border);
 
@@ -48,7 +48,7 @@ static void dropdown_draw(ClueWidget *w)
 
     if (font) {
         const char *display = NULL;
-        UIColor text_color;
+        ClueColor text_color;
 
         if (dd->selected >= 0 && dd->selected < dd->item_count) {
             display = dd->items[dd->selected];
@@ -70,7 +70,7 @@ static void dropdown_draw(ClueWidget *w)
     /* Down arrow (chevron) */
     int ax = x + bw - DD_ARROW_W / 2;
     int ay = y + bh / 2;
-    UIColor arrow_c = dd->open ? th->accent : th->dropdown.arrow;
+    ClueColor arrow_c = dd->open ? th->accent : th->dropdown.arrow;
     clue_draw_line(ax - 5, ay - 3, ax, ay + 3, 2.0f, arrow_c);
     clue_draw_line(ax, ay + 3, ax + 5, ay - 3, 2.0f, arrow_c);
 }
@@ -95,7 +95,7 @@ static int dd_list_h(ClueDropdown *dd)
 void clue_dropdown_draw_overlay(ClueDropdown *dd)
 {
     if (!dd || !dd->open || dd->item_count == 0) return;
-    UIFont *font = dd_font(dd);
+    ClueFont *font = dd_font(dd);
     if (!font) return;
 
     const ClueTheme *th = clue_theme_get();
@@ -109,7 +109,7 @@ void clue_dropdown_draw_overlay(ClueDropdown *dd)
 
     /* Drop shadow */
     clue_fill_rounded_rect(x + 2, y + 3, bw, list_h, cr,
-                           UI_RGBAF(0, 0, 0, 0.25f));
+                           CLUE_RGBAF(0, 0, 0, 0.25f));
 
     /* Background */
     clue_fill_rounded_rect(x, y, bw, list_h, cr, th->dropdown.list_bg);
@@ -134,7 +134,7 @@ void clue_dropdown_draw_overlay(ClueDropdown *dd)
         }
 
         int tx = x + DD_PAD_H + (i == dd->selected ? 6 : 0);
-        UIColor item_fg = (i == dd->hovered) ? th->fg_bright : th->dropdown.fg;
+        ClueColor item_fg = (i == dd->hovered) ? th->fg_bright : th->dropdown.fg;
         if (i == dd->selected) item_fg = th->accent;
         clue_draw_text(tx, iy + DD_ITEM_PAD,
                        dd->items[i], font, item_fg);
@@ -152,28 +152,28 @@ void clue_dropdown_draw_overlay(ClueDropdown *dd)
         float pos = max_scroll > 0 ? (float)dd->scroll_y / (float)max_scroll : 0;
         int bar_y = y + 2 + (int)(pos * (list_h - 4 - bar_h));
         clue_fill_rounded_rect(x + bw - 8, bar_y, 4, bar_h, 2.0f,
-                               UI_RGBA(150, 150, 160, 120));
+                               CLUE_RGBA(150, 150, 160, 120));
     }
 }
 
 static void dropdown_layout(ClueWidget *w)
 {
     ClueDropdown *dd = (ClueDropdown *)w;
-    UIFont *font = dd_font(dd);
+    ClueFont *font = dd_font(dd);
     if (!font) return;
 
     if (w->base.w == 0) w->base.w = 180;
     w->base.h = clue_font_line_height(font) + DD_PAD_V * 2;
 }
 
-static int dropdown_handle_event(ClueWidget *w, UIEvent *event)
+static int dropdown_handle_event(ClueWidget *w, ClueEvent *event)
 {
     ClueDropdown *dd = (ClueDropdown *)w;
     int x = w->base.x, y = w->base.y;
     int bw = w->base.w, bh = w->base.h;
 
     /* Scroll the popup list */
-    if (event->type == UI_EVENT_MOUSE_SCROLL && dd->open) {
+    if (event->type == CLUE_EVENT_MOUSE_SCROLL && dd->open) {
         int ih = item_height(dd);
         int total = ih * dd->item_count;
         int vis_h = dd_list_h(dd) - 4;
@@ -186,7 +186,7 @@ static int dropdown_handle_event(ClueWidget *w, UIEvent *event)
     }
 
     /* Track hover over list items */
-    if (event->type == UI_EVENT_MOUSE_MOVE && dd->open && dd->item_count > 0) {
+    if (event->type == CLUE_EVENT_MOUSE_MOVE && dd->open && dd->item_count > 0) {
         int mx = event->mouse_move.x;
         int my = event->mouse_move.y;
         int ih = item_height(dd);
@@ -202,7 +202,7 @@ static int dropdown_handle_event(ClueWidget *w, UIEvent *event)
         return 1;
     }
 
-    if (event->type != UI_EVENT_MOUSE_BUTTON || !event->mouse_button.pressed)
+    if (event->type != CLUE_EVENT_MOUSE_BUTTON || !event->mouse_button.pressed)
         return 0;
     if (event->mouse_button.btn != 0) return 0;
 

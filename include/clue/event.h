@@ -4,31 +4,31 @@
 #include <stdint.h>
 
 /* Forward declarations */
-struct UIWindow;
+struct ClueWindow;
 
 /* Event types supported by CLUE */
 typedef enum {
-    UI_EVENT_NONE = 0,
-    UI_EVENT_MOUSE_MOVE,
-    UI_EVENT_MOUSE_BUTTON,
-    UI_EVENT_MOUSE_SCROLL,
-    UI_EVENT_KEY,
-    UI_EVENT_RESIZE,
-    UI_EVENT_CLOSE,
-} UIEventType;
+    CLUE_EVENT_NONE = 0,
+    CLUE_EVENT_MOUSE_MOVE,
+    CLUE_EVENT_MOUSE_BUTTON,
+    CLUE_EVENT_MOUSE_SCROLL,
+    CLUE_EVENT_KEY,
+    CLUE_EVENT_RESIZE,
+    CLUE_EVENT_CLOSE,
+} ClueEventType;
 
 /* Modifier key flags */
 typedef enum {
-    UI_MOD_SHIFT = 1 << 0,
-    UI_MOD_CTRL  = 1 << 1,
-    UI_MOD_ALT   = 1 << 2,
-    UI_MOD_SUPER = 1 << 3,
+    CLUE_MOD_SHIFT = 1 << 0,
+    CLUE_MOD_CTRL  = 1 << 1,
+    CLUE_MOD_ALT   = 1 << 2,
+    CLUE_MOD_SUPER = 1 << 3,
 } UIModifiers;
 
 /* Unified event structure delivered to the application */
 typedef struct {
-    UIEventType     type;
-    struct UIWindow *window;
+    ClueEventType     type;
+    struct ClueWindow *window;
     union {
         struct { int x, y; }                mouse_move;
         struct { int x, y, btn, pressed; }  mouse_button;
@@ -38,10 +38,10 @@ typedef struct {
                  char text[8]; }            key;
         struct { int w, h; }                resize;
     };
-} UIEvent;
+} ClueEvent;
 
 /* Dispatch an event to the appropriate window/widget tree.
  * Returns 1 if the event was consumed, 0 otherwise. */
-int clue_event_dispatch(UIEvent *event);
+int clue_event_dispatch(ClueEvent *event);
 
 #endif /* CLUE_EVENT_H */

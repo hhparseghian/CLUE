@@ -11,7 +11,7 @@
 #define SB_PAD_V 4
 #define SB_SEP_GAP 16
 
-static UIFont *sb_font(ClueStatusbar *sb)
+static ClueFont *sb_font(ClueStatusbar *sb)
 {
     return sb->base.style.font ? sb->base.style.font : clue_app_default_font();
 }
@@ -20,7 +20,7 @@ static void statusbar_draw(ClueWidget *w)
 {
     ClueStatusbar *sb = (ClueStatusbar *)w;
     const ClueTheme *th = clue_theme_get();
-    UIFont *font = sb_font(sb);
+    ClueFont *font = sb_font(sb);
     if (!font) return;
 
     int x = w->base.x, y = w->base.y;
@@ -49,7 +49,7 @@ static void statusbar_draw(ClueWidget *w)
 static void statusbar_layout(ClueWidget *w)
 {
     ClueStatusbar *sb = (ClueStatusbar *)w;
-    UIFont *font = sb_font(sb);
+    ClueFont *font = sb_font(sb);
     if (!font) return;
     w->base.h = clue_font_line_height(font) + SB_PAD_V * 2;
     /* Width is set by parent (hexpand) */

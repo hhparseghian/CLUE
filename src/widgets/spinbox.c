@@ -14,7 +14,7 @@
 #define REPEAT_MS       80   /* interval between auto-repeat ticks */
 #define REPEAT_DELAY    6    /* ticks before repeat starts (~480ms) */
 
-static UIFont *spinbox_font(ClueSpinbox *s)
+static ClueFont *spinbox_font(ClueSpinbox *s)
 {
     return s->base.style.font ? s->base.style.font : clue_app_default_font();
 }
@@ -62,7 +62,7 @@ static void spinbox_draw(ClueWidget *w)
 {
     ClueSpinbox *s = (ClueSpinbox *)w;
     const ClueTheme *th = clue_theme_get();
-    UIFont *font = spinbox_font(s);
+    ClueFont *font = spinbox_font(s);
     if (!font) return;
 
     int x = w->base.x, y = w->base.y;
@@ -83,7 +83,7 @@ static void spinbox_draw(ClueWidget *w)
     clue_draw_text(text_x, text_y, buf, font, th->input.fg);
 
     /* Down button (left) */
-    UIColor dn_bg = s->btn_dn_pressed ? th->button.bg_pressed :
+    ClueColor dn_bg = s->btn_dn_pressed ? th->button.bg_pressed :
                     s->btn_dn_hover   ? th->button.bg_hover : th->surface;
     clue_fill_rounded_rect(x + 1, y + 1, BTN_W - 1, bh - 2, radius, dn_bg);
     /* Minus sign */
@@ -92,7 +92,7 @@ static void spinbox_draw(ClueWidget *w)
 
     /* Up button (right) */
     int rx = x + bw - BTN_W;
-    UIColor up_bg = s->btn_up_pressed ? th->button.bg_pressed :
+    ClueColor up_bg = s->btn_up_pressed ? th->button.bg_pressed :
                     s->btn_up_hover   ? th->button.bg_hover : th->surface;
     clue_fill_rounded_rect(rx, y + 1, BTN_W - 1, bh - 2, radius, up_bg);
     /* Plus sign */
@@ -104,19 +104,19 @@ static void spinbox_draw(ClueWidget *w)
 static void spinbox_layout(ClueWidget *w)
 {
     ClueSpinbox *s = (ClueSpinbox *)w;
-    UIFont *font = spinbox_font(s);
+    ClueFont *font = spinbox_font(s);
     if (!font) return;
     if (w->base.w == 0) w->base.w = 120;
     w->base.h = clue_font_line_height(font) + PAD_V * 2;
 }
 
-static int spinbox_handle_event(ClueWidget *w, UIEvent *event)
+static int spinbox_handle_event(ClueWidget *w, ClueEvent *event)
 {
     ClueSpinbox *s = (ClueSpinbox *)w;
     int x = w->base.x, y = w->base.y;
     int bw = w->base.w, bh = w->base.h;
 
-    if (event->type == UI_EVENT_MOUSE_MOVE) {
+    if (event->type == CLUE_EVENT_MOUSE_MOVE) {
         int mx = event->mouse_move.x, my = event->mouse_move.y;
         bool inside = mx >= x && mx < x + bw && my >= y && my < y + bh;
         s->btn_dn_hover = inside && mx < x + BTN_W;
@@ -124,7 +124,7 @@ static int spinbox_handle_event(ClueWidget *w, UIEvent *event)
         return 0;
     }
 
-    if (event->type == UI_EVENT_MOUSE_BUTTON && event->mouse_button.btn == 0) {
+    if (event->type == CLUE_EVENT_MOUSE_BUTTON && event->mouse_button.btn == 0) {
         int mx = event->mouse_button.x, my = event->mouse_button.y;
         bool inside = mx >= x && mx < x + bw && my >= y && my < y + bh;
         if (!inside) return 0;
@@ -156,7 +156,7 @@ static int spinbox_handle_event(ClueWidget *w, UIEvent *event)
         return 1;
     }
 
-    if (event->type == UI_EVENT_MOUSE_SCROLL) {
+    if (event->type == CLUE_EVENT_MOUSE_SCROLL) {
         int mx = event->mouse_scroll.x, my = event->mouse_scroll.y;
         if (mx >= x && mx < x + bw && my >= y && my < y + bh) {
             if (event->mouse_scroll.dy > 0) s->value += s->step;

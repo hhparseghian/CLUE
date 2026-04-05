@@ -167,7 +167,7 @@ static void cube_draw_cb(int x, int y, int w, int h, void *data)
     glDisable(GL_SCISSOR_TEST);
 
     clue_draw_text_default(x + 8, y + h - 20, "Drag to rotate, scroll to zoom",
-                           UI_RGB(100, 100, 120));
+                           CLUE_RGB(100, 100, 120));
 }
 
 static void cube_event_cb(const ClueCanvasEvent *ev, void *data)
@@ -196,7 +196,7 @@ ClueBox *build_3d_page(void)
     page->base.style.vexpand = true;
 
     ClueLabel *lbl = clue_label_new("3D Canvas (drag to rotate, scroll to zoom):");
-    lbl->base.style.fg_color = UI_RGB(180, 180, 190);
+    lbl->base.style.fg_color = CLUE_RGB(180, 180, 190);
 
     ClueCanvas *canvas = clue_canvas_new(500, 400);
     canvas->base.style.hexpand = true;

@@ -35,52 +35,52 @@ static void on_theme_toggle(ClueButton *button, void *data)
         break;
     case 2: {
         ClueTheme purple = *clue_theme_dark();
-        purple.bg = UI_RGB(25, 15, 35);
-        purple.accent = UI_RGB(140, 60, 200);
-        purple.accent_hover = UI_RGB(160, 80, 220);
-        purple.accent_pressed = UI_RGB(110, 40, 170);
-        purple.button.bg = UI_RGB(140, 60, 200);
-        purple.button.bg_hover = UI_RGB(160, 80, 220);
-        purple.button.bg_pressed = UI_RGB(110, 40, 170);
-        purple.input.focus_border = UI_RGB(160, 80, 220);
-        purple.input.cursor = UI_RGB(180, 120, 255);
-        purple.slider.fill = UI_RGB(140, 60, 200);
-        purple.checkbox.box_checked = UI_RGB(140, 60, 200);
-        purple.tabs.indicator = UI_RGB(140, 60, 200);
-        purple.list.selected_bg = UI_RGB(140, 60, 200);
-        purple.dropdown.selected_bg = UI_RGBA(140, 60, 200, 80);
+        purple.bg = CLUE_RGB(25, 15, 35);
+        purple.accent = CLUE_RGB(140, 60, 200);
+        purple.accent_hover = CLUE_RGB(160, 80, 220);
+        purple.accent_pressed = CLUE_RGB(110, 40, 170);
+        purple.button.bg = CLUE_RGB(140, 60, 200);
+        purple.button.bg_hover = CLUE_RGB(160, 80, 220);
+        purple.button.bg_pressed = CLUE_RGB(110, 40, 170);
+        purple.input.focus_border = CLUE_RGB(160, 80, 220);
+        purple.input.cursor = CLUE_RGB(180, 120, 255);
+        purple.slider.fill = CLUE_RGB(140, 60, 200);
+        purple.checkbox.box_checked = CLUE_RGB(140, 60, 200);
+        purple.tabs.indicator = CLUE_RGB(140, 60, 200);
+        purple.list.selected_bg = CLUE_RGB(140, 60, 200);
+        purple.dropdown.selected_bg = CLUE_RGBA(140, 60, 200, 80);
         clue_theme_set(&purple);
         break;
     }
     case 3: {
         ClueTheme ocean = *clue_theme_dark();
-        ocean.bg = UI_RGB(15, 25, 35);
-        ocean.surface = UI_RGB(20, 35, 50);
-        ocean.surface_hover = UI_RGB(25, 45, 60);
-        ocean.surface_border = UI_RGB(40, 65, 85);
-        ocean.accent = UI_RGB(0, 180, 160);
-        ocean.accent_hover = UI_RGB(0, 200, 180);
-        ocean.accent_pressed = UI_RGB(0, 140, 120);
-        ocean.button.bg = UI_RGB(0, 180, 160);
-        ocean.button.bg_hover = UI_RGB(0, 200, 180);
-        ocean.button.bg_pressed = UI_RGB(0, 140, 120);
-        ocean.input.bg = UI_RGB(15, 30, 45);
-        ocean.input.border = UI_RGB(40, 65, 85);
-        ocean.input.focus_border = UI_RGB(0, 180, 160);
-        ocean.input.cursor = UI_RGB(0, 220, 200);
-        ocean.slider.fill = UI_RGB(0, 180, 160);
-        ocean.slider.track = UI_RGB(30, 50, 65);
-        ocean.checkbox.box_checked = UI_RGB(0, 180, 160);
-        ocean.tabs.bar_bg = UI_RGB(20, 35, 50);
-        ocean.tabs.active_bg = UI_RGB(15, 25, 35);
-        ocean.tabs.indicator = UI_RGB(0, 180, 160);
-        ocean.list.bg = UI_RGB(20, 35, 50);
-        ocean.list.selected_bg = UI_RGB(0, 180, 160);
-        ocean.list.hover_bg = UI_RGB(25, 45, 60);
-        ocean.dropdown.bg = UI_RGB(15, 30, 45);
-        ocean.dropdown.border = UI_RGB(40, 65, 85);
-        ocean.dropdown.list_bg = UI_RGB(20, 35, 50);
-        ocean.dropdown.hover_bg = UI_RGB(25, 50, 65);
+        ocean.bg = CLUE_RGB(15, 25, 35);
+        ocean.surface = CLUE_RGB(20, 35, 50);
+        ocean.surface_hover = CLUE_RGB(25, 45, 60);
+        ocean.surface_border = CLUE_RGB(40, 65, 85);
+        ocean.accent = CLUE_RGB(0, 180, 160);
+        ocean.accent_hover = CLUE_RGB(0, 200, 180);
+        ocean.accent_pressed = CLUE_RGB(0, 140, 120);
+        ocean.button.bg = CLUE_RGB(0, 180, 160);
+        ocean.button.bg_hover = CLUE_RGB(0, 200, 180);
+        ocean.button.bg_pressed = CLUE_RGB(0, 140, 120);
+        ocean.input.bg = CLUE_RGB(15, 30, 45);
+        ocean.input.border = CLUE_RGB(40, 65, 85);
+        ocean.input.focus_border = CLUE_RGB(0, 180, 160);
+        ocean.input.cursor = CLUE_RGB(0, 220, 200);
+        ocean.slider.fill = CLUE_RGB(0, 180, 160);
+        ocean.slider.track = CLUE_RGB(30, 50, 65);
+        ocean.checkbox.box_checked = CLUE_RGB(0, 180, 160);
+        ocean.tabs.bar_bg = CLUE_RGB(20, 35, 50);
+        ocean.tabs.active_bg = CLUE_RGB(15, 25, 35);
+        ocean.tabs.indicator = CLUE_RGB(0, 180, 160);
+        ocean.list.bg = CLUE_RGB(20, 35, 50);
+        ocean.list.selected_bg = CLUE_RGB(0, 180, 160);
+        ocean.list.hover_bg = CLUE_RGB(25, 45, 60);
+        ocean.dropdown.bg = CLUE_RGB(15, 30, 45);
+        ocean.dropdown.border = CLUE_RGB(40, 65, 85);
+        ocean.dropdown.list_bg = CLUE_RGB(20, 35, 50);
+        ocean.dropdown.hover_bg = CLUE_RGB(25, 50, 65);
         clue_theme_set(&ocean);
         break;
     }
@@ -176,12 +176,12 @@ int main(void)
     clue_style_set_padding(&header->base.style, 12);
 
     ClueLabel *title = clue_label_new("CLUE Demo");
-    title->base.style.fg_color = UI_RGB(255, 255, 255);
+    title->base.style.fg_color = CLUE_RGB(255, 255, 255);
     title->base.style.font = clue_font_load(
         "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 20);
 
     g_status = clue_label_new("Ready");
-    g_status->base.style.fg_color = UI_RGB(100, 200, 100);
+    g_status->base.style.fg_color = CLUE_RGB(100, 200, 100);
 
     ClueButton *theme_btn = clue_button_new("Theme: Light");
     clue_signal_connect(theme_btn, "clicked", on_theme_toggle, NULL);
@@ -194,7 +194,7 @@ int main(void)
     ClueTabs *tabs = clue_tabs_new();
     tabs->base.style.hexpand = true;
     tabs->base.style.vexpand = true;
-    tabs->page_bg = UI_RGB(45, 45, 50);
+    tabs->page_bg = CLUE_RGB(45, 45, 50);
     clue_tabs_add(tabs, "Widgets", build_widgets_page(app));
     clue_tabs_add(tabs, "List", build_list_page());
     clue_tabs_add(tabs, "Form", build_grid_page());

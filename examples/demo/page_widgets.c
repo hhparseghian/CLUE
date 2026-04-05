@@ -139,7 +139,7 @@ static void on_show_free(ClueButton *button, void *data)
 static ClueLabel *section_title(const char *text)
 {
     ClueLabel *lbl = clue_label_new(text);
-    lbl->base.style.fg_color = UI_RGB(255, 255, 255);
+    lbl->base.style.fg_color = CLUE_RGB(255, 255, 255);
     lbl->base.style.margin_top = 6;
     return lbl;
 }
@@ -160,7 +160,7 @@ ClueScroll *build_widgets_page(ClueApp *app)
     ClueButton *btn_hello = clue_button_new("Say Hello");
     clue_signal_connect(btn_hello, "clicked", on_hello, NULL);
     ClueButton *btn_quit = clue_button_new("Quit");
-    btn_quit->base.style.bg_color = UI_RGB(180, 50, 50);
+    btn_quit->base.style.bg_color = CLUE_RGB(180, 50, 50);
     clue_signal_connect(btn_quit, "clicked", on_quit, app);
     clue_container_add(btn_row, btn_hello);
     clue_container_add(btn_row, btn_quit);
@@ -193,7 +193,7 @@ ClueScroll *build_widgets_page(ClueApp *app)
 
     ClueBox *slider_row = clue_box_new(CLUE_HORIZONTAL, 8);
     ClueLabel *sl = clue_label_new("Volume:");
-    sl->base.style.fg_color = UI_RGB(180, 180, 190);
+    sl->base.style.fg_color = CLUE_RGB(180, 180, 190);
     ClueSlider *slider = clue_slider_new(0, 100, 50);
     slider->base.base.w = 200;
     clue_signal_connect(slider, "changed", on_slider, NULL);
@@ -216,7 +216,7 @@ ClueScroll *build_widgets_page(ClueApp *app)
     clue_container_add(progress_row, btn_reset);
 
     g_timer_label = clue_label_new("Uptime: 00:00");
-    g_timer_label->base.style.fg_color = UI_RGB(180, 180, 190);
+    g_timer_label->base.style.fg_color = CLUE_RGB(180, 180, 190);
 
     ClueBox *dlg_row = clue_box_new(CLUE_HORIZONTAL, 8);
     ClueButton *btn_modal = clue_button_new("Modal");
@@ -238,7 +238,7 @@ ClueScroll *build_widgets_page(ClueApp *app)
 
     ClueBox *spin_row = clue_box_new(CLUE_HORIZONTAL, 8);
     ClueLabel *spin_lbl = clue_label_new("Quantity:");
-    spin_lbl->base.style.fg_color = UI_RGB(180, 180, 190);
+    spin_lbl->base.style.fg_color = CLUE_RGB(180, 180, 190);
     ClueSpinbox *spinner = clue_spinbox_new(0, 100, 1, 5);
     spinner->base.base.w = 130;
     clue_signal_connect(spinner, "changed", on_spinner, NULL);
@@ -250,7 +250,7 @@ ClueScroll *build_widgets_page(ClueApp *app)
         "It supports Wayland, X11, and DRM/KMS backends.\n\n"
         "Try Ctrl+O to open a file, or right-click a text field for a context menu.");
     wrap_lbl->base.base.w = 350;
-    wrap_lbl->base.style.fg_color = UI_RGB(180, 180, 190);
+    wrap_lbl->base.style.fg_color = CLUE_RGB(180, 180, 190);
     clue_label_set_wrap(wrap_lbl, true);
 
     /* Layout with section titles */

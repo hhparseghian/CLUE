@@ -6,13 +6,13 @@
 #include "clue/app.h"
 #include "clue/font.h"
 
-static UIFont *label_font(ClueLabel *l)
+static ClueFont *label_font(ClueLabel *l)
 {
     return l->base.style.font ? l->base.style.font : clue_app_default_font();
 }
 
 /* Measure width of a substring */
-static int text_width_n(UIFont *font, const char *text, int n)
+static int text_width_n(ClueFont *font, const char *text, int n)
 {
     if (!font || !text || n <= 0) return 0;
     char buf[1024];
@@ -23,8 +23,8 @@ static int text_width_n(UIFont *font, const char *text, int n)
 }
 
 /* Draw text with word wrap. Returns number of lines drawn. */
-static int draw_wrapped(UIFont *font, const char *text, int x, int y,
-                        int max_w, int lh, UIColor color, bool draw)
+static int draw_wrapped(ClueFont *font, const char *text, int x, int y,
+                        int max_w, int lh, ClueColor color, bool draw)
 {
     if (!text || !text[0]) return 0;
 
@@ -81,7 +81,7 @@ static void label_draw(ClueWidget *w)
                                s->corner_radius, s->bg_color);
     }
 
-    UIFont *font = label_font(l);
+    ClueFont *font = label_font(l);
     if (!font) return;
 
     int tx = w->base.x + s->padding_left;
@@ -99,7 +99,7 @@ static void label_draw(ClueWidget *w)
 static void label_layout(ClueWidget *w)
 {
     ClueLabel *l = (ClueLabel *)w;
-    UIFont *font = label_font(l);
+    ClueFont *font = label_font(l);
     if (!font || !l->text) return;
 
     ClueStyle *s = &w->style;
@@ -108,7 +108,7 @@ static void label_layout(ClueWidget *w)
     if (l->wrap || strchr(l->text, '\n')) {
         int max_w = l->wrap ? w->base.w - s->padding_left - s->padding_right : 0;
         int lines = draw_wrapped(font, l->text, 0, 0, max_w, lh,
-                                 (UIColor){0}, false);
+                                 (ClueColor){0}, false);
         if (lines < 1) lines = 1;
         w->base.h = lines * lh + s->padding_top + s->padding_bottom;
         /* Width stays as set by user when wrapping */

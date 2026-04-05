@@ -6,84 +6,84 @@
 /* Theme: centralized colours, spacing, and per-widget defaults */
 typedef struct {
     /* --- Base palette --- */
-    UIColor  bg;                /* app/window background */
-    UIColor  fg;                /* primary text */
-    UIColor  fg_dim;            /* secondary/muted text */
-    UIColor  fg_bright;         /* highlighted/title text */
-    UIColor  accent;            /* primary accent */
-    UIColor  accent_hover;
-    UIColor  accent_pressed;
-    UIColor  surface;           /* cards, panels */
-    UIColor  surface_hover;
-    UIColor  surface_border;
-    UIColor  success;
-    UIColor  warning;
-    UIColor  error;
+    ClueColor  bg;                /* app/window background */
+    ClueColor  fg;                /* primary text */
+    ClueColor  fg_dim;            /* secondary/muted text */
+    ClueColor  fg_bright;         /* highlighted/title text */
+    ClueColor  accent;            /* primary accent */
+    ClueColor  accent_hover;
+    ClueColor  accent_pressed;
+    ClueColor  surface;           /* cards, panels */
+    ClueColor  surface_hover;
+    ClueColor  surface_border;
+    ClueColor  success;
+    ClueColor  warning;
+    ClueColor  error;
 
     /* --- Per-widget colours --- */
     struct {
-        UIColor bg;
-        UIColor fg;
-        UIColor placeholder;
-        UIColor border;
-        UIColor focus_border;
-        UIColor cursor;
+        ClueColor bg;
+        ClueColor fg;
+        ClueColor placeholder;
+        ClueColor border;
+        ClueColor focus_border;
+        ClueColor cursor;
     } input;
 
     struct {
-        UIColor bg;
-        UIColor bg_hover;
-        UIColor bg_pressed;
-        UIColor fg;
+        ClueColor bg;
+        ClueColor bg_hover;
+        ClueColor bg_pressed;
+        ClueColor fg;
     } button;
 
     struct {
-        UIColor bg;
-        UIColor fg;
-        UIColor selected_bg;
-        UIColor selected_fg;
-        UIColor hover_bg;
-        UIColor stripe;         /* alternating row tint */
+        ClueColor bg;
+        ClueColor fg;
+        ClueColor selected_bg;
+        ClueColor selected_fg;
+        ClueColor hover_bg;
+        ClueColor stripe;         /* alternating row tint */
     } list;
 
     struct {
-        UIColor bar_bg;
-        UIColor active_bg;
-        UIColor indicator;      /* active tab underline */
-        UIColor fg;
-        UIColor fg_active;
+        ClueColor bar_bg;
+        ClueColor active_bg;
+        ClueColor indicator;      /* active tab underline */
+        ClueColor fg;
+        ClueColor fg_active;
     } tabs;
 
     struct {
-        UIColor track;
-        UIColor fill;
-        UIColor thumb;
-        UIColor thumb_active;
+        ClueColor track;
+        ClueColor fill;
+        ClueColor thumb;
+        ClueColor thumb_active;
     } slider;
 
     struct {
-        UIColor box_border;
-        UIColor box_checked;
-        UIColor checkmark;
-        UIColor fg;
+        ClueColor box_border;
+        ClueColor box_checked;
+        ClueColor checkmark;
+        ClueColor fg;
     } checkbox;
 
     struct {
-        UIColor bg;
-        UIColor border;
-        UIColor fg;
-        UIColor list_bg;
-        UIColor hover_bg;
-        UIColor selected_bg;
-        UIColor arrow;
+        ClueColor bg;
+        ClueColor border;
+        ClueColor fg;
+        ClueColor list_bg;
+        ClueColor hover_bg;
+        ClueColor selected_bg;
+        ClueColor arrow;
     } dropdown;
 
     struct {
-        UIColor overlay;        /* dim overlay behind modal */
-        UIColor bg;
-        UIColor border;
-        UIColor title_fg;
-        UIColor separator;
+        ClueColor overlay;        /* dim overlay behind modal */
+        ClueColor bg;
+        ClueColor border;
+        ClueColor title_fg;
+        ClueColor separator;
     } dialog;
 
     /* --- Spacing & sizing --- */

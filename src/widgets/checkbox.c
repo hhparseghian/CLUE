@@ -11,7 +11,7 @@
 #define BOX_SIZE 20
 #define BOX_GAP  10
 
-static UIFont *cb_font(ClueCheckbox *cb)
+static ClueFont *cb_font(ClueCheckbox *cb)
 {
     return cb->base.style.font ? cb->base.style.font : clue_app_default_font();
 }
@@ -20,7 +20,7 @@ static void checkbox_draw(ClueWidget *w)
 {
     ClueCheckbox *cb = (ClueCheckbox *)w;
     int x = w->base.x, y = w->base.y;
-    UIFont *font = cb_font(cb);
+    ClueFont *font = cb_font(cb);
     int box_y = y + (w->base.h - BOX_SIZE) / 2;
 
     const ClueTheme *th = clue_theme_get();
@@ -42,7 +42,7 @@ static void checkbox_draw(ClueWidget *w)
     }
 
     if (font && cb->label && cb->label[0]) {
-        UIColor fg = w->style.fg_color.a > 0.001f ? w->style.fg_color : th->checkbox.fg;
+        ClueColor fg = w->style.fg_color.a > 0.001f ? w->style.fg_color : th->checkbox.fg;
         int text_y = y + (w->base.h - clue_font_line_height(font)) / 2;
         clue_draw_text(x + BOX_SIZE + BOX_GAP, text_y, cb->label, font, fg);
     }
@@ -51,7 +51,7 @@ static void checkbox_draw(ClueWidget *w)
 static void checkbox_layout(ClueWidget *w)
 {
     ClueCheckbox *cb = (ClueCheckbox *)w;
-    UIFont *font = cb_font(cb);
+    ClueFont *font = cb_font(cb);
     if (!font) return;
 
     int tw = cb->label ? clue_font_text_width(font, cb->label) : 0;
@@ -60,11 +60,11 @@ static void checkbox_layout(ClueWidget *w)
     if (w->base.h < BOX_SIZE) w->base.h = BOX_SIZE;
 }
 
-static int checkbox_handle_event(ClueWidget *w, UIEvent *event)
+static int checkbox_handle_event(ClueWidget *w, ClueEvent *event)
 {
     ClueCheckbox *cb = (ClueCheckbox *)w;
 
-    if (event->type == UI_EVENT_MOUSE_BUTTON &&
+    if (event->type == CLUE_EVENT_MOUSE_BUTTON &&
         event->mouse_button.pressed &&
         event->mouse_button.btn == 0) {
         int mx = event->mouse_button.x;

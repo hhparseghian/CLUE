@@ -18,7 +18,7 @@ ClueBox *build_list_page(void)
     page->base.style.h_align = CLUE_ALIGN_CENTER;
 
     ClueLabel *lbl = clue_label_new("Fruit list (virtual scrolling):");
-    lbl->base.style.fg_color = UI_RGB(180, 180, 190);
+    lbl->base.style.fg_color = CLUE_RGB(180, 180, 190);
 
     ClueListView *lv = clue_listview_new();
     lv->base.base.w = 350;

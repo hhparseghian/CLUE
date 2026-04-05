@@ -24,7 +24,7 @@ typedef struct {
     float scroll_x;     /* scroll delta (CLUE_CANVAS_SCROLL) */
     float scroll_y;
     int   keycode;      /* xkb keysym (CLUE_CANVAS_KEY) */
-    int   modifiers;    /* UI_MOD_* flags */
+    int   modifiers;    /* CLUE_MOD_* flags */
     int   pressed;      /* key pressed (1) or released (0) */
 } ClueCanvasEvent;
 

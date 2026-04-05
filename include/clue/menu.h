@@ -72,6 +72,6 @@ void clue_context_menu_close(void);
 
 /* Called internally by the app loop */
 void clue_context_menu_draw(void);
-int  clue_context_menu_dispatch(UIEvent *event);
+int  clue_context_menu_dispatch(ClueEvent *event);
 
 #endif /* CLUE_MENU_H */

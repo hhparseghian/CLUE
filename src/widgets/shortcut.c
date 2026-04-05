@@ -10,7 +10,7 @@
 #define MAX_SHORTCUTS 64
 
 typedef struct {
-    int                 mods;       /* required UI_MOD_* flags */
+    int                 mods;       /* required CLUE_MOD_* flags */
     int                 key;        /* xkb keysym (lowercase) */
     ClueSignalCallback  callback;
     void               *user_data;
@@ -28,10 +28,10 @@ static int parse_shortcut(const char *str, int *out_mods, int *out_key)
 
     const char *p = str;
     while (*p) {
-        if (strncmp(p, "Ctrl+", 5) == 0)       { *out_mods |= UI_MOD_CTRL;  p += 5; }
-        else if (strncmp(p, "Shift+", 6) == 0)  { *out_mods |= UI_MOD_SHIFT; p += 6; }
-        else if (strncmp(p, "Alt+", 4) == 0)    { *out_mods |= UI_MOD_ALT;   p += 4; }
-        else if (strncmp(p, "Super+", 6) == 0)  { *out_mods |= UI_MOD_SUPER; p += 6; }
+        if (strncmp(p, "Ctrl+", 5) == 0)       { *out_mods |= CLUE_MOD_CTRL;  p += 5; }
+        else if (strncmp(p, "Shift+", 6) == 0)  { *out_mods |= CLUE_MOD_SHIFT; p += 6; }
+        else if (strncmp(p, "Alt+", 4) == 0)    { *out_mods |= CLUE_MOD_ALT;   p += 4; }
+        else if (strncmp(p, "Super+", 6) == 0)  { *out_mods |= CLUE_MOD_SUPER; p += 6; }
         else break;
     }
 
@@ -111,7 +111,7 @@ int clue_shortcut_dispatch(int keycode, int modifiers)
         if (!s->active) continue;
         if (s->key != lk) continue;
         /* Check modifiers match exactly */
-        if ((modifiers & (UI_MOD_CTRL | UI_MOD_SHIFT | UI_MOD_ALT | UI_MOD_SUPER)) != s->mods)
+        if ((modifiers & (CLUE_MOD_CTRL | CLUE_MOD_SHIFT | CLUE_MOD_ALT | CLUE_MOD_SUPER)) != s->mods)
             continue;
         s->callback(s->user_data, s->user_data);
         return 1;

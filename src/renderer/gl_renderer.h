@@ -4,9 +4,9 @@
 #include "clue/renderer.h"
 
 /* Create the default OpenGL ES renderer */
-UIRenderer *clue_gl_renderer_create(void);
+ClueRenderer *clue_gl_renderer_create(void);
 
 /* Destroy the OpenGL ES renderer */
-void clue_gl_renderer_destroy(UIRenderer *renderer);
+void clue_gl_renderer_destroy(ClueRenderer *renderer);
 
 #endif /* CLUE_GL_RENDERER_H */
