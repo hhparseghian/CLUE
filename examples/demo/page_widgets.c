@@ -158,8 +158,14 @@ ClueBox *build_widgets_page(ClueApp *app)
     input->base.base.w = 280;
     clue_signal_connect(input, "changed", on_input, NULL);
 
+    /* Checkbox + toggle on same row */
+    ClueBox *check_row = clue_box_new(CLUE_HORIZONTAL, 16);
     ClueCheckbox *cb = clue_checkbox_new("Enable feature");
     clue_signal_connect(cb, "toggled", on_checkbox, NULL);
+    ClueToggle *toggle = clue_toggle_new("Notifications");
+    clue_signal_connect(toggle, "toggled", on_toggle, NULL);
+    clue_container_add(check_row, cb);
+    clue_container_add(check_row, toggle);
 
     ClueRadioGroup *rg = clue_radio_group_new();
     ClueRadio *r1 = clue_radio_new("Small", rg);
@@ -220,7 +226,7 @@ ClueBox *build_widgets_page(ClueApp *app)
     clue_tooltip_set(g_progress, "Animated progress bar (timer)");
 
     input->base.style.margin_top = 4;
-    cb->base.style.margin_top = 4;
+    check_row->base.style.margin_top = 4;
     radio_row->base.style.margin_top = 4;
     slider_row->base.style.margin_top = 8;
     dd->base.style.margin_top = 4;
@@ -228,8 +234,6 @@ ClueBox *build_widgets_page(ClueApp *app)
     g_timer_label->base.style.margin_top = 8;
     dlg_row->base.style.margin_top = 8;
 
-    ClueToggle *toggle = clue_toggle_new("Dark mode");
-    clue_signal_connect(toggle, "toggled", on_toggle, NULL);
     ClueBox *spin_row = clue_box_new(CLUE_HORIZONTAL, 8);
     ClueLabel *spin_lbl = clue_label_new("Quantity:");
     spin_lbl->base.style.fg_color = UI_RGB(180, 180, 190);
@@ -238,7 +242,6 @@ ClueBox *build_widgets_page(ClueApp *app)
     clue_signal_connect(spinner, "changed", on_spinner, NULL);
     clue_container_add(spin_row, spin_lbl);
     clue_container_add(spin_row, spinner);
-    toggle->base.style.margin_top = 4;
     spin_row->base.style.margin_top = 4;
 
     ClueSeparator *sep1 = clue_separator_new(CLUE_HORIZONTAL);
@@ -248,8 +251,7 @@ ClueBox *build_widgets_page(ClueApp *app)
     clue_container_add(page, btn_row);
     clue_container_add(page, input);
     clue_container_add(page, sep1);
-    clue_container_add(page, cb);
-    clue_container_add(page, toggle);
+    clue_container_add(page, check_row);
     clue_container_add(page, radio_row);
     clue_container_add(page, slider_row);
     clue_container_add(page, dd);
@@ -263,9 +265,9 @@ ClueBox *build_widgets_page(ClueApp *app)
     /* Wrapped label */
     ClueSeparator *sep4 = clue_separator_new(CLUE_HORIZONTAL);
     ClueLabel *wrap_lbl = clue_label_new(
-        "This is a multi-line label with word wrapping enabled. "
-        "It automatically breaks long text to fit within the width.\n\n"
-        "Newlines also work.");
+        "CLUE is a C99 GUI toolkit for Linux with OpenGL ES 2 rendering. "
+        "It supports Wayland, X11, and DRM/KMS backends.\n\n"
+        "Try Ctrl+O to open a file, or right-click a text field for a context menu.");
     wrap_lbl->base.base.w = 350;
     wrap_lbl->base.style.fg_color = UI_RGB(180, 180, 190);
     clue_label_set_wrap(wrap_lbl, true);
