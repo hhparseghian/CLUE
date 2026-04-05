@@ -2,15 +2,17 @@
 #define CLUE_SCROLL_H
 
 #include "clue_widget.h"
+#include "scrollbar.h"
 
 /* Scroll container -- clips and scrolls its content */
 typedef struct {
-    ClueWidget  base;           /* MUST be first */
-    int         scroll_x;
-    int         scroll_y;
-    int         content_w;      /* total content width */
-    int         content_h;      /* total content height */
-    int         scroll_speed;   /* pixels per scroll step */
+    ClueWidget    base;           /* MUST be first */
+    int           scroll_x;
+    int           scroll_y;
+    int           content_w;      /* total content width */
+    int           content_h;      /* total content height */
+    int           scroll_speed;   /* pixels per scroll step */
+    ClueScrollbar sb;             /* scrollbar drag state */
 } ClueScroll;
 
 /* Create a new scroll container */

@@ -2,6 +2,7 @@
 #define CLUE_TREEVIEW_H
 
 #include "clue_widget.h"
+#include "scrollbar.h"
 
 #define CLUE_TREE_MAX_CHILDREN 64
 
@@ -25,6 +26,7 @@ typedef struct {
     int             item_height;
     int             indent;     /* pixels per depth level */
     int             scroll_y;
+    ClueScrollbar   sb;
 } ClueTreeView;
 
 /* Create a tree view */

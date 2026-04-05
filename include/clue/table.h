@@ -2,6 +2,7 @@
 #define CLUE_TABLE_H
 
 #include "clue_widget.h"
+#include "scrollbar.h"
 
 #define CLUE_TABLE_MAX_COLS 16
 
@@ -22,6 +23,7 @@ typedef struct {
     int                     selected_row;   /* -1 = none */
     int                     hovered_row;
     int                     scroll_y;
+    ClueScrollbar           sb;
 } ClueTable;
 
 /* Create a table */

@@ -2,6 +2,7 @@
 #define CLUE_TEXT_EDITOR_H
 
 #include "clue_widget.h"
+#include "scrollbar.h"
 
 #define CLUE_TEXT_EDITOR_MAX 8192
 #define CLUE_UNDO_MAX 64
@@ -34,6 +35,7 @@ typedef struct {
     int         undo_pos;    /* current position in undo stack */
     bool        word_wrap;
     bool        line_numbers;
+    ClueScrollbar sb;
 } ClueTextEditor;
 
 /* Create a new text editor */

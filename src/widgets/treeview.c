@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "clue/treeview.h"
+#include "clue/scrollbar.h"
 #include "clue/draw.h"
 #include "clue/app.h"
 #include "clue/font.h"
@@ -132,16 +133,9 @@ static void treeview_draw(ClueWidget *w)
     clue_reset_clip_rect();
 
     /* Scrollbar */
-    int total = count_visible(tv->root) * tv->item_height;
-    if (total > bh) {
-        float ratio = (float)bh / (float)total;
-        int bar_h = (int)(ratio * bh);
-        if (bar_h < 20) bar_h = 20;
-        float pos = (float)tv->scroll_y / (float)(total - bh);
-        int bar_y = y + (int)(pos * (bh - bar_h));
-        clue_fill_rounded_rect(x + bw - SCROLLBAR_W - 2, bar_y,
-                               SCROLLBAR_W, bar_h, SCROLLBAR_W / 2.0f,
-                               UI_RGBA(150, 150, 160, 120));
+    {
+        int total = count_visible(tv->root) * tv->item_height;
+        clue_scrollbar_draw(&tv->sb, x, y, bw, bh, total, tv->scroll_y);
     }
 }
 
@@ -169,6 +163,14 @@ static int treeview_handle_event(ClueWidget *w, UIEvent *event)
     ClueTreeView *tv = (ClueTreeView *)w;
     int x = w->base.x, y = w->base.y;
     int bw = w->base.w, bh = w->base.h;
+
+    /* Scrollbar drag */
+    int total = count_visible(tv->root) * tv->item_height;
+    if (clue_scrollbar_handle_event(&tv->sb, x, y, bw, bh,
+                                    total, &tv->scroll_y,
+                                    event, &w->base)) {
+        return 1;
+    }
 
     switch (event->type) {
     case UI_EVENT_MOUSE_MOVE: {

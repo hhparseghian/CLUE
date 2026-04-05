@@ -2,6 +2,7 @@
 #define CLUE_LISTVIEW_H
 
 #include "clue_widget.h"
+#include "scrollbar.h"
 
 /* Callback to provide item text at a given index */
 typedef const char *(*ClueListViewItemCallback)(int index, void *user_data);
@@ -22,6 +23,7 @@ typedef struct {
     int                         scroll_y;
     int                         selected;   /* -1 = none */
     int                         hovered;    /* -1 = none */
+    ClueScrollbar               sb;         /* shared scrollbar state */
 } ClueListView;
 
 /* Create a list view */

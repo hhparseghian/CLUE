@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdio.h>
 #include "clue/text_editor.h"
+#include "clue/scrollbar.h"
 #include "clue/draw.h"
 #include "clue/app.h"
 #include "clue/font.h"
@@ -470,18 +471,11 @@ static void text_editor_draw(ClueWidget *w)
     }
 
     /* Scrollbar */
-    int visible_h = bh - PAD * 2;
-    int total_content_h = total_lines * lh;
-    if (total_content_h > visible_h) {
-        float ratio = (float)visible_h / (float)total_content_h;
-        int bar_h = (int)(ratio * (bh - PAD * 2));
-        if (bar_h < 20) bar_h = 20;
-        int max_scroll = total_content_h - visible_h;
-        float pos_ratio = max_scroll > 0 ? (float)ed->scroll_y / (float)max_scroll : 0;
-        int bar_y = y + PAD + (int)(pos_ratio * (bh - PAD * 2 - bar_h));
-        int bar_x = x + bw - 8;
-        clue_fill_rounded_rect(bar_x, bar_y, 6, bar_h,
-                               3.0f, UI_RGBA(150, 150, 160, 120));
+    {
+        int visible_h = bh - PAD * 2;
+        int total_content_h = total_lines * lh;
+        clue_scrollbar_draw(&ed->sb, x, y + PAD, bw, visible_h,
+                            total_content_h, ed->scroll_y);
     }
 }
 
@@ -499,10 +493,23 @@ static int text_editor_handle_event(ClueWidget *w, UIEvent *event)
     int x = w->base.x, y = w->base.y;
     int bw = w->base.w, bh = w->base.h;
 
+    /* Scrollbar drag */
+    {
+        UIFont *sbfont = ed->base.style.font ? ed->base.style.font : clue_app_default_font();
+        int sblh = sbfont ? clue_font_line_height(sbfont) : 16;
+        int sb_total = (count_lines(ed->text, ed->text_len) + 1) * sblh;
+        int sb_visible = bh - PAD * 2;
+        if (clue_scrollbar_handle_event(&ed->sb, x, y + PAD, bw, sb_visible,
+                                        sb_total, &ed->scroll_y,
+                                        event, &w->base)) {
+            return 1;
+        }
+    }
+
     if (event->type == UI_EVENT_MOUSE_MOVE) {
         int mx = event->mouse_move.x, my = event->mouse_move.y;
         if (mx >= x && mx < x + bw && my >= y && my < y + bh) {
-            if (event->window)
+            if (event->window && !ed->sb.hovered)
                 clue_window_set_cursor(event->window, UI_CURSOR_TEXT);
         }
         if (ed->mouse_selecting) {

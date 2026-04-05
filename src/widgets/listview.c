@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include "clue/listview.h"
+#include "clue/scrollbar.h"
 #include "clue/draw.h"
 #include "clue/app.h"
 #include "clue/window.h"
@@ -8,17 +9,20 @@
 #include <xkbcommon/xkbcommon-keysyms.h>
 
 #define LV_PAD 6
-#define SCROLLBAR_W 6
 
 static UIFont *lv_font(ClueListView *lv)
 {
     return lv->base.style.font ? lv->base.style.font : clue_app_default_font();
 }
 
+static int total_content_h(ClueListView *lv)
+{
+    return lv->item_count * lv->item_height;
+}
+
 static void clamp_scroll(ClueListView *lv)
 {
-    int total = lv->item_count * lv->item_height;
-    int max_y = total - lv->base.base.h;
+    int max_y = total_content_h(lv) - lv->base.base.h;
     if (max_y < 0) max_y = 0;
     if (lv->scroll_y > max_y) lv->scroll_y = max_y;
     if (lv->scroll_y < 0) lv->scroll_y = 0;
@@ -61,7 +65,6 @@ static void listview_draw(ClueWidget *w)
 
         int text_offset = LV_PAD;
 
-        /* Draw optional icon */
         if (lv->icon_cb) {
             text_offset += lv->icon_cb(i, x + LV_PAD, iy, lv->item_height,
                                        lv->item_data);
@@ -78,17 +81,8 @@ static void listview_draw(ClueWidget *w)
     clue_reset_clip_rect();
 
     /* Scrollbar */
-    int total = lv->item_count * lv->item_height;
-    if (total > bh) {
-        float ratio = (float)bh / (float)total;
-        int bar_h = (int)(ratio * bh);
-        if (bar_h < 20) bar_h = 20;
-        float pos = (float)lv->scroll_y / (float)(total - bh);
-        int bar_y = y + (int)(pos * (bh - bar_h));
-        clue_fill_rounded_rect(x + bw - SCROLLBAR_W - 2, bar_y,
-                               SCROLLBAR_W, bar_h, SCROLLBAR_W / 2.0f,
-                               UI_RGBA(150, 150, 160, 120));
-    }
+    clue_scrollbar_draw(&lv->sb, x, y, bw, bh,
+                        total_content_h(lv), lv->scroll_y);
 }
 
 static void listview_layout(ClueWidget *w)
@@ -110,6 +104,14 @@ static int listview_handle_event(ClueWidget *w, UIEvent *event)
     ClueListView *lv = (ClueListView *)w;
     int x = w->base.x, y = w->base.y;
     int bw = w->base.w, bh = w->base.h;
+
+    /* Scrollbar drag takes priority */
+    if (clue_scrollbar_handle_event(&lv->sb, x, y, bw, bh,
+                                    total_content_h(lv), &lv->scroll_y,
+                                    event, &w->base)) {
+        clamp_scroll(lv);
+        return 1;
+    }
 
     switch (event->type) {
     case UI_EVENT_MOUSE_MOVE: {
@@ -154,7 +156,6 @@ static int listview_handle_event(ClueWidget *w, UIEvent *event)
                 lv->selected = 0;
                 clue_signal_emit(lv, "selected");
             }
-            /* Scroll to keep selected visible */
             int sel_y = lv->selected * lv->item_height;
             if (sel_y < lv->scroll_y)
                 lv->scroll_y = sel_y;
@@ -170,7 +171,6 @@ static int listview_handle_event(ClueWidget *w, UIEvent *event)
                 lv->selected = 0;
                 clue_signal_emit(lv, "selected");
             }
-            /* Scroll to keep selected visible */
             int sel_bottom = (lv->selected + 1) * lv->item_height;
             if (sel_bottom > lv->scroll_y + bh)
                 lv->scroll_y = sel_bottom - bh;

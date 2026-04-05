@@ -1,10 +1,9 @@
 #include <stdlib.h>
 #include "clue/scroll.h"
+#include "clue/scrollbar.h"
 #include "clue/draw.h"
+#include "clue/app.h"
 #include "clue/clue_widget.h"
-
-#define SCROLLBAR_W 6
-#define SCROLLBAR_PAD 2
 
 static void clamp_scroll(ClueScroll *s)
 {
@@ -52,17 +51,7 @@ static void scroll_draw(ClueWidget *w)
     clue_reset_clip_rect();
 
     /* Vertical scrollbar */
-    if (s->content_h > bh) {
-        float ratio = (float)bh / (float)s->content_h;
-        int bar_h = (int)(ratio * bh);
-        if (bar_h < 20) bar_h = 20;
-        float pos_ratio = (float)s->scroll_y / (float)(s->content_h - bh);
-        int bar_y = y + (int)(pos_ratio * (bh - bar_h));
-        int bar_x = x + bw - SCROLLBAR_W - SCROLLBAR_PAD;
-
-        clue_fill_rounded_rect(bar_x, bar_y, SCROLLBAR_W, bar_h,
-                               SCROLLBAR_W / 2.0f, UI_RGBA(150, 150, 160, 120));
-    }
+    clue_scrollbar_draw(&s->sb, x, y, bw, bh, s->content_h, s->scroll_y);
 }
 
 /* Recursively compute the bounding box of all descendants */
@@ -107,6 +96,14 @@ static int scroll_handle_event(ClueWidget *w, UIEvent *event)
     ClueScroll *s = (ClueScroll *)w;
     int x = w->base.x, y = w->base.y;
     int bw = w->base.w, bh = w->base.h;
+
+    /* Scrollbar drag takes priority */
+    if (clue_scrollbar_handle_event(&s->sb, x, y, bw, bh,
+                                    s->content_h, &s->scroll_y,
+                                    event, &w->base)) {
+        clamp_scroll(s);
+        return 1;
+    }
 
     if (event->type == UI_EVENT_MOUSE_SCROLL) {
         int mx = event->mouse_scroll.x;

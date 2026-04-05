@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "clue/table.h"
+#include "clue/scrollbar.h"
 #include "clue/draw.h"
 #include "clue/app.h"
 #include "clue/font.h"
@@ -98,17 +99,10 @@ static void table_draw(ClueWidget *w)
 
     clue_reset_clip_rect();
 
-    /* Scrollbar */
-    int total = t->row_count * t->row_height;
-    if (total > body_h) {
-        float ratio = (float)body_h / (float)total;
-        int bar_h = (int)(ratio * body_h);
-        if (bar_h < 20) bar_h = 20;
-        float pos = (float)t->scroll_y / (float)(total - body_h);
-        int bar_y = body_y + (int)(pos * (body_h - bar_h));
-        clue_fill_rounded_rect(x + bw - SCROLLBAR_W - 2, bar_y,
-                               SCROLLBAR_W, bar_h, SCROLLBAR_W / 2.0f,
-                               UI_RGBA(150, 150, 160, 120));
+    /* Scrollbar (in body area, below header) */
+    {
+        int total = t->row_count * t->row_height;
+        clue_scrollbar_draw(&t->sb, x, body_y, bw, body_h, total, t->scroll_y);
     }
 }
 
@@ -137,6 +131,17 @@ static int table_handle_event(ClueWidget *w, UIEvent *event)
     int x = w->base.x, y = w->base.y;
     int bw = w->base.w, bh = w->base.h;
     int body_y = y + t->header_height;
+    int body_h = bh - t->header_height;
+
+    /* Scrollbar drag */
+    {
+        int total = t->row_count * t->row_height;
+        if (clue_scrollbar_handle_event(&t->sb, x, body_y, bw, body_h,
+                                        total, &t->scroll_y,
+                                        event, &w->base)) {
+            return 1;
+        }
+    }
 
     switch (event->type) {
     case UI_EVENT_MOUSE_MOVE: {
