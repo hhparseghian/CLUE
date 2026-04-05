@@ -57,6 +57,7 @@ static const char *frag_src =
     "uniform float u_shape;\n"
     "uniform vec2  u_line_a;\n"
     "uniform vec2  u_line_b;\n"
+    "uniform vec2  u_arc_angles;\n"  /* start, end in radians */
     "\n"
     "float sdf_rounded_rect(vec2 p, vec2 half_size, float r) {\n"
     "    vec2 d = abs(p) - half_size + vec2(r);\n"
@@ -74,10 +75,28 @@ static const char *frag_src =
     "    return length(pa - ba * h) - half_w;\n"
     "}\n"
     "\n"
+    /* Wrap angle to [0, 2*PI) */
+    "float wrap_angle(float a) {\n"
+    "    const float TWO_PI = 6.28318530718;\n"
+    "    return a - floor(a / TWO_PI) * TWO_PI;\n"
+    "}\n"
+    "\n"
     "void main() {\n"
     "    vec2 p = (v_uv - 0.5) * u_quad;\n"
     "    float d;\n"
-    "    if (u_shape > 1.5) {\n"
+    "    if (u_shape > 2.5) {\n"
+    "        /* Arc: circle SDF + hard angle clip (no AA on endpoints) */\n"
+    "        d = sdf_circle(p, u_size.x * 0.5);\n"
+    "        d = abs(d) - u_thickness * 0.5;\n"
+    "        float angle = atan(p.y, p.x);\n"
+    "        float a = wrap_angle(angle - u_arc_angles.x);\n"
+    "        float span = wrap_angle(u_arc_angles.y - u_arc_angles.x);\n"
+    "        if (a > span) discard;\n"
+    "        float aa = max(fwidth(d), 0.5);\n"
+    "        float alpha = 1.0 - smoothstep(-aa, aa, d);\n"
+    "        gl_FragColor = u_color * alpha;\n"
+    "        return;\n"
+    "    } else if (u_shape > 1.5) {\n"
     "        d = sdf_line(p, u_line_a, u_line_b, u_thickness * 0.5);\n"
     "    } else if (u_shape > 0.5) {\n"
     "        d = sdf_circle(p, u_size.x * 0.5);\n"
@@ -147,6 +166,7 @@ static struct {
     GLint  u_shape;
     GLint  u_line_a;
     GLint  u_line_b;
+    GLint  u_arc_angles;
     /* Line shader */
     GLuint line_prog;
     GLint  line_a_pos;
@@ -222,8 +242,9 @@ static int build_program(void)
     gl.u_radius     = glGetUniformLocation(gl.prog, "u_radius");
     gl.u_thickness  = glGetUniformLocation(gl.prog, "u_thickness");
     gl.u_shape      = glGetUniformLocation(gl.prog, "u_shape");
-    gl.u_line_a     = glGetUniformLocation(gl.prog, "u_line_a");
-    gl.u_line_b     = glGetUniformLocation(gl.prog, "u_line_b");
+    gl.u_line_a      = glGetUniformLocation(gl.prog, "u_line_a");
+    gl.u_line_b      = glGetUniformLocation(gl.prog, "u_line_b");
+    gl.u_arc_angles  = glGetUniformLocation(gl.prog, "u_arc_angles");
 
     /* --- Line shader --- */
     GLuint line_vs = compile_shader(GL_VERTEX_SHADER, vert_src);
@@ -440,6 +461,34 @@ static void gl_draw_circle(int cx, int cy, int radius,
     draw_shape(cx - radius, cy - radius, d, d, 0.0f, thickness, 1, color);
 }
 
+static void gl_draw_arc(int cx, int cy, int radius,
+                        float start_rad, float end_rad,
+                        float thickness, UIColor color)
+{
+    if (!gl.prog || radius <= 0) return;
+
+    int d = radius * 2;
+    float pad = thickness * 0.5f + 2.5f;
+    float fx = (float)(cx - radius) - pad;
+    float fy = (float)(cy - radius) - pad;
+    float fw = (float)d + pad * 2.0f;
+    float fh = (float)d + pad * 2.0f;
+
+    glUseProgram(gl.prog);
+    glUniform2f(gl.u_resolution, (float)gl.vp_w, (float)gl.vp_h);
+    glUniform4f(gl.u_color, color.r, color.g, color.b, color.a);
+    glUniform2f(gl.u_quad, fw, fh);
+    glUniform2f(gl.u_size, (float)d, (float)d);
+    glUniform1f(gl.u_radius, 0.0f);
+    glUniform1f(gl.u_thickness, thickness);
+    glUniform1f(gl.u_shape, 3.0f);  /* arc */
+    glUniform2f(gl.u_line_a, 0.0f, 0.0f);
+    glUniform2f(gl.u_line_b, 0.0f, 0.0f);
+    glUniform2f(gl.u_arc_angles, start_rad, end_rad);
+
+    emit_quad(fx, fy, fw, fh);
+}
+
 static void gl_draw_line(int x0, int y0, int x1, int y1,
                          float thickness, UIColor color)
 {
@@ -652,6 +701,7 @@ static UIRenderer g_gl_renderer = {
     .draw_line         = gl_draw_line,
     .fill_circle       = gl_fill_circle,
     .draw_circle       = gl_draw_circle,
+    .draw_arc          = gl_draw_arc,
     .draw_text         = gl_draw_text,
     .draw_image        = gl_draw_image,
     .set_clip_rect     = gl_set_clip_rect,

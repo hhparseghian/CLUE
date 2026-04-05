@@ -20,6 +20,9 @@ void clue_draw_line(int x0, int y0, int x1, int y1,
 void clue_fill_circle(int cx, int cy, int radius, UIColor color);
 void clue_draw_circle(int cx, int cy, int radius,
                       float thickness, UIColor color);
+void clue_draw_arc(int cx, int cy, int radius,
+                   float start_rad, float end_rad,
+                   float thickness, UIColor color);
 
 /* Draw text with explicit font */
 void clue_draw_text(int x, int y, const char *text,

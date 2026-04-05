@@ -33,6 +33,11 @@ void clue_draw_circle(int cx, int cy, int radius,
                       float thickness, UIColor color)
 { R(); APP->renderer->draw_circle(cx, cy, radius, thickness, color); }
 
+void clue_draw_arc(int cx, int cy, int radius,
+                   float start_rad, float end_rad,
+                   float thickness, UIColor color)
+{ R(); if (APP->renderer->draw_arc) APP->renderer->draw_arc(cx, cy, radius, start_rad, end_rad, thickness, color); }
+
 void clue_draw_text(int x, int y, const char *text,
                     UIFont *font, UIColor color)
 { R(); APP->renderer->draw_text(x, y, text, font, color); }

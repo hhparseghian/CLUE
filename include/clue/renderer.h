@@ -45,6 +45,9 @@ typedef struct {
     void  (*fill_circle)(int cx, int cy, int radius, UIColor color);
     void  (*draw_circle)(int cx, int cy, int radius,
                          float thickness, UIColor color);
+    void  (*draw_arc)(int cx, int cy, int radius,
+                      float start_rad, float end_rad,
+                      float thickness, UIColor color);
 
     /* Text */
     void  (*draw_text)(int x, int y, const char *text,
