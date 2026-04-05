@@ -285,6 +285,7 @@
   <a href="#menu">Menu</a>
   <div class="sidebar-section">Rendering</div>
   <a href="#draw">Draw</a>
+  <a href="#texture">Textures</a>
   <a href="#font">Font</a>
   <a href="#cursor">Cursor</a>
   <a href="#style">Style</a>
@@ -364,6 +365,14 @@ make
   <h2 id="app">App</h2>
   <p class="description">Top-level application context. Manages the main window, event loop, and widget tree.</p>
 
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">int</span> <span class="name">clue_init</span>(<span class="param">void</span>)</div>
+    <div class="fn-desc">Initialise CLUE: selects a backend and sets up the window manager. Returns 0 on success.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_shutdown</span>(<span class="param">void</span>)</div>
+    <div class="fn-desc">Shut down CLUE: destroys all windows and releases backend resources.</div>
+  </div>
   <div class="fn-block">
     <div class="fn-sig"><span class="type">ClueApp *</span><span class="name">clue_app_new</span>(<span class="param">const char *title</span>, <span class="param">int w</span>, <span class="param">int h</span>)</div>
     <div class="fn-desc">Create a new application with a window of the given size and title.</div>
@@ -512,6 +521,10 @@ make
   <div class="fn-block">
     <div class="fn-sig"><span class="type">void</span> <span class="name">clue_button_set_label</span>(<span class="param">ClueButton *button</span>, <span class="param">const char *label</span>)</div>
     <div class="fn-desc">Update the button's label text.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_button_set_icon</span>(<span class="param">ClueButton *button</span>, <span class="param">UITexture icon</span>, <span class="param">int w</span>, <span class="param">int h</span>)</div>
+    <div class="fn-desc">Set an icon texture displayed above the label. Pass 0 to remove the icon.</div>
   </div>
   <div class="signal-tag">Signal: "clicked"</div>
 
@@ -1014,6 +1027,18 @@ make
     <div class="fn-sig"><span class="type">ClueDialogResult</span> <span class="name">clue_dialog_run</span>(<span class="param">ClueDialog *dlg</span>)</div>
     <div class="fn-desc">Show the dialog and run its event loop. Blocks until closed. Returns the result code.</div>
   </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_dialog_show</span>(<span class="param">ClueDialog *dlg</span>)</div>
+    <div class="fn-desc">Show the dialog (non-blocking variant, uses nested event loop).</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_dialog_set_callback</span>(<span class="param">ClueDialog *dlg</span>, <span class="param">ClueDialogCallback cb</span>, <span class="param">void *user_data</span>)</div>
+    <div class="fn-desc">Set a callback for when the dialog closes.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_dialog_destroy</span>(<span class="param">ClueDialog *dlg</span>)</div>
+    <div class="fn-desc">Free all resources associated with a dialog.</div>
+  </div>
 
   <h2 id="overlay">Overlay</h2>
   <p class="description">Embedded modal overlay rendered inside the main window. Works on headless/KMSDRM where separate OS windows are not available.</p>
@@ -1098,6 +1123,14 @@ make
     <div class="fn-sig"><span class="type">void</span> <span class="name">clue_menu_popup</span>(<span class="param">ClueMenu *menu</span>, <span class="param">int x</span>, <span class="param">int y</span>)</div>
     <div class="fn-desc">Show the menu as a popup at the given position.</div>
   </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_context_menu_show</span>(<span class="param">ClueMenu *menu</span>, <span class="param">int x</span>, <span class="param">int y</span>)</div>
+    <div class="fn-desc">Show a context menu at the given position (drawn on top of all widgets).</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_context_menu_close</span>(<span class="param">void</span>)</div>
+    <div class="fn-desc">Close the currently visible context menu.</div>
+  </div>
 
   <!-- ===================== RENDERING ===================== -->
 
@@ -1149,12 +1182,32 @@ make
     <div class="fn-desc">Draw a texture at the given position and size.</div>
   </div>
   <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_clear</span>(<span class="param">float r</span>, <span class="param">float g</span>, <span class="param">float b</span>, <span class="param">float a</span>)</div>
+    <div class="fn-desc">Clear the screen with the given RGBA colour.</div>
+  </div>
+  <div class="fn-block">
     <div class="fn-sig"><span class="type">void</span> <span class="name">clue_set_clip_rect</span>(<span class="param">int x</span>, <span class="param">int y</span>, <span class="param">int w</span>, <span class="param">int h</span>)</div>
     <div class="fn-desc">Set the scissor/clip rectangle. Drawing outside this region is clipped.</div>
   </div>
   <div class="fn-block">
     <div class="fn-sig"><span class="type">void</span> <span class="name">clue_reset_clip_rect</span>(<span class="param">void</span>)</div>
     <div class="fn-desc">Reset the clip rectangle to the full window.</div>
+  </div>
+
+  <h2 id="texture">Textures</h2>
+  <p class="description">Load and manage image textures for drawing.</p>
+
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">UITexture</span> <span class="name">clue_texture_load</span>(<span class="param">const char *path</span>)</div>
+    <div class="fn-desc">Load a texture from an image file (PNG, JPG, BMP). Returns 0 on failure.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">UITexture</span> <span class="name">clue_texture_load_rgba</span>(<span class="param">const unsigned char *pixels</span>, <span class="param">int w</span>, <span class="param">int h</span>)</div>
+    <div class="fn-desc">Load a texture from raw RGBA pixel data.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_texture_destroy</span>(<span class="param">UITexture tex</span>)</div>
+    <div class="fn-desc">Free a loaded texture.</div>
   </div>
 
   <h2 id="font">Font</h2>
