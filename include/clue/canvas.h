@@ -42,6 +42,7 @@ typedef struct {
     int               last_mx;    /* for delta tracking */
     int               last_my;
     bool              focusable_canvas; /* receive keyboard events (default false) */
+    bool              draw_background;  /* draw theme surface rect (default false) */
 } ClueCanvas;
 
 /* Create a new canvas */

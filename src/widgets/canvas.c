@@ -50,9 +50,9 @@ static void canvas_draw(ClueWidget *w)
     int x = w->base.x, y = w->base.y;
     int bw = w->base.w, bh = w->base.h;
 
-    /* Background: use per-widget bg_color if set, otherwise theme surface */
-    UIColor bg = w->style.bg_color.a > 0.001f ? w->style.bg_color : th->surface;
-    if (bg.a > 0.001f) {
+    /* Background */
+    if (c->draw_background) {
+        UIColor bg = w->style.bg_color.a > 0.001f ? w->style.bg_color : th->surface;
         clue_fill_rect(x, y, bw, bh, bg);
         clue_draw_rect(x, y, bw, bh, 1.0f, th->surface_border);
     }
