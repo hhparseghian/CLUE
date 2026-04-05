@@ -57,6 +57,9 @@ static void tabs_draw(ClueWidget *w)
             if (i == t->hovered) {
                 clue_fill_rect(tx, y, tw, t->tab_height, th->surface_hover);
             }
+            ClueColor border = CLUE_RGB(0, 0, 0);
+            clue_fill_rect(tx, y, tw, 1, border);
+            clue_fill_rect(tx, y + t->tab_height - 1, tw, 1, border);
         }
 
         tx += tw;
