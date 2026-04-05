@@ -42,7 +42,7 @@ static void grid_layout(ClueWidget *w)
         if (cw[c] == 0) cw[c] = auto_w;
     }
 
-    /* Calculate row heights from children */
+    /* Calculate row heights from children (natural size pass) */
     int rh[256];
     for (int r = 0; r < rows && r < 256; r++) rh[r] = 0;
 
@@ -50,10 +50,25 @@ static void grid_layout(ClueWidget *w)
         int r = i / cols;
         if (r >= 256) break;
         ClueWidget *child = (ClueWidget *)w->base.children[i];
-        if (child->base.h > rh[r]) rh[r] = child->base.h;
+        int ch = child->base.h + child->style.margin_top + child->style.margin_bottom;
+        if (ch > rh[r]) rh[r] = ch;
     }
 
-    /* Position children */
+    /* Distribute remaining vertical space to rows when children want vexpand */
+    int avail_h = w->base.h - s->padding_top - s->padding_bottom
+                  - g->row_spacing * (rows - 1);
+    int used_h = 0;
+    for (int r = 0; r < rows && r < 256; r++) used_h += rh[r];
+    int extra_h = avail_h - used_h;
+    if (extra_h > 0 && rows > 0) {
+        int per_row = extra_h / rows;
+        int leftover = extra_h - per_row * rows;
+        for (int r = 0; r < rows && r < 256; r++) {
+            rh[r] += per_row + (r < leftover ? 1 : 0);
+        }
+    }
+
+    /* Position and size children */
     int cy = w->base.y + s->padding_top;
     for (int r = 0; r < rows; r++) {
         if (r >= 256) break;
@@ -63,8 +78,19 @@ static void grid_layout(ClueWidget *w)
             if (idx >= n) break;
 
             ClueWidget *child = (ClueWidget *)w->base.children[idx];
-            child->base.x = cx + child->style.margin_left;
-            child->base.y = cy + child->style.margin_top;
+            int ml = child->style.margin_left;
+            int mr = child->style.margin_right;
+            int mt = child->style.margin_top;
+            int mb = child->style.margin_bottom;
+
+            child->base.x = cx + ml;
+            child->base.y = cy + mt;
+
+            /* Expand children to fill their cell */
+            if (child->style.hexpand)
+                child->base.w = cw[c] - ml - mr;
+            if (child->style.vexpand)
+                child->base.h = rh[r] - mt - mb;
 
             cx += cw[c] + g->col_spacing;
         }
