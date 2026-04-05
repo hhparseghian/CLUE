@@ -468,6 +468,21 @@ static void text_editor_draw(ClueWidget *w)
         }
         clue_reset_clip_rect();
     }
+
+    /* Scrollbar */
+    int visible_h = bh - PAD * 2;
+    int total_content_h = total_lines * lh;
+    if (total_content_h > visible_h) {
+        float ratio = (float)visible_h / (float)total_content_h;
+        int bar_h = (int)(ratio * (bh - PAD * 2));
+        if (bar_h < 20) bar_h = 20;
+        int max_scroll = total_content_h - visible_h;
+        float pos_ratio = max_scroll > 0 ? (float)ed->scroll_y / (float)max_scroll : 0;
+        int bar_y = y + PAD + (int)(pos_ratio * (bh - PAD * 2 - bar_h));
+        int bar_x = x + bw - 8;
+        clue_fill_rounded_rect(bar_x, bar_y, 6, bar_h,
+                               3.0f, UI_RGBA(150, 150, 160, 120));
+    }
 }
 
 static void text_editor_layout(ClueWidget *w)
@@ -550,6 +565,10 @@ static int text_editor_handle_event(ClueWidget *w, UIEvent *event)
             int lh = font ? clue_font_line_height(font) : 16;
             ed->scroll_y -= (int)(event->mouse_scroll.dy * lh * 3);
             if (ed->scroll_y < 0) ed->scroll_y = 0;
+            int total_lines = count_lines(ed->text, ed->text_len) + 1;
+            int max_scroll = total_lines * lh - (bh - PAD * 2);
+            if (max_scroll < 0) max_scroll = 0;
+            if (ed->scroll_y > max_scroll) ed->scroll_y = max_scroll;
             return 1;
         }
     }
