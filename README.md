@@ -127,6 +127,33 @@ cc main.c $(pkg-config --cflags --libs clue) -o myapp
 
 Full API reference: [docs/index.html](docs/index.html)
 
+## Requirements
+
+**Ubuntu / Debian:**
+
+```bash
+sudo apt install cmake pkg-config libfreetype-dev libegl-dev libgles-dev \
+    libxkbcommon-dev libx11-dev libwayland-dev libwayland-egl-backend-dev \
+    wayland-protocols libdrm-dev libgbm-dev libinput-dev libudev-dev
+```
+
+Or just run `./build.sh --install-deps`.
+
+For X11-only builds you can skip the Wayland and DRM packages:
+
+```bash
+sudo apt install cmake pkg-config libfreetype-dev libegl-dev libgles-dev \
+    libxkbcommon-dev libx11-dev
+```
+
+## Contributing
+
+Pull requests welcome. Please open an issue first for major changes.
+
+- Fork the repo and create a branch
+- Make your changes and test with `./build.sh --clean`
+- Submit a pull request
+
 ## License
 
 [MIT](LICENSE)
