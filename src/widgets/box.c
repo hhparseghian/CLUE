@@ -105,14 +105,29 @@ static void box_layout(ClueWidget *w)
             extra = 0;
     }
 
+    /* Main-axis alignment: shift all children if align end/center */
+    int main_offset_all = 0;
+    if (expand_count == 0) {
+        int main_space = (box->orientation == CLUE_VERTICAL)
+            ? avail_h - total_main : avail_w - total_main;
+        if (main_space > 0) {
+            ClueAlign main_align = (box->orientation == CLUE_VERTICAL)
+                ? s->v_align : s->h_align;
+            if (main_align == CLUE_ALIGN_END)
+                main_offset_all = main_space;
+            else if (main_align == CLUE_ALIGN_CENTER)
+                main_offset_all = main_space / 2;
+        }
+    }
+
     int offset_main = 0;
     for (int i = 0; i < w->base.child_count; i++) {
         ClueWidget *child = (ClueWidget *)w->base.children[i];
         if (!child->base.visible) continue;
 
         if (box->orientation == CLUE_VERTICAL) {
-            /* Shift by accumulated expand offset */
-            child->base.y += offset_main;
+            /* Shift by main-axis alignment + accumulated expand offset */
+            child->base.y += main_offset_all + offset_main;
 
             /* Expand in main axis (vertical) */
             if (child->style.vexpand && per_expand > 0) {
@@ -134,7 +149,7 @@ static void box_layout(ClueWidget *w)
             if (align_off > 0)
                 child->base.x += align_off;
         } else {
-            child->base.x += offset_main;
+            child->base.x += main_offset_all + offset_main;
 
             if (child->style.hexpand && per_expand > 0) {
                 child->base.w += per_expand;
