@@ -50,6 +50,8 @@
 #include "colorpicker.h"
 #include "clipboard.h"
 #include "shortcut.h"
+#include "overlay.h"
+#include "scrollbar.h"
 #include "app.h"
 
 /* Initialise CLUE: selects a backend and sets up the window manager.
@@ -102,7 +104,8 @@ UIRenderer *clue_get_renderer(void);
     ClueCanvas    *: (ClueWidget *)(x),           \
     ClueSplitter  *: (ClueWidget *)(x),           \
     ClueTextEditor  *: (ClueWidget *)(x),          \
-    ClueColorPicker *: (ClueWidget *)(x)           \
+    ClueColorPicker *: (ClueWidget *)(x),           \
+    ClueOverlay    *: (ClueWidget *)(x)            \
 )
 
 /* Wrapper macros -- shadow the real functions so call sites need no casts.

@@ -40,6 +40,8 @@ set(CLUE_CORE_SOURCES
     src/widgets/listview.c
     src/widgets/progress.c
     src/widgets/tooltip.c
+    src/widgets/overlay.c
+    src/widgets/scrollbar.c
     src/widgets/menu.c
     src/widgets/treeview.c
     src/widgets/table.c

@@ -12,6 +12,7 @@
 #include "clue/menu.h"
 #include "clue/shortcut.h"
 #include "clue/tabs.h"
+#include "clue/overlay.h"
 
 /* Global app singleton */
 static ClueApp *g_app = NULL;
@@ -197,6 +198,13 @@ void clue_app_run(ClueApp *app)
 
         /* Context menu (drawn on top of overlays) */
         clue_context_menu_draw();
+
+        /* Modal overlay (drawn on top of everything except tooltip) */
+        if (app->modal_widget &&
+            app->modal_widget->vtable &&
+            app->modal_widget->vtable->draw) {
+            app->modal_widget->vtable->draw(app->modal_widget);
+        }
 
         /* Tooltip (drawn last, on top of everything) */
         if (app->root) {
