@@ -13,18 +13,16 @@
 #define TIP_PAD_H 10
 #define TIP_PAD_V 6
 
-/* We store tooltip text in the widget's user_data field */
-
 void clue_tooltip_set(ClueWidget *widget, const char *text)
 {
     if (!widget) return;
-    free(widget->base.user_data);
-    widget->base.user_data = text ? strdup(text) : NULL;
+    free(widget->tooltip);
+    widget->tooltip = text ? strdup(text) : NULL;
 }
 
 const char *clue_tooltip_get(ClueWidget *widget)
 {
-    return widget ? (const char *)widget->base.user_data : NULL;
+    return widget ? widget->tooltip : NULL;
 }
 
 /* Global hover tracking */
@@ -50,10 +48,10 @@ static ClueWidget *find_hovered(ClueWidget *w, int mx, int my)
         if (hit) return hit;
     }
 
-    /* Check this widget */
+    /* Check this widget — only show tooltip if explicitly set */
     if (mx >= w->base.x && mx < w->base.x + w->base.w &&
         my >= w->base.y && my < w->base.y + w->base.h &&
-        w->base.user_data) {
+        w->tooltip) {
         return w;
     }
 
@@ -69,9 +67,9 @@ void clue_tooltip_draw(int mouse_x, int mouse_y)
 {
     (void)mouse_x;
     (void)mouse_y;
-    if (!g_hovered || !g_hovered->base.user_data) return;
+    if (!g_hovered || !g_hovered->tooltip) return;
 
-    const char *text = (const char *)g_hovered->base.user_data;
+    const char *text = g_hovered->tooltip;
     const ClueTheme *th = clue_theme_get();
     ClueFont *font = clue_app_default_font();
     if (!font) return;

@@ -55,6 +55,7 @@ typedef struct ClueWidget {
     ClueWidgetType          type_id;
     ClueStyle               style;
     ClueSignalSlot         *signals;
+    char                   *tooltip;    /* tooltip text (NULL = none) */
 } ClueWidget;
 
 /* Initialise a ClueWidget with defaults and a vtable */
