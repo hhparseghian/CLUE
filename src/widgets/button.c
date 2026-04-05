@@ -55,21 +55,27 @@ static void button_draw(ClueWidget *w)
     UIColor fg = w->style.fg_color.a > 0.001f ? w->style.fg_color : th->button.fg;
 
     if (b->icon && font) {
-        /* Icon + label layout: icon centered above, label below */
-        int thh = clue_font_line_height(font);
-        int spacing = 6;
-        int total_h = b->icon_h + spacing + thh;
-        int top_y = w->base.y + (w->base.h - total_h) / 2 + press_offset;
+        bool has_label = b->label && b->label[0];
+        if (has_label) {
+            /* Icon + label: icon centered above, label below */
+            int thh = clue_font_line_height(font);
+            int spacing = 6;
+            int total_h = b->icon_h + spacing + thh;
+            int top_y = w->base.y + (w->base.h - total_h) / 2 + press_offset;
 
-        /* Icon */
-        int ix = w->base.x + (w->base.w - b->icon_w) / 2;
-        clue_draw_image(b->icon, ix, top_y, b->icon_w, b->icon_h);
+            int ix = w->base.x + (w->base.w - b->icon_w) / 2;
+            clue_draw_image(b->icon, ix, top_y, b->icon_w, b->icon_h);
 
-        /* Label */
-        int tw = clue_font_text_width(font, b->label);
-        int tx = w->base.x + (w->base.w - tw) / 2;
-        int ty = top_y + b->icon_h + spacing;
-        clue_draw_text(tx, ty, b->label, font, fg);
+            int tw = clue_font_text_width(font, b->label);
+            int tx = w->base.x + (w->base.w - tw) / 2;
+            int ty = top_y + b->icon_h + spacing;
+            clue_draw_text(tx, ty, b->label, font, fg);
+        } else {
+            /* Icon only: centered */
+            int ix = w->base.x + (w->base.w - b->icon_w) / 2;
+            int iy = w->base.y + (w->base.h - b->icon_h) / 2 + press_offset;
+            clue_draw_image(b->icon, ix, iy, b->icon_w, b->icon_h);
+        }
     } else if (font) {
         /* Label only (original behaviour) */
         int tw = clue_font_text_width(font, b->label);
@@ -98,9 +104,9 @@ static void button_layout(ClueWidget *w)
     int text_h = clue_font_line_height(font);
 
     if (b->icon) {
-        /* Icon + label: use the wider of icon/text, stack vertically */
-        int content_w = b->icon_w > text_w ? b->icon_w : text_w;
-        int content_h = b->icon_h + 6 + text_h;
+        bool has_label = b->label && b->label[0];
+        int content_w = has_label ? (b->icon_w > text_w ? b->icon_w : text_w) : b->icon_w;
+        int content_h = has_label ? b->icon_h + 6 + text_h : b->icon_h;
         w->base.w = content_w + pad_h;
         w->base.h = content_h + pad_v;
     } else {
