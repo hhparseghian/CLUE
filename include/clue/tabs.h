@@ -23,6 +23,9 @@ ClueTabs *clue_tabs_new(void);
 /* Add a tab with a label and content widget. Returns tab index. */
 int clue_tabs_add(ClueTabs *tabs, const char *label, ClueWidget *content);
 
+/* Remove a tab by index. Does NOT destroy the page widget. */
+void clue_tabs_remove(ClueTabs *tabs, int index);
+
 /* Get/set active tab */
 int  clue_tabs_get_active(ClueTabs *tabs);
 void clue_tabs_set_active(ClueTabs *tabs, int index);

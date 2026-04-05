@@ -44,24 +44,30 @@ static void tabs_draw(ClueWidget *w)
         }
     }
 
-    /* Draw tab buttons */
+    /* Draw tab backgrounds */
     int tx = x;
     for (int i = 0; i < t->tab_count; i++) {
         int tw = 0;
         if (font) tw = clue_font_text_width(font, t->tab_labels[i]) + TAB_PAD_H * 2;
 
         if (i == t->active) {
-            /* Accent underline at top */
             clue_fill_rect(tx, y, tw, 3, th->accent);
         } else {
-            /* Inactive tab */
             clue_fill_rect(tx, y, tw, t->tab_height, th->surface);
             if (i == t->hovered) {
                 clue_fill_rect(tx, y, tw, t->tab_height, th->surface_hover);
             }
         }
 
-        /* Tab label */
+        tx += tw;
+    }
+
+    /* Draw separators and labels on top of backgrounds */
+    tx = x;
+    for (int i = 0; i < t->tab_count; i++) {
+        int tw = 0;
+        if (font) tw = clue_font_text_width(font, t->tab_labels[i]) + TAB_PAD_H * 2;
+
         if (font) {
             ClueColor fg = (i == t->active) ? th->fg_bright : th->fg_dim;
             int text_y = y + (t->tab_height - clue_font_line_height(font)) / 2;
@@ -69,6 +75,11 @@ static void tabs_draw(ClueWidget *w)
         }
 
         tx += tw;
+
+        if (i < t->tab_count - 1) {
+            ClueColor sep = CLUE_RGB(0, 0, 0);
+            clue_fill_rect(tx, y, 1, t->tab_height, sep);
+        }
     }
 
 
@@ -228,6 +239,26 @@ int clue_tabs_add(ClueTabs *tabs, const char *label, ClueWidget *content)
     tabs->tab_count++;
 
     return idx;
+}
+
+void clue_tabs_remove(ClueTabs *tabs, int index)
+{
+    if (!tabs || index < 0 || index >= tabs->tab_count) return;
+
+    free(tabs->tab_labels[index]);
+
+    for (int i = index; i < tabs->tab_count - 1; i++) {
+        tabs->tab_labels[i] = tabs->tab_labels[i + 1];
+        tabs->tab_pages[i]  = tabs->tab_pages[i + 1];
+    }
+    tabs->tab_count--;
+    tabs->tab_labels[tabs->tab_count] = NULL;
+    tabs->tab_pages[tabs->tab_count]  = NULL;
+
+    if (tabs->active >= tabs->tab_count && tabs->tab_count > 0)
+        tabs->active = tabs->tab_count - 1;
+    else if (tabs->active > index)
+        tabs->active--;
 }
 
 int clue_tabs_get_active(ClueTabs *tabs)
