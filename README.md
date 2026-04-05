@@ -25,7 +25,7 @@ A lightweight C99 GUI toolkit for Linux with OpenGL ES 2 rendering and multiple 
 - **Mouse cursors**: resize, text, crosshair, pointer (X11 + Wayland)
 - **Backends**: Wayland, X11, DRM/KMS
 - **Theming**: built-in dark/light themes with full customization
-- **Signals**: GTK-style signal/callback system
+- **Signals**: signal/callback system with typed callbacks
 - **Timers**: repeating and one-shot timers
 - **Font rendering**: FreeType-based text rendering
 - **Type safety**: C11 `_Generic` auto-cast macros for widget APIs
@@ -87,9 +87,8 @@ make
 ```c
 #include <clue/clue.h>
 
-static void on_clicked(void *widget, void *data)
+static void on_clicked(ClueButton *button, void *data)
 {
-    (void)widget;
     ClueLabel *label = data;
     clue_label_set_text(label, "Button clicked!");
 }
