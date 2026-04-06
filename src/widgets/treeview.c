@@ -125,7 +125,7 @@ static void treeview_draw(ClueWidget *w)
     clue_draw_rounded_rect(x, y, bw, bh, th->corner_radius, 1.0f,
                            th->surface_border);
 
-    if (!tv->root) return;
+    if (!tv->root || tv->item_height <= 0) return;
 
     clue_set_clip_rect(x, y, bw, bh);
     int row = 0;
@@ -163,6 +163,8 @@ static int treeview_handle_event(ClueWidget *w, ClueEvent *event)
     ClueTreeView *tv = (ClueTreeView *)w;
     int x = w->base.x, y = w->base.y;
     int bw = w->base.w, bh = w->base.h;
+
+    if (tv->item_height <= 0) return 0;
 
     /* Scrollbar drag */
     int total = count_visible(tv->root) * tv->item_height;

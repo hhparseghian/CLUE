@@ -41,7 +41,7 @@ static void listview_draw(ClueWidget *w)
     clue_draw_rounded_rect(x, y, bw, bh, th->corner_radius, 1.0f,
                            th->surface_border);
 
-    if (!lv->item_cb || !font) return;
+    if (!lv->item_cb || !font || lv->item_height <= 0) return;
 
     clue_set_clip_rect(x, y, bw, bh);
 
@@ -104,6 +104,8 @@ static int listview_handle_event(ClueWidget *w, ClueEvent *event)
     ClueListView *lv = (ClueListView *)w;
     int x = w->base.x, y = w->base.y;
     int bw = w->base.w, bh = w->base.h;
+
+    if (lv->item_height <= 0) return 0;
 
     /* Scrollbar drag takes priority */
     if (clue_scrollbar_handle_event(&lv->sb, x, y, bw, bh,
