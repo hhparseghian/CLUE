@@ -1408,10 +1408,63 @@ updateActive();
 // Search
 document.getElementById('search').addEventListener('input', function() {
   const q = this.value.toLowerCase();
+  const isSearching = q.length > 0;
+
+  // Show/hide individual blocks
   const blocks = document.querySelectorAll('.fn-block, .struct-block');
   blocks.forEach(b => {
     const text = b.textContent.toLowerCase();
-    b.style.display = q && !text.includes(q) ? 'none' : '';
+    const match = !isSearching || text.includes(q);
+    b.style.display = match ? '' : 'none';
+
+    // Highlight matching text in function names
+    const nameEl = b.querySelector('.fn-sig .name, .struct-name');
+    if (nameEl) {
+      const orig = nameEl.textContent;
+      if (isSearching && orig.toLowerCase().includes(q)) {
+        const idx = orig.toLowerCase().indexOf(q);
+        nameEl.innerHTML = orig.slice(0, idx) +
+          '<mark style="background:var(--accent);color:#fff;border-radius:2px;padding:0 2px">' +
+          orig.slice(idx, idx + q.length) + '</mark>' + orig.slice(idx + q.length);
+      } else {
+        nameEl.innerHTML = orig;
+      }
+    }
+  });
+
+  // Show/hide sections: hide h2, h3, p.description, hr if all their blocks are hidden
+  const sections = document.querySelectorAll('.main h2, .main h3');
+  sections.forEach(h => {
+    if (!isSearching) { h.style.display = ''; return; }
+    // Check if any visible block exists between this heading and the next heading
+    let el = h.nextElementSibling;
+    let hasVisible = false;
+    while (el && el.tagName !== 'H2' && el.tagName !== 'H3') {
+      if ((el.classList.contains('fn-block') || el.classList.contains('struct-block')) &&
+          el.style.display !== 'none') {
+        hasVisible = true;
+        break;
+      }
+      el = el.nextElementSibling;
+    }
+    h.style.display = hasVisible ? '' : 'none';
+
+    // Also hide description paragraphs and separators under hidden headings
+    el = h.nextElementSibling;
+    while (el && el.tagName !== 'H2' && el.tagName !== 'H3') {
+      if (el.classList.contains('description') || el.tagName === 'HR') {
+        el.style.display = hasVisible ? '' : 'none';
+      }
+      el = el.nextElementSibling;
+    }
+  });
+
+  // Update sidebar: highlight matching sections
+  links.forEach(l => {
+    if (!isSearching) { l.style.opacity = ''; return; }
+    const id = l.getAttribute('href').slice(1);
+    const heading = document.getElementById(id);
+    l.style.opacity = (heading && heading.style.display === 'none') ? '0.3' : '1';
   });
 });
 </script>
