@@ -2,7 +2,7 @@
 
 A lightweight C99 GUI toolkit for Linux with OpenGL ES 2 rendering and multiple display backends (Wayland, X11, DRM/KMS).
 
-> **Note:** Currently tested on X11 only. Wayland and DRM backends compile but are untested.
+> **Note:** Tested on X11 and DRM/KMS (Raspberry Pi 5 headless). Wayland backend compiles but is untested.
 
 ## Screenshots
 
