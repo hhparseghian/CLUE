@@ -46,12 +46,14 @@ static void tabs_draw(ClueWidget *w)
 
     /* Draw tab backgrounds */
     int tx = x;
+    int active_x = 0, active_w = 0;
     for (int i = 0; i < t->tab_count; i++) {
         int tw = 0;
         if (font) tw = clue_font_text_width(font, t->tab_labels[i]) + TAB_PAD_H * 2;
 
         if (i == t->active) {
-            clue_fill_rect(tx, y, tw, 3, th->accent);
+            active_x = tx;
+            active_w = tw;
         } else {
             clue_fill_rect(tx, y, tw, t->tab_height, th->surface);
             if (i == t->hovered) {
@@ -59,13 +61,18 @@ static void tabs_draw(ClueWidget *w)
             }
             ClueColor border = CLUE_RGB(0, 0, 0);
             clue_fill_rect(tx, y, tw, 1, border);
-            clue_fill_rect(tx, y + t->tab_height - 1, tw, 1, border);
         }
 
         tx += tw;
     }
 
-    /* Draw separators and labels on top of backgrounds */
+    /* Bottom border line across the full width */
+    {
+        ClueColor border = CLUE_RGB(0, 0, 0);
+        clue_fill_rect(x, y + t->tab_height - 1, bw, 1, border);
+    }
+
+    /* Draw labels and separators */
     tx = x;
     for (int i = 0; i < t->tab_count; i++) {
         int tw = 0;
@@ -79,12 +86,12 @@ static void tabs_draw(ClueWidget *w)
 
         tx += tw;
 
-        if (i < t->tab_count - 1) {
+        /* Separator: skip next to active tab */
+        if (i != t->active && i + 1 != t->active) {
             ClueColor sep = CLUE_RGB(0, 0, 0);
             clue_fill_rect(tx, y, 1, t->tab_height, sep);
         }
     }
-
 
     /* Draw active page: force size to fill content area, layout, then draw */
     if (t->active >= 0 && t->active < t->tab_count && t->tab_pages[t->active]) {
@@ -99,6 +106,18 @@ static void tabs_draw(ClueWidget *w)
         page->base.w = bw;
         page->base.h = w->base.h - t->tab_height;
         clue_cwidget_draw_tree(page);
+    }
+
+    /* Redraw active tab AFTER page content so it covers the bottom border */
+    if (active_w > 0) {
+        clue_fill_rect(active_x, y, active_w, t->tab_height + 2, page_bg);
+        clue_fill_rect(active_x, y, active_w, 3, th->accent);
+        /* Re-draw the active tab label */
+        if (font) {
+            int text_y = y + (t->tab_height - clue_font_line_height(font)) / 2;
+            clue_draw_text(active_x + TAB_PAD_H, text_y,
+                           t->tab_labels[t->active], font, th->fg_bright);
+        }
     }
 }
 
