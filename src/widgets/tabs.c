@@ -96,16 +96,20 @@ static void tabs_draw(ClueWidget *w)
     /* Draw active page: force size to fill content area, layout, then draw */
     if (t->active >= 0 && t->active < t->tab_count && t->tab_pages[t->active]) {
         ClueWidget *page = t->tab_pages[t->active];
+        int cy = y + t->tab_height;
+        int ch = w->base.h - t->tab_height;
         page->base.x = x;
-        page->base.y = y + t->tab_height;
+        page->base.y = cy;
         page->base.w = bw;
-        page->base.h = w->base.h - t->tab_height;
+        page->base.h = ch;
         clue_cwidget_layout_tree(page);
         page->base.x = x;
-        page->base.y = y + t->tab_height;
+        page->base.y = cy;
         page->base.w = bw;
-        page->base.h = w->base.h - t->tab_height;
+        page->base.h = ch;
+        clue_set_clip_rect(x, cy, bw, ch);
         clue_cwidget_draw_tree(page);
+        clue_reset_clip_rect();
     }
 
     /* Redraw active tab AFTER page content so it covers the bottom border */
