@@ -186,6 +186,21 @@ static void on_overlay_save(ClueButton *button, void *data)
                                   on_overlay_save_result, NULL);
 }
 
+static void on_show_qwerty(ClueButton *button, void *data)
+{
+    clue_osk_show(CLUE_OSK_QWERTY);
+}
+
+static void on_show_numpad(ClueButton *button, void *data)
+{
+    clue_osk_show(CLUE_OSK_NUMPAD);
+}
+
+static void on_osk_auto(ClueToggle *toggle, void *data)
+{
+    clue_osk_set_auto(clue_toggle_is_on(toggle), CLUE_OSK_QWERTY);
+}
+
 static ClueLabel *section_title(const char *text)
 {
     ClueLabel *lbl = clue_label_new(text);
@@ -335,6 +350,23 @@ ClueScroll *build_widgets_page(ClueApp *app)
     clue_container_add(page, clue_separator_new(CLUE_HORIZONTAL));
     clue_container_add(page, section_title("Dialogs"));
     clue_container_add(page, dlg_row);
+
+    clue_container_add(page, clue_separator_new(CLUE_HORIZONTAL));
+    clue_container_add(page, section_title("On-Screen Keyboard"));
+    ClueBox *osk_row = clue_box_new(CLUE_HORIZONTAL, 8);
+    ClueButton *btn_qwerty = clue_button_new("QWERTY");
+    clue_signal_connect(btn_qwerty, "clicked", on_show_qwerty, NULL);
+    ClueButton *btn_numpad = clue_button_new("Numpad");
+    clue_signal_connect(btn_numpad, "clicked", on_show_numpad, NULL);
+    ClueToggle *osk_auto = clue_toggle_new("Auto-show OSK");
+    clue_signal_connect(osk_auto, "toggled", on_osk_auto, NULL);
+    clue_container_add(osk_row, btn_qwerty);
+    clue_container_add(osk_row, btn_numpad);
+    clue_container_add(osk_row, osk_auto);
+    clue_container_add(page, osk_row);
+    ClueTextInput *osk_input = clue_text_input_new("Tap here to type with OSK...");
+    osk_input->base.base.w = 350;
+    clue_container_add(page, osk_input);
 
     clue_container_add(page, clue_separator_new(CLUE_HORIZONTAL));
     clue_container_add(page, section_title("About"));
