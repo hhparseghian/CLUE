@@ -282,6 +282,7 @@
   <a href="#dialog">Dialog</a>
   <a href="#overlay">Overlay</a>
   <a href="#osk">On-Screen Keyboard</a>
+  <a href="#datepicker">Date/Time Picker</a>
   <a href="#file_dialog">File Dialog</a>
   <a href="#menu">Menu</a>
   <div class="sidebar-section">Rendering</div>
@@ -1099,6 +1100,38 @@ make
   <div class="fn-block">
     <div class="fn-sig"><span class="type">void</span> <span class="name">clue_osk_set_auto</span>(<span class="param">bool enabled</span>, <span class="param">ClueOskType type</span>)</div>
     <div class="fn-desc">Enable or disable auto-show. When enabled, the OSK appears automatically when a text input gets focus (QWERTY) or a spinbox gets focus (numpad), and hides when focus leaves.</div>
+  </div>
+
+  <h2 id="datepicker">Date/Time Picker</h2>
+  <p class="description">Overlay-based date and time pickers. Calendar grid for date selection, spinboxes for time. All three variants are non-blocking and deliver results via callback.</p>
+
+  <div class="struct-block">
+    <div class="struct-name">ClueDateTimeResult</div>
+    <div class="struct-desc">Result struct with <code>year</code>, <code>month</code>, <code>day</code>, <code>hour</code>, <code>minute</code>, and <code>has_time</code> fields.</div>
+  </div>
+  <div class="struct-block">
+    <div class="struct-name">ClueDateTimeCallback</div>
+    <div class="struct-desc"><code>void (*)(const ClueDateTimeResult *result, bool ok, void *user_data)</code> — called when the picker closes.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_datepicker_show</span>(<span class="param">ClueDateTimeCallback callback</span>, <span class="param">void *user_data</span>)</div>
+    <div class="fn-desc">Show a date picker overlay with a calendar grid.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_timepicker_show</span>(<span class="param">ClueDateTimeCallback callback</span>, <span class="param">void *user_data</span>)</div>
+    <div class="fn-desc">Show a time-only picker overlay with hour/minute spinboxes.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_datetimepicker_show</span>(<span class="param">ClueDateTimeCallback callback</span>, <span class="param">void *user_data</span>)</div>
+    <div class="fn-desc">Show a combined date + time picker overlay.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_datepicker_set_date</span>(<span class="param">int year</span>, <span class="param">int month</span>, <span class="param">int day</span>)</div>
+    <div class="fn-desc">Set the initial date before showing the picker.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_datepicker_set_time</span>(<span class="param">int hour</span>, <span class="param">int minute</span>)</div>
+    <div class="fn-desc">Set the initial time before showing the picker.</div>
   </div>
 
   <h2 id="file_dialog">File Dialog</h2>
