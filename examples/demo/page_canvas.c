@@ -1,5 +1,4 @@
 #include "demo.h"
-#include "clue/menu.h"
 #include <stdlib.h>
 
 #define PAINT_MAX 4096
