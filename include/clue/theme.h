@@ -86,6 +86,16 @@ typedef struct {
         ClueColor separator;
     } dialog;
 
+    struct {
+        ClueColor key_bg;           /* letter/number keys */
+        ClueColor key_fg;           /* key label text */
+        ClueColor modifier_bg;      /* Shift, 123, abc */
+        ClueColor action_bg;        /* Bksp, Enter, Space */
+        ClueColor done_bg;          /* Done key */
+        ClueColor preview_bg;       /* text preview bar */
+        ClueColor panel_bg;         /* keyboard panel background */
+    } osk;
+
     /* --- Spacing & sizing --- */
     int      padding_sm;        /* 4 */
     int      padding_md;        /* 8 */

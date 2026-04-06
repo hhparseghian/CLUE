@@ -94,6 +94,16 @@ static ClueTheme g_dark = {
         .separator = {0.31f, 0.31f, 0.35f, 1.0f},
     },
 
+    .osk = {
+        .key_bg      = {0.25f, 0.27f, 0.30f, 1.0f},
+        .key_fg      = {1.0f,  1.0f,  1.0f,  1.0f},
+        .modifier_bg = {0.18f, 0.20f, 0.23f, 1.0f},
+        .action_bg   = {0.22f, 0.24f, 0.27f, 1.0f},
+        .done_bg     = {0.20f, 0.55f, 0.35f, 1.0f},
+        .preview_bg  = {0.12f, 0.13f, 0.15f, 1.0f},
+        .panel_bg    = {0.10f, 0.11f, 0.13f, 1.0f},
+    },
+
     /* Spacing */
     .padding_sm = 4, .padding_md = 8, .padding_lg = 16,
     .spacing_sm = 6, .spacing_md = 12, .spacing_lg = 20,
@@ -183,6 +193,16 @@ static ClueTheme g_light = {
         .border    = {0.80f, 0.80f, 0.83f, 1.0f},
         .title_fg  = {0.0f,  0.0f,  0.0f,  1.0f},
         .separator = {0.80f, 0.80f, 0.83f, 1.0f},
+    },
+
+    .osk = {
+        .key_bg      = {0.92f, 0.93f, 0.95f, 1.0f},
+        .key_fg      = {0.10f, 0.10f, 0.12f, 1.0f},
+        .modifier_bg = {0.78f, 0.80f, 0.83f, 1.0f},
+        .action_bg   = {0.82f, 0.84f, 0.87f, 1.0f},
+        .done_bg     = {0.25f, 0.65f, 0.42f, 1.0f},
+        .preview_bg  = {1.0f,  1.0f,  1.0f,  1.0f},
+        .panel_bg    = {0.88f, 0.89f, 0.91f, 1.0f},
     },
 
     .padding_sm = 4, .padding_md = 8, .padding_lg = 16,
