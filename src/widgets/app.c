@@ -183,6 +183,10 @@ void clue_app_run(ClueApp *app)
         }
 
         /* Draw */
+        {
+            UIBackend *be = clue_wm_get()->backend;
+            if (be && be->begin_frame) be->begin_frame(app->window);
+        }
         app->renderer->begin_frame(app->window);
         const ClueTheme *th = clue_theme_get();
         app->renderer->clear(th->bg.r, th->bg.g, th->bg.b, th->bg.a);
@@ -213,6 +217,10 @@ void clue_app_run(ClueApp *app)
         }
 
         app->renderer->end_frame(app->window);
+        {
+            UIBackend *be = clue_wm_get()->backend;
+            if (be && be->end_frame) be->end_frame(app->window);
+        }
         clue_window_swap_buffers(app->window);
     }
 }
