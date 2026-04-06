@@ -136,6 +136,56 @@ static void on_show_free(ClueButton *button, void *data)
     clue_dialog_destroy(dlg);
 }
 
+static void on_overlay_open_result(const ClueFileDialogResult *r, void *data)
+{
+    if (r->ok) {
+        const char *name = strrchr(r->path, '/');
+        name = name ? name + 1 : r->path;
+        char buf[256];
+        snprintf(buf, sizeof(buf), "Overlay open: %.200s", name);
+        clue_label_set_text(g_status, buf);
+    } else {
+        clue_label_set_text(g_status, "Overlay open: cancelled");
+    }
+}
+
+static void on_overlay_save_result(const ClueFileDialogResult *r, void *data)
+{
+    if (r->ok) {
+        const char *name = strrchr(r->path, '/');
+        name = name ? name + 1 : r->path;
+        char buf[256];
+        snprintf(buf, sizeof(buf), "Overlay save: %.200s", name);
+        clue_label_set_text(g_status, buf);
+    } else {
+        clue_label_set_text(g_status, "Overlay save: cancelled");
+    }
+}
+
+static void on_overlay_open(ClueButton *button, void *data)
+{
+    ClueFileFilter filters[] = {
+        {"C Source",   ".c .h"},
+        {"Text Files", ".txt .md"},
+        {"Images",     ".png .jpg .bmp"},
+    };
+    clue_file_dialog_open_overlay("Open File (Overlay)", NULL,
+                                  filters, 3,
+                                  on_overlay_open_result, NULL);
+}
+
+static void on_overlay_save(ClueButton *button, void *data)
+{
+    ClueFileFilter filters[] = {
+        {"Text Files", ".txt"},
+        {"C Source",    ".c"},
+    };
+    clue_file_dialog_save_overlay("Save File (Overlay)", NULL,
+                                  "untitled.txt",
+                                  filters, 2,
+                                  on_overlay_save_result, NULL);
+}
+
 static ClueLabel *section_title(const char *text)
 {
     ClueLabel *lbl = clue_label_new(text);
@@ -225,9 +275,16 @@ ClueScroll *build_widgets_page(ClueApp *app)
     clue_signal_connect(btn_ontop, "clicked", on_show_ontop, NULL);
     ClueButton *btn_free = clue_button_new("Free");
     clue_signal_connect(btn_free, "clicked", on_show_free, NULL);
+    ClueButton *btn_ov_open = clue_button_new("Open (Overlay)");
+    clue_signal_connect(btn_ov_open, "clicked", on_overlay_open, NULL);
+    ClueButton *btn_ov_save = clue_button_new("Save (Overlay)");
+    clue_signal_connect(btn_ov_save, "clicked", on_overlay_save, NULL);
+
     clue_container_add(dlg_row, btn_modal);
     clue_container_add(dlg_row, btn_ontop);
     clue_container_add(dlg_row, btn_free);
+    clue_container_add(dlg_row, btn_ov_open);
+    clue_container_add(dlg_row, btn_ov_save);
 
     clue_tooltip_set(btn_hello, "Prints hello to status bar");
     clue_tooltip_set(btn_quit, "Exits the application");
