@@ -52,6 +52,7 @@
 #include "shortcut.h"
 #include "overlay.h"
 #include "osk.h"
+#include "datepicker.h"
 #include "scrollbar.h"
 #include "app.h"
 
