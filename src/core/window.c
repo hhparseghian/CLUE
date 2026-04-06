@@ -164,6 +164,9 @@ void clue_window_set_cursor(ClueWindow *win, ClueCursorShape cursor)
  * Returns 0 on success, -1 on failure. */
 int clue_init(void)
 {
+    /* Already initialised — nothing to do */
+    if (g_wm.backend) return 0;
+
     memset(&g_wm, 0, sizeof(g_wm));
 
     UIBackend *backend = clue_select_backend();
