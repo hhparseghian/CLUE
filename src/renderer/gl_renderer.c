@@ -583,16 +583,67 @@ static void gl_draw_image(ClueTexture tex, int x, int y, int w, int h)
 /* Clipping                                                            */
 /* ------------------------------------------------------------------ */
 
-static void gl_set_clip_rect(int x, int y, int w, int h)
+#define CLIP_STACK_MAX 16
+
+static struct {
+    int x, y, w, h;
+} clip_stack[CLIP_STACK_MAX];
+static int clip_depth = 0;
+
+static void apply_scissor(int x, int y, int w, int h)
 {
     glEnable(GL_SCISSOR_TEST);
-    /* GL scissor origin is bottom-left, convert from top-left */
     glScissor(x, gl.vp_h - y - h, w, h);
+}
+
+static void gl_set_clip_rect(int x, int y, int w, int h)
+{
+    /* Intersect with current clip if one exists */
+    if (clip_depth > 0) {
+        int px = clip_stack[clip_depth - 1].x;
+        int py = clip_stack[clip_depth - 1].y;
+        int pw = clip_stack[clip_depth - 1].w;
+        int ph = clip_stack[clip_depth - 1].h;
+
+        int x2 = x + w, y2 = y + h;
+        int px2 = px + pw, py2 = py + ph;
+
+        if (x < px) x = px;
+        if (y < py) y = py;
+        if (x2 > px2) x2 = px2;
+        if (y2 > py2) y2 = py2;
+
+        w = x2 - x;
+        h = y2 - y;
+        if (w < 0) w = 0;
+        if (h < 0) h = 0;
+    }
+
+    if (clip_depth < CLIP_STACK_MAX) {
+        clip_stack[clip_depth].x = x;
+        clip_stack[clip_depth].y = y;
+        clip_stack[clip_depth].w = w;
+        clip_stack[clip_depth].h = h;
+        clip_depth++;
+    }
+
+    apply_scissor(x, y, w, h);
 }
 
 static void gl_reset_clip_rect(void)
 {
-    glDisable(GL_SCISSOR_TEST);
+    if (clip_depth > 0)
+        clip_depth--;
+
+    if (clip_depth > 0) {
+        /* Restore parent clip */
+        apply_scissor(clip_stack[clip_depth - 1].x,
+                      clip_stack[clip_depth - 1].y,
+                      clip_stack[clip_depth - 1].w,
+                      clip_stack[clip_depth - 1].h);
+    } else {
+        glDisable(GL_SCISSOR_TEST);
+    }
 }
 
 /* ------------------------------------------------------------------ */
