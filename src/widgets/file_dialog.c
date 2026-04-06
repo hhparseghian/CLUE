@@ -21,6 +21,7 @@
 #include "clue/separator.h"
 #include "clue/dropdown.h"
 #include "clue/signal.h"
+#include "clue/overlay.h"
 #include "clue/clue.h"
 
 #define MAX_ENTRIES 512
@@ -59,6 +60,7 @@ typedef struct {
     ClueFileDialogMode mode;
     bool           running;
     bool           ok;
+    ClueFileDialogResult result; /* used by overlay variant for deferred cleanup */
 } FileDialogState;
 
 /* ------------------------------------------------------------------ */
@@ -564,4 +566,243 @@ ClueFileDialogResult clue_file_dialog_save(const char *title,
                            title ? title : "Save File",
                            start_dir, filename,
                            filters, filter_count);
+}
+
+/* ================================================================== */
+/* Overlay-based file dialog (non-blocking, for DRM / single-window)  */
+/* ================================================================== */
+
+typedef struct {
+    FileDialogState       fds;
+    ClueOverlay          *overlay;
+    ClueFileDialogCallback callback;
+    void                 *user_data;
+} OverlayFileDialog;
+
+static OverlayFileDialog *g_ofd = NULL;
+
+static void ov_on_list_selected(void *w, void *d)
+{
+    OverlayFileDialog *ofd = (OverlayFileDialog *)d;
+    FileDialogState *s = &ofd->fds;
+    int idx = clue_listview_get_selected(s->list);
+    if (idx < 0 || idx >= s->entry_count) return;
+
+    if (s->is_dir[idx]) {
+        char path[2048];
+        snprintf(path, sizeof(path), "%s/%s", s->current_dir, s->entries[idx]);
+        navigate_to(s, path);
+    } else {
+        clue_text_input_set_text(s->filename_input, s->entries[idx]);
+    }
+}
+
+static void ov_on_up(void *w, void *d)
+{
+    OverlayFileDialog *ofd = (OverlayFileDialog *)d;
+    FileDialogState *s = &ofd->fds;
+    char path[2048];
+    snprintf(path, sizeof(path), "%s/..", s->current_dir);
+    navigate_to(s, path);
+}
+
+static void ov_on_filter_changed(void *w, void *d)
+{
+    OverlayFileDialog *ofd = (OverlayFileDialog *)d;
+    FileDialogState *s = &ofd->fds;
+    int idx = clue_dropdown_get_selected(s->filter_dd);
+    if (idx >= s->filter_count)
+        s->active_filter = -1;
+    else
+        s->active_filter = idx;
+    scan_directory(s);
+    clue_listview_set_data(s->list, s->entry_count, list_item_cb, s);
+    clue_listview_set_selected(s->list, -1);
+    s->list->scroll_y = 0;
+}
+
+/* Deferred cleanup -- runs on next timer tick, after event dispatch is done */
+static bool ov_deferred_cleanup(void *data)
+{
+    OverlayFileDialog *ofd = (OverlayFileDialog *)data;
+    FileDialogState *s = &ofd->fds;
+
+    clear_entries(s);
+    clue_overlay_destroy(ofd->overlay);
+
+    ClueFileDialogCallback cb = ofd->callback;
+    void *ud = ofd->user_data;
+    ClueFileDialogResult result = ofd->fds.result;
+    free(ofd);
+
+    if (cb) cb(&result, ud);
+    return false;
+}
+
+static void ov_finish(OverlayFileDialog *ofd, bool ok)
+{
+    if (!ofd || ofd != g_ofd) return; /* guard re-entry */
+    g_ofd = NULL;
+
+    FileDialogState *s = &ofd->fds;
+    s->result = (ClueFileDialogResult){.ok = false};
+
+    if (ok) {
+        const char *fname = clue_text_input_get_text(s->filename_input);
+        if (fname && fname[0]) {
+            char tmp[2048];
+            snprintf(tmp, sizeof(tmp), "%s/%s", s->current_dir, fname);
+            strncpy(s->result.path, tmp, sizeof(s->result.path) - 1);
+            s->result.path[sizeof(s->result.path) - 1] = '\0';
+            s->result.ok = true;
+        }
+    }
+
+    /* Dismiss but don't destroy yet -- we're still inside the button handler */
+    ofd->overlay->callback = NULL;
+    clue_overlay_dismiss(ofd->overlay, CLUE_OVERLAY_CANCEL);
+
+    /* Defer destruction to next tick */
+    clue_timer_once(0, ov_deferred_cleanup, ofd);
+}
+
+static void ov_on_dismiss(ClueOverlayResult result, void *user_data)
+{
+    OverlayFileDialog *ofd = (OverlayFileDialog *)user_data;
+    if (!ofd) return;
+    ov_finish(ofd, result == CLUE_OVERLAY_OK);
+}
+
+static void run_file_dialog_overlay(ClueFileDialogMode mode,
+                                    const char *title,
+                                    const char *start_dir,
+                                    const char *default_filename,
+                                    const ClueFileFilter *filters,
+                                    int filter_count,
+                                    ClueFileDialogCallback callback,
+                                    void *user_data)
+{
+    ClueApp *app = clue_app_get();
+    if (!app) return;
+
+    OverlayFileDialog *ofd = calloc(1, sizeof(OverlayFileDialog));
+    if (!ofd) return;
+
+    FileDialogState *s = &ofd->fds;
+    s->mode = mode;
+    s->running = true;
+    s->filters = filters;
+    s->filter_count = filter_count;
+    s->active_filter = filter_count > 0 ? 0 : -1;
+    ofd->callback = callback;
+    ofd->user_data = user_data;
+    g_ofd = ofd;
+
+    /* Set starting directory */
+    if (start_dir && start_dir[0]) {
+        if (realpath(start_dir, s->current_dir) == NULL)
+            strncpy(s->current_dir, start_dir, sizeof(s->current_dir) - 1);
+    } else {
+        if (getcwd(s->current_dir, sizeof(s->current_dir)) == NULL)
+            strcpy(s->current_dir, "/");
+    }
+
+    scan_directory(s);
+
+    /* Build UI into a box */
+    s->root = clue_box_new(CLUE_VERTICAL, 8);
+    clue_style_set_padding(&s->root->base.style, 12);
+    s->root->base.style.hexpand = true;
+    s->root->base.style.vexpand = true;
+
+    s->btn_up = clue_button_new("Up");
+    clue_signal_connect(s->btn_up, "clicked", ov_on_up, ofd);
+
+    s->path_label = clue_label_new("");
+    s->path_label->base.style.hexpand = true;
+    set_path_label(s);
+
+    s->list = clue_listview_new();
+    s->list->base.style.hexpand = true;
+    s->list->base.style.vexpand = true;
+    s->list->icon_cb = file_icon_cb;
+    clue_listview_set_data(s->list, s->entry_count, list_item_cb, s);
+    clue_signal_connect(s->list, "selected", ov_on_list_selected, ofd);
+
+    s->filename_input = clue_text_input_new(
+        mode == CLUE_FILE_SAVE ? "Enter filename..." : "Select a file...");
+    s->filename_input->base.style.hexpand = true;
+
+    if (mode == CLUE_FILE_SAVE && default_filename && default_filename[0])
+        clue_text_input_set_text(s->filename_input, default_filename);
+
+    /* Filter dropdown */
+    if (filters && filter_count > 0) {
+        s->filter_dd = clue_dropdown_new("All Files");
+        s->filter_dd->base.style.hexpand = true;
+        s->filter_dd->max_visible = 3;
+        for (int i = 0; i < filter_count; i++) {
+            char label[256];
+            snprintf(label, sizeof(label), "%s (%s)",
+                     filters[i].name, filters[i].pattern);
+            clue_dropdown_add_item(s->filter_dd, label);
+        }
+        clue_dropdown_add_item(s->filter_dd, "All Files");
+        clue_dropdown_set_selected(s->filter_dd, 0);
+        clue_signal_connect(s->filter_dd, "changed", ov_on_filter_changed, ofd);
+    }
+
+    /* Assemble content */
+    clue_container_add(s->root, s->btn_up);
+    clue_container_add(s->root, s->path_label);
+    if (s->filter_dd)
+        clue_container_add(s->root, s->filter_dd);
+    clue_container_add(s->root, s->list);
+    clue_container_add(s->root, s->filename_input);
+
+    /* Create overlay */
+    int dlg_h = (filter_count > 0) ? DIALOG_H_FILTERS : DIALOG_H;
+    ofd->overlay = clue_overlay_new(title ? title : "File", DIALOG_W, dlg_h);
+
+    clue_overlay_set_content(ofd->overlay, (ClueWidget *)s->root);
+
+    const char *ok_label = mode == CLUE_FILE_SAVE ? "Save" : "Open";
+    clue_overlay_add_button(ofd->overlay, ok_label, CLUE_OVERLAY_OK);
+    clue_overlay_add_button(ofd->overlay, "Cancel", CLUE_OVERLAY_CANCEL);
+    clue_overlay_set_callback(ofd->overlay, ov_on_dismiss, ofd);
+
+    clue_overlay_show(ofd->overlay);
+}
+
+/* ------------------------------------------------------------------ */
+/* Public API -- overlay variants                                      */
+/* ------------------------------------------------------------------ */
+
+void clue_file_dialog_open_overlay(const char *title,
+                                   const char *start_dir,
+                                   const ClueFileFilter *filters,
+                                   int filter_count,
+                                   ClueFileDialogCallback callback,
+                                   void *user_data)
+{
+    run_file_dialog_overlay(CLUE_FILE_OPEN,
+                            title ? title : "Open File",
+                            start_dir, NULL,
+                            filters, filter_count,
+                            callback, user_data);
+}
+
+void clue_file_dialog_save_overlay(const char *title,
+                                   const char *start_dir,
+                                   const char *filename,
+                                   const ClueFileFilter *filters,
+                                   int filter_count,
+                                   ClueFileDialogCallback callback,
+                                   void *user_data)
+{
+    run_file_dialog_overlay(CLUE_FILE_SAVE,
+                            title ? title : "Save File",
+                            start_dir, filename,
+                            filters, filter_count,
+                            callback, user_data);
 }
