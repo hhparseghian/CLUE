@@ -281,6 +281,7 @@
   <div class="sidebar-section">Overlays</div>
   <a href="#dialog">Dialog</a>
   <a href="#overlay">Overlay</a>
+  <a href="#osk">On-Screen Keyboard</a>
   <a href="#file_dialog">File Dialog</a>
   <a href="#menu">Menu</a>
   <div class="sidebar-section">Rendering</div>
@@ -1074,6 +1075,30 @@ make
   <div class="fn-block">
     <div class="fn-sig"><span class="type">void</span> <span class="name">clue_overlay_destroy</span>(<span class="param">ClueOverlay *ov</span>)</div>
     <div class="fn-desc">Destroy the overlay and free its resources.</div>
+  </div>
+
+  <h2 id="osk">On-Screen Keyboard</h2>
+  <p class="description">On-screen keyboard for touchscreen/headless environments. Supports full QWERTY and numpad layouts. Docks to the bottom of the window, injects input into the currently focused text widget, and shows a live text preview.</p>
+
+  <div class="struct-block">
+    <div class="struct-name">ClueOskType</div>
+    <div class="enum-values">CLUE_OSK_QWERTY | CLUE_OSK_NUMPAD</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_osk_show</span>(<span class="param">ClueOskType type</span>)</div>
+    <div class="fn-desc">Show the on-screen keyboard. Input is injected into the currently focused widget.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_osk_hide</span>(<span class="param">void</span>)</div>
+    <div class="fn-desc">Dismiss the on-screen keyboard.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">bool</span> <span class="name">clue_osk_visible</span>(<span class="param">void</span>)</div>
+    <div class="fn-desc">Check if the on-screen keyboard is currently visible.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_osk_set_auto</span>(<span class="param">bool enabled</span>, <span class="param">ClueOskType type</span>)</div>
+    <div class="fn-desc">Enable or disable auto-show. When enabled, the OSK appears automatically when a text input gets focus (QWERTY) or a spinbox gets focus (numpad), and hides when focus leaves.</div>
   </div>
 
   <h2 id="file_dialog">File Dialog</h2>
