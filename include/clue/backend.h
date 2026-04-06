@@ -16,6 +16,8 @@ typedef struct {
     void  (*set_window_parent)(struct ClueWindow *win, struct ClueWindow *parent);
     void  (*set_window_position)(struct ClueWindow *win, int x, int y);
     void  (*make_current)(struct ClueWindow *win);
+    void  (*begin_frame)(struct ClueWindow *win);
+    void  (*end_frame)(struct ClueWindow *win);
     void  (*swap_buffers)(struct ClueWindow *win);
     int   (*poll_events)(ClueEvent *events, int max);
     void  (*set_cursor)(struct ClueWindow *win, int cursor_shape);
