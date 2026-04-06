@@ -115,13 +115,24 @@ static int scroll_handle_event(ClueWidget *w, ClueEvent *event)
         }
     }
 
-    /* Translate mouse events for children */
+    /* Translate mouse events for children, but only inside scroll area */
+    int mx = 0, my = 0;
     if (event->type == CLUE_EVENT_MOUSE_MOVE) {
-        event->mouse_move.x += s->scroll_x;
-        event->mouse_move.y += s->scroll_y;
+        mx = event->mouse_move.x;
+        my = event->mouse_move.y;
     } else if (event->type == CLUE_EVENT_MOUSE_BUTTON) {
-        event->mouse_button.x += s->scroll_x;
-        event->mouse_button.y += s->scroll_y;
+        mx = event->mouse_button.x;
+        my = event->mouse_button.y;
+    }
+
+    if (mx >= x && mx < x + bw && my >= y && my < y + bh) {
+        if (event->type == CLUE_EVENT_MOUSE_MOVE) {
+            event->mouse_move.x += s->scroll_x;
+            event->mouse_move.y += s->scroll_y;
+        } else if (event->type == CLUE_EVENT_MOUSE_BUTTON) {
+            event->mouse_button.x += s->scroll_x;
+            event->mouse_button.y += s->scroll_y;
+        }
     }
 
     return 0; /* let children handle */
