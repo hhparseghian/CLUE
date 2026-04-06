@@ -201,6 +201,37 @@ static void on_osk_auto(ClueToggle *toggle, void *data)
     clue_osk_set_auto(clue_toggle_is_on(toggle), CLUE_OSK_QWERTY);
 }
 
+static void on_date_picked(const ClueDateTimeResult *r, bool ok, void *data)
+{
+    if (ok) {
+        char buf[128];
+        if (r->has_time)
+            snprintf(buf, sizeof(buf), "Picked: %04d-%02d-%02d %02d:%02d",
+                     r->year, r->month, r->day, r->hour, r->minute);
+        else
+            snprintf(buf, sizeof(buf), "Picked: %04d-%02d-%02d",
+                     r->year, r->month, r->day);
+        clue_label_set_text(g_status, buf);
+    } else {
+        clue_label_set_text(g_status, "Date picker cancelled");
+    }
+}
+
+static void on_show_datepicker(ClueButton *button, void *data)
+{
+    clue_datepicker_show(on_date_picked, NULL);
+}
+
+static void on_show_timepicker(ClueButton *button, void *data)
+{
+    clue_timepicker_show(on_date_picked, NULL);
+}
+
+static void on_show_datetimepicker(ClueButton *button, void *data)
+{
+    clue_datetimepicker_show(on_date_picked, NULL);
+}
+
 static ClueLabel *section_title(const char *text)
 {
     ClueLabel *lbl = clue_label_new(text);
@@ -367,6 +398,20 @@ ClueScroll *build_widgets_page(ClueApp *app)
     ClueTextInput *osk_input = clue_text_input_new("Tap here to type with OSK...");
     osk_input->base.base.w = 350;
     clue_container_add(page, osk_input);
+
+    clue_container_add(page, clue_separator_new(CLUE_HORIZONTAL));
+    clue_container_add(page, section_title("Date/Time Picker"));
+    ClueBox *dp_row = clue_box_new(CLUE_HORIZONTAL, 8);
+    ClueButton *btn_date = clue_button_new("Date");
+    clue_signal_connect(btn_date, "clicked", on_show_datepicker, NULL);
+    ClueButton *btn_datetime = clue_button_new("Date + Time");
+    clue_signal_connect(btn_datetime, "clicked", on_show_datetimepicker, NULL);
+    ClueButton *btn_time = clue_button_new("Time");
+    clue_signal_connect(btn_time, "clicked", on_show_timepicker, NULL);
+    clue_container_add(dp_row, btn_date);
+    clue_container_add(dp_row, btn_time);
+    clue_container_add(dp_row, btn_datetime);
+    clue_container_add(page, dp_row);
 
     clue_container_add(page, clue_separator_new(CLUE_HORIZONTAL));
     clue_container_add(page, section_title("About"));
