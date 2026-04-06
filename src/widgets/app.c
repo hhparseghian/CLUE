@@ -289,4 +289,7 @@ void clue_focus_widget(UIWidget *widget)
         widget->focused = true;
     }
     g_app->focused_widget = widget;
+
+    /* Notify OSK of focus change */
+    clue_osk_on_focus_changed(widget);
 }

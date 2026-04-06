@@ -51,6 +51,7 @@
 #include "clipboard.h"
 #include "shortcut.h"
 #include "overlay.h"
+#include "osk.h"
 #include "scrollbar.h"
 #include "app.h"
 
