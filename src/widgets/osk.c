@@ -289,6 +289,29 @@ static void osk_add_key(ClueOsk *osk, const OskKeyDef *def)
     btn->base.base.focusable = false;
     clue_signal_connect(btn, "clicked", on_key_clicked, osk);
 
+    /* Style by key type */
+    const ClueTheme *th = clue_theme_get();
+    bool is_modifier = (def->keycode == XKB_KEY_Shift_L);
+    bool is_action = (def->keycode == XKB_KEY_BackSpace ||
+                      def->keycode == XKB_KEY_Return);
+    bool is_done = (def->text == NULL && def->keycode == 0 &&
+                    strcmp(def->label, "Done") == 0);
+    bool is_mode = (def->text == NULL && def->keycode == 0 &&
+                    (strcmp(def->label, "123") == 0 ||
+                     strcmp(def->label, "abc") == 0));
+    bool is_space = (def->keycode == XKB_KEY_space);
+
+    if (is_done) {
+        btn->base.style.bg_color = th->osk.done_bg;
+    } else if (is_action || is_space) {
+        btn->base.style.bg_color = th->osk.action_bg;
+    } else if (is_modifier || is_mode) {
+        btn->base.style.bg_color = th->osk.modifier_bg;
+    } else {
+        btn->base.style.bg_color = th->osk.key_bg;
+    }
+    btn->base.style.fg_color = th->osk.key_fg;
+
     int idx = osk->button_count;
     osk->buttons[idx] = btn;
     osk->key_defs[idx] = def;
@@ -378,7 +401,7 @@ static void osk_draw(ClueWidget *w)
     /* Panel background */
     clue_fill_rounded_rect(osk->panel_x, osk->panel_y,
                            osk->panel_w, osk->panel_h,
-                           6.0f, th->surface);
+                           6.0f, th->osk.panel_bg);
     clue_draw_rounded_rect(osk->panel_x, osk->panel_y,
                            osk->panel_w, osk->panel_h,
                            6.0f, 1.0f, th->surface_border);
@@ -394,7 +417,7 @@ static void osk_draw(ClueWidget *w)
 
         /* Preview background */
         clue_fill_rounded_rect(prev_x, prev_y, prev_w, OSK_PREVIEW_H,
-                               4.0f, th->input.bg);
+                               4.0f, th->osk.preview_bg);
         clue_draw_rounded_rect(prev_x, prev_y, prev_w, OSK_PREVIEW_H,
                                4.0f, 1.0f, th->surface_border);
 
