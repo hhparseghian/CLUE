@@ -1092,6 +1092,22 @@ make
     <div class="fn-desc">Show a file save dialog with a default filename.</div>
   </div>
 
+  <h3>Overlay Variants (non-blocking)</h3>
+  <p class="description">For single-window environments (DRM/KMS) where a second OS window is not available. These use a <a href="#overlay">ClueOverlay</a> instead, and deliver the result via callback.</p>
+
+  <div class="struct-block">
+    <div class="struct-name">ClueFileDialogCallback</div>
+    <div class="struct-desc"><code>void (*)(const ClueFileDialogResult *result, void *user_data)</code> — called when the overlay dialog closes.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_file_dialog_open_overlay</span>(<span class="param">const char *title</span>, <span class="param">const char *start_dir</span>, <span class="param">const ClueFileFilter *filters</span>, <span class="param">int filter_count</span>, <span class="param">ClueFileDialogCallback callback</span>, <span class="param">void *user_data</span>)</div>
+    <div class="fn-desc">Show a file open dialog as an overlay. Non-blocking; the callback fires when the user selects a file or cancels.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_file_dialog_save_overlay</span>(<span class="param">const char *title</span>, <span class="param">const char *start_dir</span>, <span class="param">const char *filename</span>, <span class="param">const ClueFileFilter *filters</span>, <span class="param">int filter_count</span>, <span class="param">ClueFileDialogCallback callback</span>, <span class="param">void *user_data</span>)</div>
+    <div class="fn-desc">Show a file save dialog as an overlay with a default filename. Non-blocking.</div>
+  </div>
+
   <h2 id="menu">Menu</h2>
   <p class="description">Menu bars and popup/context menus.</p>
 
