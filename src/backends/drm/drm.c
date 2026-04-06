@@ -503,14 +503,14 @@ static void blit_texture(GLuint tex, int x, int y, int w, int h,
     float x1 = (float)(x + w) / (float)sw * 2.0f - 1.0f;
     float y1 = 1.0f - (float)y / (float)sh * 2.0f;
 
-    /* Two triangles forming a quad */
+    /* Two triangles forming a quad (UVs flipped vertically for FBO→scanout) */
     GLfloat verts[] = {
-        x0, y0,  0.0f, 1.0f,
-        x1, y0,  1.0f, 1.0f,
-        x0, y1,  0.0f, 0.0f,
-        x1, y0,  1.0f, 1.0f,
-        x1, y1,  1.0f, 0.0f,
-        x0, y1,  0.0f, 0.0f,
+        x0, y0,  0.0f, 0.0f,
+        x1, y0,  1.0f, 0.0f,
+        x0, y1,  0.0f, 1.0f,
+        x1, y0,  1.0f, 0.0f,
+        x1, y1,  1.0f, 1.0f,
+        x0, y1,  0.0f, 1.0f,
     };
 
     glUseProgram(drm.blit_prog);
@@ -544,19 +544,37 @@ static int open_drm_device(void)
         NULL,
     };
 
+    int fallback_fd = -1;
+
     for (int i = 0; cards[i]; i++) {
         int fd = open(cards[i], O_RDWR | O_CLOEXEC);
         if (fd < 0) continue;
 
         /* Verify this device has KMS capability */
         drmModeRes *res = drmModeGetResources(fd);
-        if (res) {
-            drmModeFreeResources(res);
-            return fd;
+        if (!res) { close(fd); continue; }
+
+        /* Prefer a card that has a connected display */
+        int connected = 0;
+        for (int c = 0; c < res->count_connectors; c++) {
+            drmModeConnector *conn = drmModeGetConnector(fd, res->connectors[c]);
+            if (conn) {
+                if (conn->connection == DRM_MODE_CONNECTED)
+                    connected = 1;
+                drmModeFreeConnector(conn);
+            }
+            if (connected) break;
         }
-        close(fd);
+        drmModeFreeResources(res);
+
+        if (connected)
+            { if (fallback_fd >= 0) close(fallback_fd); return fd; }
+
+        /* Keep first KMS-capable card as fallback */
+        if (fallback_fd < 0) fallback_fd = fd;
+        else close(fd);
     }
-    return -1;
+    return fallback_fd;
 }
 
 /* ------------------------------------------------------------------ */
@@ -722,6 +740,11 @@ static int drm_init(void)
     if (drm.drm_fd < 0) {
         fprintf(stderr, "clue-drm: failed to open DRM device\n");
         return -1;
+    }
+
+    /* Become DRM master so we can do modesetting and page flips */
+    if (drmSetMaster(drm.drm_fd) != 0) {
+        fprintf(stderr, "clue-drm: drmSetMaster failed: %s\n", strerror(errno));
     }
 
     /* --- Find connector and CRTC --- */
@@ -962,6 +985,23 @@ static void drm_make_current(struct ClueWindow *win)
                    drm.egl_surface, drm.egl_context);
 }
 
+static void drm_begin_frame(struct ClueWindow *win)
+{
+    if (!win || !win->backend_data) return;
+    DRMWindowData *wd = win->backend_data;
+    eglMakeCurrent(drm.egl_display, drm.egl_surface,
+                   drm.egl_surface, drm.egl_context);
+    glBindFramebuffer(GL_FRAMEBUFFER, wd->fbo);
+    glViewport(0, 0, win->w, win->h);
+}
+
+static void drm_end_frame(struct ClueWindow *win)
+{
+    (void)win;
+    glFlush();
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
 static void drm_swap_buffers(struct ClueWindow *win)
 {
     (void)win;
@@ -1117,6 +1157,8 @@ UIBackend drm_backend = {
     .create_window  = drm_create_window,
     .destroy_window = drm_destroy_window,
     .make_current   = drm_make_current,
+    .begin_frame    = drm_begin_frame,
+    .end_frame      = drm_end_frame,
     .swap_buffers   = drm_swap_buffers,
     .poll_events    = drm_poll_events,
     .native_display = NULL,
