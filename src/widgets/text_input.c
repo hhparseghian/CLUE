@@ -531,6 +531,8 @@ static void text_input_destroy(ClueWidget *w)
 {
     ClueTextInput *inp = (ClueTextInput *)w;
     stop_blink(inp);
+    if (g_ctx_target == inp)
+        g_ctx_target = NULL;
 }
 
 static const ClueWidgetVTable text_input_vtable = {
