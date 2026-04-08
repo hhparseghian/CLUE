@@ -821,6 +821,8 @@ static void text_editor_destroy(ClueWidget *w)
     for (int i = 0; i < ed->undo_count; i++)
         free(ed->undo_stack[i].text);
     free(ed->text);
+    if (g_ed_ctx_target == ed)
+        g_ed_ctx_target = NULL;
 }
 
 static const ClueWidgetVTable text_editor_vtable = {
