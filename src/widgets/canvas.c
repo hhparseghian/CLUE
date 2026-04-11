@@ -21,26 +21,15 @@ typedef struct {
 static void gl_save(GLSavedState *s)
 {
     glGetIntegerv(GL_VIEWPORT, s->viewport);
-    glGetIntegerv(GL_CURRENT_PROGRAM, &s->program);
-    s->blend_enabled = glIsEnabled(GL_BLEND);
-    glGetIntegerv(GL_BLEND_SRC_ALPHA, &s->blend_src);
-    glGetIntegerv(GL_BLEND_DST_ALPHA, &s->blend_dst);
-    s->depth_test = glIsEnabled(GL_DEPTH_TEST);
-    s->cull_face = glIsEnabled(GL_CULL_FACE);
-    s->scissor_test = glIsEnabled(GL_SCISSOR_TEST);
-    glGetIntegerv(GL_SCISSOR_BOX, s->scissor_box);
 }
 
 static void gl_restore(const GLSavedState *s)
 {
     glViewport(s->viewport[0], s->viewport[1], s->viewport[2], s->viewport[3]);
-    glUseProgram(s->program);
-    if (s->blend_enabled) glEnable(GL_BLEND); else glDisable(GL_BLEND);
-    glBlendFunc(s->blend_src, s->blend_dst);
-    if (s->depth_test) glEnable(GL_DEPTH_TEST); else glDisable(GL_DEPTH_TEST);
-    if (s->cull_face) glEnable(GL_CULL_FACE); else glDisable(GL_CULL_FACE);
-    if (s->scissor_test) glEnable(GL_SCISSOR_TEST); else glDisable(GL_SCISSOR_TEST);
-    glScissor(s->scissor_box[0], s->scissor_box[1], s->scissor_box[2], s->scissor_box[3]);
+    /* Reset to known good state */
+    glDisable(GL_SCISSOR_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
 static void canvas_draw(ClueWidget *w)
