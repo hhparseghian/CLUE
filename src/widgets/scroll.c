@@ -151,6 +151,7 @@ ClueScroll *clue_scroll_new(void)
     if (!s) return NULL;
 
     clue_cwidget_init(&s->base, &scroll_vtable);
+    s->base.type_id = CLUE_WIDGET_SCROLL;
     s->base.base.skip_child_draw = true;
     s->base.base.intercept_events = true;
     s->scroll_speed = 30;
