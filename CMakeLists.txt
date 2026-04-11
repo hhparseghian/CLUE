@@ -211,6 +211,20 @@ if(CLUE_BUILD_DEMO)
     target_link_libraries(clue_demo PRIVATE clue)
 endif()
 
+# ---------- Builder ----------
+option(CLUE_BUILD_BUILDER "Build the visual UI builder" ON)
+
+if(CLUE_BUILD_BUILDER)
+    add_executable(clue_builder
+        examples/builder/main.c
+        examples/builder/palette.c
+        examples/builder/canvas.c
+        examples/builder/properties.c
+        examples/builder/codegen.c
+    )
+    target_link_libraries(clue_builder PRIVATE clue)
+endif()
+
 # Install demo sources for building after install
 install(DIRECTORY examples/demo/
     DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/clue/examples/demo
