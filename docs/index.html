@@ -283,6 +283,7 @@
   <a href="#overlay">Overlay</a>
   <a href="#osk">On-Screen Keyboard</a>
   <a href="#datepicker">Date/Time Picker</a>
+  <a href="#dnd">Drag and Drop</a>
   <a href="#file_dialog">File Dialog</a>
   <a href="#menu">Menu</a>
   <div class="sidebar-section">Rendering</div>
@@ -1132,6 +1133,34 @@ make
   <div class="fn-block">
     <div class="fn-sig"><span class="type">void</span> <span class="name">clue_datepicker_set_time</span>(<span class="param">int hour</span>, <span class="param">int minute</span>)</div>
     <div class="fn-desc">Set the initial time before showing the picker.</div>
+  </div>
+
+  <h2 id="dnd">Drag and Drop</h2>
+  <p class="description">Drag widgets between containers with visual feedback. Mark widgets as draggable or drop targets, and handle drops via signals.</p>
+
+  <div class="struct-block">
+    <div class="struct-name">ClueDragEvent</div>
+    <div class="struct-desc">Drag state with <code>source</code>, <code>target</code>, mouse positions, and <code>accepted</code> flag. Accessible during drag signals.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_widget_set_draggable</span>(<span class="param">ClueWidget *w</span>, <span class="param">bool draggable</span>)</div>
+    <div class="fn-desc">Mark a widget as draggable.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_widget_set_drop_target</span>(<span class="param">ClueWidget *w</span>, <span class="param">bool target</span>)</div>
+    <div class="fn-desc">Mark a widget as a drop target. Connect to the <code>"drop"</code> signal to handle drops.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">const ClueDragEvent *</span><span class="name">clue_drag_get_event</span>(<span class="param">void</span>)</div>
+    <div class="fn-desc">Get the current drag event. Valid during <code>"drag-begin"</code>, <code>"drag-end"</code>, and <code>"drop"</code> signals. Set <code>accepted = true</code> in the drop handler to accept the widget.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_drag_cancel</span>(<span class="param">void</span>)</div>
+    <div class="fn-desc">Cancel an in-progress drag. Widget returns to its original position.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">bool</span> <span class="name">clue_drag_active</span>(<span class="param">void</span>)</div>
+    <div class="fn-desc">Check if a drag is in progress.</div>
   </div>
 
   <h2 id="file_dialog">File Dialog</h2>
