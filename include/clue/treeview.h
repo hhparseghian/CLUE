@@ -26,6 +26,7 @@ typedef struct {
     int             item_height;
     int             indent;     /* pixels per depth level */
     int             scroll_y;
+    int             click_x, click_y; /* last click position */
     ClueScrollbar   sb;
 } ClueTreeView;
 

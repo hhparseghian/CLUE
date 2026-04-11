@@ -192,7 +192,7 @@ static int treeview_handle_event(ClueWidget *w, ClueEvent *event)
         int my = event->mouse_button.y;
         if (!(mx >= x && mx < x + bw && my >= y && my < y + bh))
             return 0;
-        if (!event->mouse_button.pressed || event->mouse_button.btn != 0)
+        if (!event->mouse_button.pressed)
             return 1;
 
         clue_focus_widget(&w->base);
@@ -200,14 +200,25 @@ static int treeview_handle_event(ClueWidget *w, ClueEvent *event)
         ClueTreeNode *node = get_visible_node(tv->root, idx);
         if (!node) return 1;
 
-        /* Check if click is on the expand arrow area */
+        if (!node) return 1;
+
+        /* Store click position and select the node */
+        tv->click_x = mx;
+        tv->click_y = my;
+        tv->selected = node;
+        clue_signal_emit(tv, "selected");
+
+        if (event->mouse_button.btn == 1) {
+            /* Right-click: emit context signal */
+            clue_signal_emit(tv, "context");
+            return 1;
+        }
+
+        /* Toggle expand/collapse on arrow click */
         int indent = x + node->depth * tv->indent;
         if (mx >= indent && mx < indent + tv->indent && node->child_count > 0) {
             node->expanded = !node->expanded;
             clamp_scroll(tv);
-        } else {
-            tv->selected = node;
-            clue_signal_emit(tv, "selected");
         }
         return 1;
     }
