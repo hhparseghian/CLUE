@@ -232,6 +232,14 @@ static void on_show_datetimepicker(ClueButton *button, void *data)
     clue_datetimepicker_show(on_date_picked, NULL);
 }
 
+static void on_drop(void *widget, void *data)
+{
+    const ClueDragEvent *ev = clue_drag_get_event();
+    ClueDragEvent *mut = (ClueDragEvent *)ev;
+    mut->accepted = true;
+    clue_label_set_text(g_status, "Widget dropped!");
+}
+
 static ClueLabel *section_title(const char *text)
 {
     ClueLabel *lbl = clue_label_new(text);
@@ -412,6 +420,41 @@ ClueScroll *build_widgets_page(ClueApp *app)
     clue_container_add(dp_row, btn_time);
     clue_container_add(dp_row, btn_datetime);
     clue_container_add(page, dp_row);
+
+    clue_container_add(page, clue_separator_new(CLUE_HORIZONTAL));
+    clue_container_add(page, section_title("Drag and Drop"));
+    ClueBox *dnd_row = clue_box_new(CLUE_HORIZONTAL, 12);
+    dnd_row->base.style.hexpand = true;
+
+    ClueBox *dnd_src = clue_box_new(CLUE_VERTICAL, 4);
+    clue_style_set_padding(&dnd_src->base.style, 8);
+    dnd_src->base.style.bg_color = CLUE_RGBA(255, 255, 255, 20);
+    dnd_src->base.base.w = 140;
+    dnd_src->base.base.h = 100;
+    ClueLabel *src_lbl = clue_label_new("Source");
+    src_lbl->base.style.fg_color = CLUE_RGB(180, 180, 190);
+    clue_container_add(dnd_src, src_lbl);
+    ClueButton *drag1 = clue_button_new("Drag me");
+    clue_widget_set_draggable(CLUE_W(drag1), true);
+    ClueButton *drag2 = clue_button_new("Me too");
+    clue_widget_set_draggable(CLUE_W(drag2), true);
+    clue_container_add(dnd_src, drag1);
+    clue_container_add(dnd_src, drag2);
+
+    ClueBox *dnd_tgt = clue_box_new(CLUE_VERTICAL, 4);
+    clue_style_set_padding(&dnd_tgt->base.style, 8);
+    dnd_tgt->base.style.bg_color = CLUE_RGBA(100, 200, 100, 20);
+    dnd_tgt->base.base.w = 140;
+    dnd_tgt->base.base.h = 100;
+    clue_widget_set_drop_target(CLUE_W(dnd_tgt), true);
+    clue_signal_connect(dnd_tgt, "drop", on_drop, NULL);
+    ClueLabel *tgt_lbl = clue_label_new("Drop here");
+    tgt_lbl->base.style.fg_color = CLUE_RGB(180, 180, 190);
+    clue_container_add(dnd_tgt, tgt_lbl);
+
+    clue_container_add(dnd_row, dnd_src);
+    clue_container_add(dnd_row, dnd_tgt);
+    clue_container_add(page, dnd_row);
 
     clue_container_add(page, clue_separator_new(CLUE_HORIZONTAL));
     clue_container_add(page, section_title("About"));
