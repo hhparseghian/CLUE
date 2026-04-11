@@ -59,6 +59,7 @@ set(CLUE_CORE_SOURCES
     src/widgets/shortcut.c
     src/widgets/osk.c
     src/widgets/datepicker.c
+    src/widgets/dnd.c
     src/widgets/app.c
     src/third_party/stb_image_impl.c
 )

@@ -18,6 +18,8 @@ typedef struct UIWidget {
     bool                focused;
     bool                intercept_events;  /* handle events before children */
     bool                skip_child_draw;   /* container draws children itself */
+    bool                draggable;         /* can be dragged */
+    bool                drop_target;       /* accepts dropped widgets */
     struct UIWidget    *parent;
     struct UIWidget   **children;
     int                 child_count;

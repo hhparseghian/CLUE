@@ -143,6 +143,10 @@ void clue_app_run(ClueApp *app)
                     continue;
             }
 
+            /* Drag-and-drop gets early crack at events */
+            if (clue_dnd_handle_event(&events[i]))
+                continue;
+
             /* Context menu gets first crack at events */
             if (clue_context_menu_dispatch(&events[i]))
                 continue;
@@ -215,6 +219,9 @@ void clue_app_run(ClueApp *app)
             clue_tooltip_update(app->root, mouse_x, mouse_y);
             clue_tooltip_draw(mouse_x, mouse_y);
         }
+
+        /* Drag ghost (on top of tooltip) */
+        clue_dnd_draw();
 
         app->renderer->end_frame(app->window);
         {
