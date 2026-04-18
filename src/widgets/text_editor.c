@@ -57,7 +57,9 @@ static void ed_ctx_paste(void *widget, void *data)
             int new_cap = ed->text_cap * 2;
             if (new_cap < ed->text_len + clen + 256) new_cap = ed->text_len + clen + 256;
             char *buf = realloc(ed->text, new_cap);
-            if (buf) { ed->text = buf; ed->text_cap = new_cap; }
+            if (!buf) { free(clip); return; }
+            ed->text = buf;
+            ed->text_cap = new_cap;
         }
         memmove(&ed->text[ed->cursor + clen], &ed->text[ed->cursor],
                 ed->text_len - ed->cursor + 1);
@@ -845,6 +847,10 @@ ClueTextEditor *clue_text_editor_new(void)
 
     ed->text_cap = 1024;
     ed->text = calloc(1, ed->text_cap);
+    if (!ed->text) {
+        free(ed);
+        return NULL;
+    }
     ed->text_len = 0;
     ed->word_wrap = false;
     ed->line_numbers = false;

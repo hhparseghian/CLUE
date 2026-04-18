@@ -436,7 +436,7 @@ static ClueFileDialogResult run_file_dialog(ClueFileDialogMode mode,
             strncpy(state.current_dir, start_dir, sizeof(state.current_dir) - 1);
     } else {
         if (getcwd(state.current_dir, sizeof(state.current_dir)) == NULL)
-            strcpy(state.current_dir, "/");
+            snprintf(state.current_dir, sizeof(state.current_dir), "/");
     }
 
     scan_directory(&state);
@@ -704,7 +704,7 @@ static void run_file_dialog_overlay(ClueFileDialogMode mode,
             strncpy(s->current_dir, start_dir, sizeof(s->current_dir) - 1);
     } else {
         if (getcwd(s->current_dir, sizeof(s->current_dir)) == NULL)
-            strcpy(s->current_dir, "/");
+            snprintf(s->current_dir, sizeof(s->current_dir), "/");
     }
 
     scan_directory(s);

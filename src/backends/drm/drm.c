@@ -917,8 +917,12 @@ static int drm_create_window(struct ClueWindow *win)
     wd->dirty = true;
 
     /* --- Create offscreen FBO for this window --- */
-    eglMakeCurrent(drm.egl_display, drm.egl_surface,
-                   drm.egl_surface, drm.egl_context);
+    if (!eglMakeCurrent(drm.egl_display, drm.egl_surface,
+                        drm.egl_surface, drm.egl_context)) {
+        fprintf(stderr, "clue-drm: eglMakeCurrent failed\n");
+        free(wd);
+        return -1;
+    }
 
     glGenTextures(1, &wd->color_tex);
     glBindTexture(GL_TEXTURE_2D, wd->color_tex);
