@@ -1,4 +1,5 @@
 #define CLUE_IMPL
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <xkbcommon/xkbcommon-keysyms.h>
@@ -166,6 +167,10 @@ typedef struct {
 
     /* Saved focus -- restored after dismiss */
     UIWidget         *saved_focus;
+    ClueWidget       *saved_modal;    /* previous modal widget (e.g. overlay) */
+
+    /* Context label (e.g. "Editing Min") shown above preview */
+    char              label[64];
 
     /* Auto-show */
     bool              auto_enabled;
@@ -377,22 +382,27 @@ static void osk_draw(ClueWidget *w)
             preview_text = ((ClueTextInput *)fw)->text;
         }
     }
-    bool has_preview = (preview_text != NULL && osk->type == CLUE_OSK_QWERTY);
+    bool has_preview = (preview_text != NULL);
     int preview_extra = has_preview ? OSK_PREVIEW_H + OSK_KEY_PAD : 0;
+    /* Label header: extra row for context string */
+    bool has_label = (osk->label[0] != '\0');
+    int label_extra = has_label ? OSK_PREVIEW_H + OSK_KEY_PAD : 0;
 
     /* Calculate panel geometry */
     if (osk->type == CLUE_OSK_QWERTY) {
         osk->panel_w = win_w;
         osk->panel_h = win_h * 2 / 5;
         if (osk->panel_h < 180) osk->panel_h = 180;
-        osk->panel_h += preview_extra;
+        osk->panel_h += preview_extra + label_extra;
         osk->panel_x = 0;
         osk->panel_y = win_h - osk->panel_h;
     } else {
         osk->panel_w = 240;
-        osk->panel_h = 280;
+        osk->panel_h = 280 + preview_extra + label_extra;
+        /* Clamp to fit within the window */
+        if (osk->panel_h > win_h - 20) osk->panel_h = win_h - 20;
         osk->panel_x = (win_w - osk->panel_w) / 2;
-        osk->panel_y = win_h - osk->panel_h - 20;
+        osk->panel_y = (win_h - osk->panel_h) / 2;
     }
 
     /* Dim area above keyboard */
@@ -409,6 +419,16 @@ static void osk_draw(ClueWidget *w)
     /* Text preview bar */
     int px = osk->panel_x + OSK_PAD;
     int py = osk->panel_y + OSK_PAD;
+
+    /* Context label header */
+    if (has_label && font) {
+        int lbl_w = osk->panel_w - OSK_PAD * 2;
+        int text_y = py + (OSK_PREVIEW_H - clue_font_line_height(font)) / 2;
+        int tw = clue_font_text_width(font, osk->label);
+        int tx = px + (lbl_w - tw) / 2;
+        clue_draw_text(tx, text_y, osk->label, font, th->fg_bright);
+        py += OSK_PREVIEW_H + OSK_KEY_PAD;
+    }
 
     if (has_preview && font) {
         int prev_x = px;
@@ -447,7 +467,7 @@ static void osk_draw(ClueWidget *w)
         row_count = NUMPAD_ROW_COUNT;
     }
 
-    int avail_h = osk->panel_h - OSK_PAD * 2 - preview_extra;
+    int avail_h = osk->panel_h - OSK_PAD * 2 - preview_extra - label_extra;
     int row_h = (avail_h - OSK_KEY_PAD * (row_count - 1)) / row_count;
     if (row_h < 20) row_h = 20;
 
@@ -524,8 +544,11 @@ static int osk_handle_event(ClueWidget *w, ClueEvent *event)
 
     if (my >= osk->panel_y) return 1;
 
-    /* Pass events above the keyboard through to the app widget tree */
+    /* Pass events above the keyboard through to the saved modal (e.g. overlay)
+     * or to the root widget tree if no prior modal exists. */
     ClueApp *app = clue_app_get();
+    if (osk->saved_modal)
+        return clue_widget_dispatch_event(&osk->saved_modal->base, event);
     if (app && app->root)
         return clue_widget_dispatch_event(&app->root->base, event);
     return 0;
@@ -558,6 +581,24 @@ static const ClueWidgetVTable osk_vtable = {
 /* Public API                                                          */
 /* ------------------------------------------------------------------ */
 
+ClueWidget *clue_osk_get_saved_modal(void)
+{
+    return (g_osk && g_osk->visible) ? g_osk->saved_modal : NULL;
+}
+
+void clue_osk_set_label(const char *label)
+{
+    if (!g_osk) {
+        g_osk = calloc(1, sizeof(ClueOsk));
+        if (!g_osk) return;
+        clue_cwidget_init(&g_osk->base, &osk_vtable);
+    }
+    if (label)
+        snprintf(g_osk->label, sizeof(g_osk->label), "%s", label);
+    else
+        g_osk->label[0] = '\0';
+}
+
 void clue_osk_show(ClueOskType type)
 {
     ClueApp *app = clue_app_get();
@@ -584,6 +625,7 @@ void clue_osk_show(ClueOskType type)
     g_osk->shifted = false;
     g_osk->num_sym_mode = false;
     g_osk->saved_focus = app->focused_widget;
+    g_osk->saved_modal = app->modal_widget;  /* save existing modal (e.g. overlay) */
 
     osk_rebuild_keys(g_osk);
 
@@ -602,7 +644,8 @@ void clue_osk_hide(void)
     g_osk->visible = false;
 
     if (app && app->modal_widget == (ClueWidget *)g_osk)
-        app->modal_widget = NULL;
+        app->modal_widget = g_osk->saved_modal;
+    g_osk->saved_modal = NULL;
 
     osk_clear_keys(g_osk);
 

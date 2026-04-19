@@ -207,11 +207,19 @@ void clue_app_run(ClueApp *app)
         /* Context menu (drawn on top of overlays) */
         clue_context_menu_draw();
 
-        /* Modal overlay (drawn on top of everything except tooltip) */
-        if (app->modal_widget &&
-            app->modal_widget->vtable &&
-            app->modal_widget->vtable->draw) {
-            app->modal_widget->vtable->draw(app->modal_widget);
+        /* Modal overlay (drawn on top of everything except tooltip).
+         * If the OSK is the current modal and has a saved modal underneath
+         * (e.g. an overlay), draw that first. */
+        {
+            ClueWidget *mw = app->modal_widget;
+            if (mw && mw->vtable && mw->vtable->draw) {
+                /* Draw saved modal (overlay) behind OSK if present */
+                extern ClueWidget *clue_osk_get_saved_modal(void);
+                ClueWidget *under = clue_osk_get_saved_modal();
+                if (under && under != mw && under->vtable && under->vtable->draw)
+                    under->vtable->draw(under);
+                mw->vtable->draw(mw);
+            }
         }
 
         /* Tooltip (drawn last, on top of everything) */

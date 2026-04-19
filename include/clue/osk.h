@@ -25,6 +25,10 @@ bool clue_osk_visible(void);
  * type selects which keyboard layout to auto-show (QWERTY or NUMPAD). */
 void clue_osk_set_auto(bool enabled, ClueOskType type);
 
+/* Set a context label displayed above the preview (e.g. "Editing Min").
+ * Pass NULL or "" to clear. */
+void clue_osk_set_label(const char *label);
+
 /* Called internally by the focus system -- do not call directly */
 void clue_osk_on_focus_changed(struct UIWidget *widget);
 
