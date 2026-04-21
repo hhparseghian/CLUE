@@ -39,6 +39,7 @@ set(CLUE_CORE_SOURCES
     src/widgets/dialog.c
     src/widgets/listview.c
     src/widgets/progress.c
+    src/widgets/gauge.c
     src/widgets/tooltip.c
     src/widgets/overlay.c
     src/widgets/scrollbar.c
