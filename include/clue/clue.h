@@ -34,6 +34,7 @@
 #include "dialog.h"
 #include "listview.h"
 #include "progress.h"
+#include "gauge.h"
 #include "tooltip.h"
 #include "menu.h"
 #include "treeview.h"
@@ -93,6 +94,7 @@ ClueRenderer *clue_get_renderer(void);
     ClueTreeView  *: (ClueWidget *)(x),           \
     ClueTable     *: (ClueWidget *)(x),           \
     ClueProgress  *: (ClueWidget *)(x),           \
+    ClueGauge     *: (ClueWidget *)(x),           \
     ClueScroll    *: (ClueWidget *)(x),           \
     ClueImage     *: (ClueWidget *)(x),           \
     ClueGrid      *: (ClueWidget *)(x),           \
