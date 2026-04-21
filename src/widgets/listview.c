@@ -132,12 +132,21 @@ static int listview_handle_event(ClueWidget *w, ClueEvent *event)
         int mx = event->mouse_button.x;
         int my = event->mouse_button.y;
         if (mx >= x && mx < x + bw && my >= y && my < y + bh) {
-            if (event->mouse_button.pressed && event->mouse_button.btn == 0) {
-                clue_focus_widget(&w->base);
+            if (event->mouse_button.pressed) {
+                int btn = event->mouse_button.btn;
                 int idx = (my - y + lv->scroll_y) / lv->item_height;
-                if (idx >= 0 && idx < lv->item_count) {
+                if (idx < 0 || idx >= lv->item_count) return 1;
+
+                lv->click_x = mx;
+                lv->click_y = my;
+
+                if (btn == 0) {
+                    clue_focus_widget(&w->base);
                     lv->selected = idx;
                     clue_signal_emit(lv, "selected");
+                } else if (btn == 1) {
+                    lv->selected = idx;
+                    clue_signal_emit(lv, "context");
                 }
             }
             return 1;

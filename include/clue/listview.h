@@ -23,6 +23,7 @@ typedef struct {
     int                         scroll_y;
     int                         selected;   /* -1 = none */
     int                         hovered;    /* -1 = none */
+    int                         click_x, click_y;  /* last click position */
     ClueScrollbar               sb;         /* shared scrollbar state */
 } ClueListView;
 
