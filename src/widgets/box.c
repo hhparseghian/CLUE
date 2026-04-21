@@ -120,10 +120,29 @@ static void box_layout(ClueWidget *w)
         }
     }
 
+    /* Track remaining main-axis space for per-child main alignment */
+    int main_remaining = (expand_count == 0 && main_offset_all == 0)
+        ? ((box->orientation == CLUE_VERTICAL)
+            ? avail_h - total_main : avail_w - total_main)
+        : 0;
+
     int offset_main = 0;
     for (int i = 0; i < w->base.child_count; i++) {
         ClueWidget *child = (ClueWidget *)w->base.children[i];
         if (!child->base.visible) continue;
+
+        /* Per-child main-axis alignment: consume remaining space */
+        if (main_remaining > 0) {
+            ClueAlign child_main = (box->orientation == CLUE_VERTICAL)
+                ? child->style.v_align : child->style.h_align;
+            if (child_main == CLUE_ALIGN_CENTER) {
+                offset_main += main_remaining / 2;
+                main_remaining = 0;
+            } else if (child_main == CLUE_ALIGN_END) {
+                offset_main += main_remaining;
+                main_remaining = 0;
+            }
+        }
 
         if (box->orientation == CLUE_VERTICAL) {
             /* Shift by main-axis alignment + accumulated expand offset */
@@ -139,12 +158,14 @@ static void box_layout(ClueWidget *w)
             if (child->style.hexpand && avail_w > child->base.w)
                 child->base.w = avail_w;
 
-            /* Alignment in cross axis */
+            /* Alignment in cross axis: child's own alignment overrides box's */
             int cw = child->base.w + child->style.margin_left + child->style.margin_right;
+            ClueAlign cross_align = (child->style.h_align != CLUE_ALIGN_START)
+                ? child->style.h_align : s->h_align;
             int align_off = 0;
-            if (s->h_align == CLUE_ALIGN_CENTER)
+            if (cross_align == CLUE_ALIGN_CENTER)
                 align_off = (avail_w - cw) / 2;
-            else if (s->h_align == CLUE_ALIGN_END)
+            else if (cross_align == CLUE_ALIGN_END)
                 align_off = avail_w - cw;
             if (align_off > 0)
                 child->base.x += align_off;
@@ -160,10 +181,12 @@ static void box_layout(ClueWidget *w)
                 child->base.h = avail_h;
 
             int ch = child->base.h + child->style.margin_top + child->style.margin_bottom;
+            ClueAlign cross_align = (child->style.v_align != CLUE_ALIGN_START)
+                ? child->style.v_align : s->v_align;
             int align_off = 0;
-            if (s->v_align == CLUE_ALIGN_CENTER)
+            if (cross_align == CLUE_ALIGN_CENTER)
                 align_off = (avail_h - ch) / 2;
-            else if (s->v_align == CLUE_ALIGN_END)
+            else if (cross_align == CLUE_ALIGN_END)
                 align_off = avail_h - ch;
             if (align_off > 0)
                 child->base.y += align_off;
