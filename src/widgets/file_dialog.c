@@ -4,7 +4,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <dirent.h>
+#include <errno.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 #include <unistd.h>
 
 #include "clue/file_dialog.h"
@@ -61,6 +63,11 @@ typedef struct {
     bool           running;
     bool           ok;
     ClueFileDialogResult result; /* used by overlay variant for deferred cleanup */
+
+    /* Rename state */
+    char           rename_target[128]; /* original name being renamed, or "" */
+    int            rename_idx;         /* list index of renaming item, -1 */
+    ClueTextInput *rename_input;       /* inline edit box */
 } FileDialogState;
 
 /* ------------------------------------------------------------------ */
@@ -285,9 +292,163 @@ static void on_up(void *w, void *d)
     navigate_to(s, path);
 }
 
+static bool try_mkdir(const char *dir, const char *name)
+{
+    char path[2048];
+    snprintf(path, sizeof(path), "%s/%s", dir, name);
+    return mkdir(path, 0755) == 0;
+}
+
+/* ------------------------------------------------------------------ */
+/* Inline rename                                                       */
+/* ------------------------------------------------------------------ */
+
+static void cancel_rename(FileDialogState *s)
+{
+    s->rename_target[0] = '\0';
+    s->rename_idx = -1;
+}
+
+static void apply_rename(FileDialogState *s)
+{
+    if (!s->rename_target[0]) return;
+
+    const char *new_name = s->rename_input
+        ? clue_text_input_get_text(s->rename_input)
+        : clue_text_input_get_text(s->filename_input);
+    if (!new_name || !new_name[0]) { cancel_rename(s); return; }
+    if (strcmp(new_name, s->rename_target) == 0) { cancel_rename(s); return; }
+
+    char old_path[2048], new_path[2048];
+    snprintf(old_path, sizeof(old_path), "%s/%s", s->current_dir, s->rename_target);
+    snprintf(new_path, sizeof(new_path), "%s/%s", s->current_dir, new_name);
+
+    rename(old_path, new_path);
+
+    cancel_rename(s);
+    scan_directory(s);
+    clue_listview_set_data(s->list, s->entry_count, list_item_cb, s);
+}
+
+static void on_rename_activate(void *w, void *d)
+{
+    FileDialogState *s = (FileDialogState *)d;
+    apply_rename(s);
+}
+
+static void start_inline_rename(FileDialogState *s, int idx)
+{
+    if (idx < 0 || idx >= s->entry_count) return;
+
+    strncpy(s->rename_target, s->entries[idx], sizeof(s->rename_target) - 1);
+    s->rename_target[sizeof(s->rename_target) - 1] = '\0';
+    s->rename_idx = idx;
+
+    if (!s->rename_input) {
+        s->rename_input = clue_text_input_new("");
+        clue_signal_connect(s->rename_input, "activate", on_rename_activate, s);
+    }
+    clue_text_input_set_text(s->rename_input, s->rename_target);
+    clue_focus_widget(&s->rename_input->base.base);
+}
+
+static void create_new_folder(FileDialogState *s)
+{
+    char name[128];
+    strcpy(name, "New Folder");
+    int n = 2;
+    while (!try_mkdir(s->current_dir, name)) {
+        if (errno != EEXIST) return;
+        snprintf(name, sizeof(name), "New Folder %d", n++);
+        if (n > 999) return;
+    }
+    scan_directory(s);
+    clue_listview_set_data(s->list, s->entry_count, list_item_cb, s);
+
+    /* Select the new folder */
+    for (int i = 0; i < s->entry_count; i++) {
+        if (strcmp(s->entries[i], name) == 0) {
+            clue_listview_set_selected(s->list, i);
+            break;
+        }
+    }
+
+    /* Enter inline rename mode on the newly-created folder */
+    int new_idx = clue_listview_get_selected(s->list);
+    start_inline_rename(s, new_idx);
+}
+
+static void on_new_folder(void *w, void *d)
+{
+    FileDialogState *s = (FileDialogState *)d;
+    create_new_folder(s);
+}
+
+/* ------------------------------------------------------------------ */
+/* Right-click context menu (rename / delete)                          */
+/* ------------------------------------------------------------------ */
+
+static FileDialogState *g_ctx_state = NULL;
+
+static void on_ctx_rename(void *w, void *d)
+{
+    FileDialogState *s = g_ctx_state;
+    if (!s) return;
+    int idx = clue_listview_get_selected(s->list);
+    start_inline_rename(s, idx);
+}
+
+static void on_ctx_delete(void *w, void *d)
+{
+    FileDialogState *s = g_ctx_state;
+    if (!s) return;
+    int idx = clue_listview_get_selected(s->list);
+    if (idx < 0 || idx >= s->entry_count) return;
+
+    char path[2048];
+    snprintf(path, sizeof(path), "%s/%s", s->current_dir, s->entries[idx]);
+
+    int result;
+    if (s->is_dir[idx])
+        result = rmdir(path);
+    else
+        result = unlink(path);
+
+    if (result == 0) {
+        scan_directory(s);
+        clue_listview_set_data(s->list, s->entry_count, list_item_cb, s);
+    }
+}
+
+static ClueMenu *get_file_context_menu(void)
+{
+    static ClueMenu *menu = NULL;
+    if (!menu) {
+        menu = clue_menu_new();
+        clue_menu_add_item(menu, "Rename", on_ctx_rename, NULL);
+        clue_menu_add_item(menu, "Delete", on_ctx_delete, NULL);
+    }
+    return menu;
+}
+
+static void on_list_context(void *w, void *d)
+{
+    FileDialogState *s = (FileDialogState *)d;
+    g_ctx_state = s;
+    clue_context_menu_show(get_file_context_menu(),
+                           s->list->click_x, s->list->click_y);
+}
+
 static void on_ok(void *w, void *d)
 {
     FileDialogState *s = (FileDialogState *)d;
+
+    /* If rename in progress, commit it first and stay in dialog */
+    if (s->rename_target[0]) {
+        apply_rename(s);
+        return;
+    }
+
     const char *fname = clue_text_input_get_text(s->filename_input);
     if (fname && fname[0]) {
         int n = snprintf(s->selected_path, sizeof(s->selected_path),
@@ -320,10 +481,17 @@ static void build_ui(FileDialogState *s)
     s->root->base.style.hexpand = true;
     s->root->base.style.vexpand = true;
 
-    /* Top bar: Up button + path label */
-    /* Top: Up button + path label on separate rows so path can wrap */
+    /* Top bar: Up + New Folder buttons, path label below */
     s->btn_up = clue_button_new("Up");
     clue_signal_connect(s->btn_up, "clicked", on_up, s);
+
+    ClueButton *btn_new_folder = clue_button_new("New Folder");
+    clue_signal_connect(btn_new_folder, "clicked", on_new_folder, s);
+
+    ClueBox *nav_row = clue_box_new(CLUE_HORIZONTAL, 6);
+    nav_row->base.style.hexpand = true;
+    clue_container_add(nav_row, s->btn_up);
+    clue_container_add(nav_row, btn_new_folder);
 
     s->path_label = clue_label_new("");
     s->path_label->base.style.fg_color = th->fg;
@@ -338,6 +506,7 @@ static void build_ui(FileDialogState *s)
     s->list->icon_cb = file_icon_cb;
     clue_listview_set_data(s->list, s->entry_count, list_item_cb, s);
     clue_signal_connect(s->list, "selected", on_list_selected, s);
+    clue_signal_connect(s->list, "context", on_list_context, s);
 
     /* Filename input */
     s->filename_input = clue_text_input_new(
@@ -379,7 +548,7 @@ static void build_ui(FileDialogState *s)
     }
 
     /* Assemble */
-    clue_container_add(s->root, s->btn_up);
+    clue_container_add(s->root, nav_row);
     clue_container_add(s->root, s->path_label);
     if (s->filter_dd)
         clue_container_add(s->root, s->filter_dd);
@@ -422,6 +591,7 @@ static ClueFileDialogResult run_file_dialog(ClueFileDialogMode mode,
     if (!app) return result;
 
     FileDialogState state = {0};
+    state.rename_idx = -1;
     state.mode = mode;
     state.running = true;
     state.ok = false;
@@ -482,6 +652,22 @@ static ClueFileDialogResult run_file_dialog(ClueFileDialogMode mode,
             }
 
             if (events[i].window == win) {
+                /* Context menu dispatch first (if shown) */
+                if (clue_context_menu_dispatch(&events[i]))
+                    continue;
+
+                /* Inline rename input gets events first */
+                if (state.rename_target[0] && state.rename_input) {
+                    if (events[i].type == CLUE_EVENT_KEY &&
+                        events[i].key.pressed &&
+                        events[i].key.keycode == 0xff1b /* Escape */) {
+                        cancel_rename(&state);
+                        continue;
+                    }
+                    if (clue_widget_dispatch_event(&state.rename_input->base.base, &events[i]))
+                        continue;
+                }
+
                 if (app->captured_widget &&
                     (events[i].type == CLUE_EVENT_MOUSE_MOVE ||
                      events[i].type == CLUE_EVENT_MOUSE_BUTTON ||
@@ -517,15 +703,43 @@ static ClueFileDialogResult run_file_dialog(ClueFileDialogMode mode,
         clue_cwidget_layout_tree(state.root);
         clue_cwidget_draw_tree(state.root);
 
+        /* Inline rename overlay on list item */
+        if (state.rename_target[0] && state.rename_input && state.rename_idx >= 0) {
+            int lx = state.list->base.base.x;
+            int ly = state.list->base.base.y;
+            int lw = state.list->base.base.w;
+            int ih = state.list->item_height;
+            if (ih > 0) {
+                int iy = ly + state.rename_idx * ih - state.list->scroll_y;
+                state.rename_input->base.base.x = lx + 24;
+                state.rename_input->base.base.y = iy;
+                state.rename_input->base.base.w = lw - 32;
+                state.rename_input->base.base.h = ih;
+                clue_reset_clip_rect();
+                clue_cwidget_layout_tree((ClueWidget *)state.rename_input);
+                state.rename_input->base.base.x = lx + 24;
+                state.rename_input->base.base.y = iy;
+                state.rename_input->base.base.w = lw - 32;
+                state.rename_input->base.base.h = ih;
+                clue_cwidget_draw_tree((ClueWidget *)state.rename_input);
+            }
+        }
+
         /* Draw dropdown overlay if open */
         if (state.filter_dd) {
             clue_reset_clip_rect();
             clue_dropdown_draw_overlay(state.filter_dd);
         }
 
+        /* Draw context menu (e.g. right-click rename/delete) */
+        clue_context_menu_draw();
+
         app->renderer->end_frame(win);
         clue_window_swap_buffers(win);
     }
+
+    /* Close any lingering context menu before returning */
+    clue_context_menu_close();
 
     clue_window_destroy(win);
 
@@ -536,6 +750,8 @@ static ClueFileDialogResult run_file_dialog(ClueFileDialogMode mode,
 
     clear_entries(&state);
     clue_cwidget_destroy(state.root);
+    if (state.rename_input)
+        clue_cwidget_destroy((ClueWidget *)state.rename_input);
     g_fds = NULL;
 
     return result;
@@ -606,6 +822,12 @@ static void ov_on_up(void *w, void *d)
     navigate_to(s, path);
 }
 
+static void ov_on_new_folder(void *w, void *d)
+{
+    OverlayFileDialog *ofd = (OverlayFileDialog *)d;
+    create_new_folder(&ofd->fds);
+}
+
 static void ov_on_filter_changed(void *w, void *d)
 {
     OverlayFileDialog *ofd = (OverlayFileDialog *)d;
@@ -642,9 +864,19 @@ static bool ov_deferred_cleanup(void *data)
 static void ov_finish(OverlayFileDialog *ofd, bool ok)
 {
     if (!ofd || ofd != g_ofd) return; /* guard re-entry */
-    g_ofd = NULL;
 
     FileDialogState *s = &ofd->fds;
+
+    /* Rename mode: apply rename and re-show the overlay */
+    if (ok && s->rename_target[0]) {
+        apply_rename(s);
+        clue_text_input_set_text(s->filename_input, "");
+        /* Re-show the overlay without cleaning up */
+        clue_overlay_show(ofd->overlay);
+        return;
+    }
+
+    g_ofd = NULL;
     s->result = (ClueFileDialogResult){.ok = false};
 
     if (ok) {
@@ -718,6 +950,14 @@ static void run_file_dialog_overlay(ClueFileDialogMode mode,
     s->btn_up = clue_button_new("Up");
     clue_signal_connect(s->btn_up, "clicked", ov_on_up, ofd);
 
+    ClueButton *btn_new_folder = clue_button_new("New Folder");
+    clue_signal_connect(btn_new_folder, "clicked", ov_on_new_folder, ofd);
+
+    ClueBox *nav_row = clue_box_new(CLUE_HORIZONTAL, 6);
+    nav_row->base.style.hexpand = true;
+    clue_container_add(nav_row, s->btn_up);
+    clue_container_add(nav_row, btn_new_folder);
+
     s->path_label = clue_label_new("");
     s->path_label->base.style.hexpand = true;
     set_path_label(s);
@@ -728,6 +968,7 @@ static void run_file_dialog_overlay(ClueFileDialogMode mode,
     s->list->icon_cb = file_icon_cb;
     clue_listview_set_data(s->list, s->entry_count, list_item_cb, s);
     clue_signal_connect(s->list, "selected", ov_on_list_selected, ofd);
+    clue_signal_connect(s->list, "context", on_list_context, s);
 
     s->filename_input = clue_text_input_new(
         mode == CLUE_FILE_SAVE ? "Enter filename..." : "Select a file...");
@@ -753,7 +994,7 @@ static void run_file_dialog_overlay(ClueFileDialogMode mode,
     }
 
     /* Assemble content */
-    clue_container_add(s->root, s->btn_up);
+    clue_container_add(s->root, nav_row);
     clue_container_add(s->root, s->path_label);
     if (s->filter_dd)
         clue_container_add(s->root, s->filter_dd);
