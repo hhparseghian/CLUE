@@ -84,14 +84,41 @@ static void label_draw(ClueWidget *w)
     ClueFont *font = label_font(l);
     if (!font) return;
 
-    int tx = w->base.x + s->padding_left;
-    int ty = w->base.y + s->padding_top;
+    int lh = clue_font_line_height(font);
+    int inner_x = w->base.x + s->padding_left;
+    int inner_y = w->base.y + s->padding_top;
+    int inner_w = w->base.w - s->padding_left - s->padding_right;
+    int inner_h = w->base.h - s->padding_top - s->padding_bottom;
 
     if (l->wrap || strchr(l->text, '\n')) {
-        int max_w = l->wrap ? w->base.w - s->padding_left - s->padding_right : 0;
-        draw_wrapped(font, l->text, tx, ty, max_w,
-                     clue_font_line_height(font), s->fg_color, true);
+        int max_w = l->wrap ? inner_w : 0;
+        int lines = draw_wrapped(font, l->text, 0, 0, max_w, lh,
+                                 (ClueColor){0}, false);
+        if (lines < 1) lines = 1;
+        int total_h = lines * lh;
+
+        int ty = inner_y;
+        if (s->v_align == CLUE_ALIGN_CENTER && inner_h > total_h)
+            ty = inner_y + (inner_h - total_h) / 2;
+        else if (s->v_align == CLUE_ALIGN_END && inner_h > total_h)
+            ty = inner_y + (inner_h - total_h);
+
+        /* For h_align, we'd need per-line width; simpler approach: shift tx for single-line */
+        draw_wrapped(font, l->text, inner_x, ty, max_w, lh, s->fg_color, true);
     } else {
+        int tw = clue_font_text_width(font, l->text);
+        int tx = inner_x;
+        if (s->h_align == CLUE_ALIGN_CENTER && inner_w > tw)
+            tx = inner_x + (inner_w - tw) / 2;
+        else if (s->h_align == CLUE_ALIGN_END && inner_w > tw)
+            tx = inner_x + (inner_w - tw);
+
+        int ty = inner_y;
+        if (s->v_align == CLUE_ALIGN_CENTER && inner_h > lh)
+            ty = inner_y + (inner_h - lh) / 2;
+        else if (s->v_align == CLUE_ALIGN_END && inner_h > lh)
+            ty = inner_y + (inner_h - lh);
+
         clue_draw_text(tx, ty, l->text, font, s->fg_color);
     }
 }
@@ -104,6 +131,8 @@ static void label_layout(ClueWidget *w)
 
     ClueStyle *s = &w->style;
     int lh = clue_font_line_height(font);
+    int preset_w = w->base.w;
+    int preset_h = w->base.h;
 
     if (l->wrap || strchr(l->text, '\n')) {
         int max_w = l->wrap ? w->base.w - s->padding_left - s->padding_right : 0;
@@ -111,7 +140,6 @@ static void label_layout(ClueWidget *w)
                                  (ClueColor){0}, false);
         if (lines < 1) lines = 1;
         w->base.h = lines * lh + s->padding_top + s->padding_bottom;
-        /* Width stays as set by user when wrapping */
         if (!l->wrap) {
             w->base.w = clue_font_text_width(font, l->text)
                         + s->padding_left + s->padding_right;
@@ -121,6 +149,10 @@ static void label_layout(ClueWidget *w)
                     + s->padding_left + s->padding_right;
         w->base.h = lh + s->padding_top + s->padding_bottom;
     }
+
+    /* Respect hexpand/vexpand or explicit larger preset size */
+    if (s->hexpand && preset_w > w->base.w) w->base.w = preset_w;
+    if (s->vexpand && preset_h > w->base.h) w->base.h = preset_h;
 }
 
 static void label_destroy(ClueWidget *w)
