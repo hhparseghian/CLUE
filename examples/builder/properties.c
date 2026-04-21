@@ -19,6 +19,17 @@ static ClueLabel    *g_lbl_w = NULL;
 static ClueLabel    *g_lbl_h = NULL;
 static ClueLabel    *g_lbl_font_size = NULL;
 static ClueLabel    *g_lbl_text = NULL;
+static ClueLabel    *g_lbl_name = NULL;
+static ClueLabel    *g_lbl_halign = NULL;
+static ClueLabel    *g_lbl_valign = NULL;
+
+/* Empty-state placeholder */
+static ClueLabel    *g_empty_hint = NULL;
+
+/* Separators between sections */
+static ClueSeparator *g_sep1 = NULL;
+static ClueSeparator *g_sep2 = NULL;
+static ClueSeparator *g_sep3 = NULL;
 
 static void on_name_changed(void *w, void *data)
 {
@@ -165,8 +176,15 @@ ClueScroll *builder_properties_create(void)
     g_title->base.style.margin_bottom = 6;
     clue_container_add(box, g_title);
 
+    /* Empty-state hint (shown when nothing selected) */
+    g_empty_hint = clue_label_new("No widget selected");
+    g_empty_hint->base.style.fg_color = CLUE_RGB(140, 140, 150);
+    g_empty_hint->base.style.margin_top = 8;
+    clue_container_add(box, g_empty_hint);
+
     /* Variable name */
-    clue_container_add(box, make_field_label("Name:"));
+    g_lbl_name = make_field_label("Name:");
+    clue_container_add(box, g_lbl_name);
     g_inp_name = clue_text_input_new("...");
     g_inp_name->base.style.hexpand = true;
     clue_signal_connect(g_inp_name, "changed", on_name_changed, NULL);
@@ -189,7 +207,8 @@ ClueScroll *builder_properties_create(void)
     clue_container_add(box, g_inp_font_size);
 
     /* Size section */
-    clue_container_add(box, clue_separator_new(CLUE_HORIZONTAL));
+    g_sep1 = clue_separator_new(CLUE_HORIZONTAL);
+    clue_container_add(box, g_sep1);
 
     g_lbl_w = make_field_label("Width:");
     clue_container_add(box, g_lbl_w);
@@ -206,9 +225,11 @@ ClueScroll *builder_properties_create(void)
     clue_container_add(box, g_inp_h);
 
     /* Alignment section */
-    clue_container_add(box, clue_separator_new(CLUE_HORIZONTAL));
+    g_sep2 = clue_separator_new(CLUE_HORIZONTAL);
+    clue_container_add(box, g_sep2);
 
-    clue_container_add(box, make_field_label("H Align:"));
+    g_lbl_halign = make_field_label("H Align:");
+    clue_container_add(box, g_lbl_halign);
     g_dd_halign = clue_dropdown_new("Start");
     g_dd_halign->base.style.hexpand = true;
     clue_dropdown_add_item(g_dd_halign, "Start");
@@ -217,7 +238,8 @@ ClueScroll *builder_properties_create(void)
     clue_signal_connect(g_dd_halign, "changed", on_align_changed, NULL);
     clue_container_add(box, g_dd_halign);
 
-    clue_container_add(box, make_field_label("V Align:"));
+    g_lbl_valign = make_field_label("V Align:");
+    clue_container_add(box, g_lbl_valign);
     g_dd_valign = clue_dropdown_new("Start");
     g_dd_valign->base.style.hexpand = true;
     clue_dropdown_add_item(g_dd_valign, "Start");
@@ -227,7 +249,8 @@ ClueScroll *builder_properties_create(void)
     clue_container_add(box, g_dd_valign);
 
     /* Expand section */
-    clue_container_add(box, clue_separator_new(CLUE_HORIZONTAL));
+    g_sep3 = clue_separator_new(CLUE_HORIZONTAL);
+    clue_container_add(box, g_sep3);
     g_chk_hexpand = clue_checkbox_new("H Expand");
     clue_signal_connect(g_chk_hexpand, "toggled", on_expand_changed, NULL);
     clue_container_add(box, g_chk_hexpand);
@@ -246,18 +269,38 @@ static void set_field_visible(ClueWidget *label, ClueWidget *field, bool visible
     if (field) field->base.visible = visible;
 }
 
+static void set_all_fields_visible(bool v)
+{
+    ClueWidget *widgets[] = {
+        (ClueWidget *)g_lbl_name,    (ClueWidget *)g_inp_name,
+        (ClueWidget *)g_lbl_text,    (ClueWidget *)g_inp_label,
+        (ClueWidget *)g_lbl_font_size,(ClueWidget *)g_inp_font_size,
+        (ClueWidget *)g_sep1,
+        (ClueWidget *)g_lbl_w,       (ClueWidget *)g_inp_w,
+        (ClueWidget *)g_lbl_h,       (ClueWidget *)g_inp_h,
+        (ClueWidget *)g_sep2,
+        (ClueWidget *)g_lbl_halign,  (ClueWidget *)g_dd_halign,
+        (ClueWidget *)g_lbl_valign,  (ClueWidget *)g_dd_valign,
+        (ClueWidget *)g_sep3,
+        (ClueWidget *)g_chk_hexpand, (ClueWidget *)g_chk_vexpand,
+    };
+    for (size_t i = 0; i < sizeof(widgets)/sizeof(widgets[0]); i++) {
+        if (widgets[i]) widgets[i]->base.visible = v;
+    }
+}
+
 void builder_properties_refresh(void)
 {
     int sel = g_state.selected;
     if (sel < 0 || sel >= g_state.count) {
         clue_label_set_text(g_title, "Properties");
-        clue_text_input_set_text(g_inp_name, "");
-        clue_text_input_set_text(g_inp_label, "");
-        clue_spinbox_set_value(g_inp_w, 0);
-        clue_spinbox_set_value(g_inp_h, 0);
-        clue_spinbox_set_value(g_inp_font_size, 0);
+        set_all_fields_visible(false);
+        if (g_empty_hint) g_empty_hint->base.base.visible = true;
         return;
     }
+
+    if (g_empty_hint) g_empty_hint->base.base.visible = false;
+    set_all_fields_visible(true);
 
     BuilderNode *node = &g_state.nodes[sel];
 

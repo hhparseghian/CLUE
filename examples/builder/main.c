@@ -207,8 +207,9 @@ int main(void)
 
     clue_app_set_root(app, root);
 
-    /* Initial code generation */
+    /* Initial state */
     builder_codegen_update();
+    builder_properties_refresh();
 
     clue_app_run(app);
     clue_app_destroy(app);
