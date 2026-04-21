@@ -136,7 +136,7 @@ cc main.c $(pkg-config --cflags --libs clue) -o myapp
 
 ## Documentation
 
-Full API reference: [docs/index.html](docs/index.html)
+Full API reference: <https://hhparseghian.github.io/CLUE/> (also available offline in [docs/index.html](docs/index.html))
 
 ## Requirements
 
