@@ -1,9 +1,15 @@
 #include "demo.h"
+#include <math.h>
 
 static ClueProgress *g_progress;
 static ClueLabel *g_timer_label;
 static int g_seconds = 0;
 static int g_progress_ms = 0;
+
+static ClueGauge *g_gauge_speed;
+static ClueGauge *g_gauge_rpm;
+static ClueGauge *g_gauge_temp;
+static float g_gauge_phase = 0.0f;
 
 static bool on_tick_clock(void *data)
 {
@@ -24,6 +30,16 @@ static bool on_tick_progress(void *data)
         return false;
     }
     clue_progress_set_value(g_progress, v);
+    return true;
+}
+
+static bool on_tick_gauges(void *data)
+{
+    g_gauge_phase += 0.02f;
+    float s = 0.5f + 0.5f * sinf(g_gauge_phase);
+    clue_gauge_set_value(g_gauge_speed, s * 220.0);
+    clue_gauge_set_value(g_gauge_rpm,   1000.0 + s * 6500.0);
+    clue_gauge_set_value(g_gauge_temp,  60.0 + s * 60.0);
     return true;
 }
 
@@ -385,6 +401,54 @@ ClueScroll *build_widgets_page(ClueApp *app)
     clue_container_add(page, section_title("Progress & Timer"));
     clue_container_add(page, progress_row);
     clue_container_add(page, g_timer_label);
+
+    clue_container_add(page, clue_separator_new(CLUE_HORIZONTAL));
+    clue_container_add(page, section_title("Gauges"));
+    ClueBox *gauge_row = clue_box_new(CLUE_HORIZONTAL, 12);
+
+    static ClueFont *gauge_tick_font = NULL;
+    if (!gauge_tick_font) {
+        const char *paths[] = {
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+            "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+            "/usr/share/fonts/truetype/freefont/FreeSans.ttf",
+            NULL,
+        };
+        for (int i = 0; paths[i] && !gauge_tick_font; i++)
+            gauge_tick_font = clue_font_load(paths[i], 12);
+    }
+
+    const int GAUGE_W = 220, GAUGE_H = 260;
+
+    /* Speed: explicit ticks so 220 endpoint is labelled */
+    g_gauge_speed = clue_gauge_new(0, 220, 0, 140, "km/h");
+    g_gauge_speed->base.base.w = GAUGE_W;
+    g_gauge_speed->base.base.h = GAUGE_H;
+    clue_gauge_set_label(g_gauge_speed, "Speed");
+    clue_gauge_set_label_font(g_gauge_speed, gauge_tick_font);
+    double speed_ticks[] = {0, 55, 110, 165, 220};
+    clue_gauge_set_major_ticks(g_gauge_speed, speed_ticks, 5);
+
+    /* RPM: auto-computed ticks with target of 8 divisions */
+    g_gauge_rpm = clue_gauge_new(0, 8000, 0, 6000, "rpm");
+    g_gauge_rpm->base.base.w = GAUGE_W;
+    g_gauge_rpm->base.base.h = GAUGE_H;
+    clue_gauge_set_label(g_gauge_rpm, "Engine");
+    clue_gauge_set_label_font(g_gauge_rpm, gauge_tick_font);
+    clue_gauge_set_target_divisions(g_gauge_rpm, 8);
+
+    /* Coolant: explicit step of 20 */
+    g_gauge_temp = clue_gauge_new(40, 130, 70, 105, "C");
+    g_gauge_temp->base.base.w = GAUGE_W;
+    g_gauge_temp->base.base.h = GAUGE_H;
+    clue_gauge_set_label(g_gauge_temp, "Coolant");
+    clue_gauge_set_label_font(g_gauge_temp, gauge_tick_font);
+    clue_gauge_set_major_step(g_gauge_temp, 20);
+    clue_container_add(gauge_row, g_gauge_speed);
+    clue_container_add(gauge_row, g_gauge_rpm);
+    clue_container_add(gauge_row, g_gauge_temp);
+    clue_container_add(page, gauge_row);
+    clue_timer_repeat(33, on_tick_gauges, NULL);
 
     clue_container_add(page, clue_separator_new(CLUE_HORIZONTAL));
     clue_container_add(page, section_title("Dialogs"));
