@@ -64,8 +64,31 @@ static void emit_widget(char *buf, int *pos, int max, BuilderNode *node)
         EMIT("    %s->base.style.hexpand = true;\n", node->var_name);
     if (node->vexpand)
         EMIT("    %s->base.style.vexpand = true;\n", node->var_name);
+    if (node->h_align > 0) {
+        const char *names[] = {"CLUE_ALIGN_START", "CLUE_ALIGN_CENTER", "CLUE_ALIGN_END"};
+        EMIT("    %s->base.style.h_align = %s;\n", node->var_name, names[node->h_align]);
+    }
+    if (node->v_align > 0) {
+        const char *names[] = {"CLUE_ALIGN_START", "CLUE_ALIGN_CENTER", "CLUE_ALIGN_END"};
+        EMIT("    %s->base.style.v_align = %s;\n", node->var_name, names[node->v_align]);
+    }
+    if (node->font_size > 0)
+        EMIT("    %s->base.style.font = clue_font_load(\"/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf\", %d);\n",
+             node->var_name, node->font_size);
 
-    EMIT("    clue_container_add(root, %s);\n\n", node->var_name);
+    /* Use parent var name if this has a parent, else root */
+    const char *parent_var = "root";
+    static char parent_buf[64];
+    if (node->parent_id >= 0) {
+        for (int i = 0; i < g_state.count; i++) {
+            if (g_state.nodes[i].id == node->parent_id) {
+                strncpy(parent_buf, g_state.nodes[i].var_name, sizeof(parent_buf) - 1);
+                parent_var = parent_buf;
+                break;
+            }
+        }
+    }
+    EMIT("    clue_container_add(%s, %s);\n\n", parent_var, node->var_name);
 
 #undef EMIT
 

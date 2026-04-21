@@ -50,6 +50,7 @@ static void on_drop(void *w, void *data)
     if (src_idx >= 0) {
         g_state.nodes[src_idx].parent_id = (tgt_idx >= 0) ? g_state.nodes[tgt_idx].id : -1;
         builder_tree_refresh();
+        builder_codegen_update();
     }
 }
 
@@ -318,6 +319,7 @@ static ClueWidget *create_widget(const char *type, const char *var)
 void builder_canvas_add_widget(const char *type_name)
 {
     if (g_state.count >= MAX_NODES) return;
+    builder_history_push();
 
     /* Remove the hint label on first add */
     if (g_state.count == 0 && g_state.canvas_root->base.base.child_count > 0) {
@@ -330,8 +332,21 @@ void builder_canvas_add_widget(const char *type_name)
     BuilderNode *node = &g_state.nodes[idx];
     memset(node, 0, sizeof(*node));
 
+    /* If selected widget is a container, add inside it */
+    ClueWidget *target_parent = (ClueWidget *)g_state.canvas_root;
+    int target_parent_id = -1;
+    if (g_state.selected >= 0 && g_state.selected < g_state.count) {
+        BuilderNode *sel = &g_state.nodes[g_state.selected];
+        bool is_container = (strcmp(sel->type_name, "Box (V)") == 0 ||
+                             strcmp(sel->type_name, "Box (H)") == 0);
+        if (is_container && sel->widget) {
+            target_parent = sel->widget;
+            target_parent_id = sel->id;
+        }
+    }
+
     node->id = g_state.next_id++;
-    node->parent_id = -1;
+    node->parent_id = target_parent_id;
     node->type_name = type_name;
     snprintf(node->var_name, sizeof(node->var_name), "%s_%d",
              type_name, node->id);
@@ -351,9 +366,14 @@ void builder_canvas_add_widget(const char *type_name)
     node->hexpand = w->style.hexpand;
     node->vexpand = w->style.vexpand;
 
+    /* Default font size for widgets that use it */
+    if (strcmp(type_name, "Label") == 0 || strcmp(type_name, "Button") == 0) {
+        node->font_size = clue_theme_get()->font_size_md;
+    }
+
     clue_widget_set_draggable(w, true);
 
-    clue_container_add(g_state.canvas_root, w);
+    clue_container_add(target_parent, w);
     g_state.count++;
 
     builder_canvas_select(idx);
@@ -365,6 +385,7 @@ void builder_canvas_delete_selected(void)
 {
     int sel = g_state.selected;
     if (sel < 0 || sel >= g_state.count) return;
+    builder_history_push();
 
     BuilderNode *node = &g_state.nodes[sel];
     if (node->widget && node->widget->base.parent) {

@@ -221,6 +221,9 @@ if(CLUE_BUILD_BUILDER)
         examples/builder/canvas.c
         examples/builder/properties.c
         examples/builder/codegen.c
+        examples/builder/persist.c
+        examples/builder/history.c
+        examples/builder/preview.c
     )
     target_link_libraries(clue_builder PRIVATE clue)
 endif()

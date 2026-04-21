@@ -12,6 +12,9 @@ typedef struct {
     char        var_name[64];  /* generated variable name */
     char        label[128];    /* label/text/placeholder */
     int         w, h;
+    int         font_size;     /* 0 = default */
+    int         h_align;       /* 0=start, 1=center, 2=end */
+    int         v_align;
     bool        hexpand, vexpand;
     int         parent_id;     /* id of parent node, -1 = root canvas */
     ClueWidget *widget;        /* live widget in canvas */
@@ -50,5 +53,17 @@ void          builder_tree_refresh(void);
 
 /* Code generation */
 void        builder_codegen_update(void);
+
+/* Persistence */
+bool        builder_save(const char *path);
+bool        builder_load(const char *path);
+
+/* Undo/redo */
+void        builder_history_push(void);
+void        builder_undo(void);
+void        builder_redo(void);
+
+/* Preview */
+void        builder_preview_show(void);
 
 #endif /* BUILDER_H */

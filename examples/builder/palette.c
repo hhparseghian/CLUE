@@ -39,7 +39,7 @@ static void on_palette_click(void *w, void *data)
 ClueScroll *builder_palette_create(void)
 {
     ClueScroll *scroll = clue_scroll_new();
-    scroll->base.base.w = 130;
+    scroll->base.style.hexpand = true;
     scroll->base.style.vexpand = true;
 
     ClueBox *box = clue_box_new(CLUE_VERTICAL, 4);
