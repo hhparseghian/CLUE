@@ -6,17 +6,25 @@ A lightweight C99 GUI toolkit for Linux with OpenGL ES 2 rendering and multiple 
 
 ## Screenshots
 
-| Widgets | Canvas | 3D |
-|---------|--------|----|
-| ![Widgets](screenshots/widgets.png) | ![Canvas](screenshots/canvas.png) | ![3D](screenshots/cube3d.png) |
+| Widgets | Gauges | Canvas |
+|---------|--------|--------|
+| ![Widgets](screenshots/widgets.png) | ![Gauges](screenshots/widgets2.png) | ![Canvas](screenshots/canvas.png) |
 
-| Table | Splitter | Form |
-|-------|----------|------|
-| ![Table](screenshots/table.png) | ![Splitter](screenshots/splitter.png) | ![Form](screenshots/form.png) |
+| 3D | Table | Splitter |
+|----|-------|----------|
+| ![3D](screenshots/cube3d.png) | ![Table](screenshots/table.png) | ![Splitter](screenshots/splitter.png) |
+
+| Form | List | Tree |
+|------|------|------|
+| ![Form](screenshots/form.png) | ![List](screenshots/list.png) | ![Tree](screenshots/tree.png) |
+
+| Editor | File Dialog | OSK |
+|--------|-------------|-----|
+| ![Editor](screenshots/editor.png) | ![File Dialog](screenshots/filedialog.png) | ![OSK](screenshots/osk.png) |
 
 ## Features
 
-- **Widgets**: buttons, labels, text inputs, checkboxes, radio buttons, sliders, dropdowns, progress bars, toggle switches, spinboxes, separators, images
+- **Widgets**: buttons, labels, text inputs, checkboxes, radio buttons, sliders, dropdowns, progress bars, analog gauges, toggle switches, spinboxes, separators, images
 - **Containers**: boxes, grids, tabs, scroll, splitter, toolbar, statusbar
 - **Data views**: list views, tables, tree views
 - **Advanced**: multi-line text editor, canvas, color picker, file dialogs, menus, tooltips, dialogs, embedded overlays, on-screen keyboard, date/time pickers, drag-and-drop
