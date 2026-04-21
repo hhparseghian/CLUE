@@ -10,7 +10,15 @@
 static void menubar_set_modal(ClueMenuBar *bar, bool on)
 {
     ClueApp *app = clue_app_get();
-    if (app) app->modal_widget = on ? (ClueWidget *)bar : NULL;
+    if (!app) return;
+    if (on) {
+        app->modal_widget = (ClueWidget *)bar;
+    } else {
+        /* Only clear if we're still the modal — a callback may have set
+         * a new modal (e.g. opening a file dialog overlay). */
+        if (app->modal_widget == (ClueWidget *)bar)
+            app->modal_widget = NULL;
+    }
 }
 
 #define MENU_PAD_H    12
