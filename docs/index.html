@@ -259,6 +259,7 @@
   <a href="#separator">Separator</a>
   <a href="#dropdown">Dropdown</a>
   <a href="#progress">Progress</a>
+  <a href="#gauge">Gauge</a>
   <a href="#toggle">Toggle</a>
   <a href="#spinbox">Spinbox</a>
   <a href="#image">Image</a>
@@ -670,6 +671,70 @@ make
   <div class="fn-block">
     <div class="fn-sig"><span class="type">void</span> <span class="name">clue_progress_set_indeterminate</span>(<span class="param">ClueProgress *p</span>, <span class="param">bool on</span>)</div>
     <div class="fn-desc">Enable or disable indeterminate (spinner) mode.</div>
+  </div>
+
+  <h2 id="gauge">Gauge</h2>
+  <p class="description">Circular analog gauge with coloured arc, auto-computed or explicit tick marks, and a needle. Sweep defaults from 130&deg; (8 o'clock) to 410&deg; (4 o'clock).</p>
+
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">ClueGauge *</span><span class="name">clue_gauge_new</span>(<span class="param">double vmin</span>, <span class="param">double vmax</span>, <span class="param">double norm_min</span>, <span class="param">double norm_max</span>, <span class="param">const char *unit</span>)</div>
+    <div class="fn-desc">Create a gauge with value range [vmin, vmax] and a green "normal" zone [norm_min, norm_max]. Values outside the normal zone are drawn in red. <code>unit</code> (e.g. <code>"km/h"</code>) may be NULL.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_gauge_set_value</span>(<span class="param">ClueGauge *g</span>, <span class="param">double value</span>)</div>
+    <div class="fn-desc">Set the current value; the needle moves to reflect it.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">double</span> <span class="name">clue_gauge_get_value</span>(<span class="param">ClueGauge *g</span>)</div>
+    <div class="fn-desc">Get the current value.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_gauge_set_range</span>(<span class="param">ClueGauge *g</span>, <span class="param">double vmin</span>, <span class="param">double vmax</span>)</div>
+    <div class="fn-desc">Change the value range. Ticks are recomputed.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_gauge_set_normal_range</span>(<span class="param">ClueGauge *g</span>, <span class="param">double norm_min</span>, <span class="param">double norm_max</span>)</div>
+    <div class="fn-desc">Change the green (normal) zone.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_gauge_set_label</span>(<span class="param">ClueGauge *g</span>, <span class="param">const char *label</span>)</div>
+    <div class="fn-desc">Set the name shown below the value readout (e.g. <code>"Speed"</code>). NULL clears it.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_gauge_set_unit</span>(<span class="param">ClueGauge *g</span>, <span class="param">const char *unit</span>)</div>
+    <div class="fn-desc">Set the unit appended to the value readout. NULL clears it.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_gauge_set_angles</span>(<span class="param">ClueGauge *g</span>, <span class="param">double angle_min_deg</span>, <span class="param">double angle_max_deg</span>)</div>
+    <div class="fn-desc">Customize the sweep angles (defaults: 130&deg; to 410&deg;).</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_gauge_set_show_numbers</span>(<span class="param">ClueGauge *g</span>, <span class="param">bool on</span>)</div>
+    <div class="fn-desc">Toggle tick labels on/off.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_gauge_set_target_divisions</span>(<span class="param">ClueGauge *g</span>, <span class="param">int n</span>)</div>
+    <div class="fn-desc">Target number of major divisions for auto-computed ticks (default 5). The 1-2-5 nice-number rounding may produce a few more or fewer.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_gauge_set_minor_subdivisions</span>(<span class="param">ClueGauge *g</span>, <span class="param">int n</span>)</div>
+    <div class="fn-desc">Number of minor ticks between majors (default 5). Pass 0 to disable minors.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_gauge_set_major_step</span>(<span class="param">ClueGauge *g</span>, <span class="param">double step</span>)</div>
+    <div class="fn-desc">Force a specific spacing between major ticks. Pass 0 to revert to auto.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_gauge_set_major_ticks</span>(<span class="param">ClueGauge *g</span>, <span class="param">const double *values</span>, <span class="param">int count</span>)</div>
+    <div class="fn-desc">Set explicit major tick values (e.g. <code>{0, 50, 100, 150, 200, 220}</code>). Overrides <code>target_divisions</code> and <code>major_step</code>. Pass NULL/0 to revert to auto. Values are copied; max <code>CLUE_GAUGE_MAX_TICKS</code> (32).</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_gauge_set_label_font</span>(<span class="param">ClueGauge *g</span>, <span class="param">ClueFont *font</span>)</div>
+    <div class="fn-desc">Font for tick labels. NULL falls back to the app default. The widget does not take ownership.</div>
+  </div>
+  <div class="fn-block">
+    <div class="fn-sig"><span class="type">void</span> <span class="name">clue_gauge_set_value_font</span>(<span class="param">ClueGauge *g</span>, <span class="param">ClueFont *font</span>)</div>
+    <div class="fn-desc">Font for the value readout and name label below the dial. NULL = app default.</div>
   </div>
 
   <h2 id="toggle">Toggle</h2>
