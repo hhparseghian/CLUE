@@ -37,7 +37,9 @@ static Timer *find_free_slot(void)
 
 static int create_timer(int ms, bool repeating, ClueTimerCallback cb, void *data)
 {
-    if (!cb || ms <= 0) return 0;
+    /* ms == 0 means "fire on next tick" — legitimate for deferred callbacks
+     * (the file dialog uses this for cleanup after a button-handler returns). */
+    if (!cb || ms < 0) return 0;
 
     Timer *t = find_free_slot();
     if (!t) return 0;
