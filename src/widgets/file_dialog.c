@@ -887,6 +887,13 @@ static void ov_finish(OverlayFileDialog *ofd, bool ok)
             strncpy(s->result.path, tmp, sizeof(s->result.path) - 1);
             s->result.path[sizeof(s->result.path) - 1] = '\0';
             s->result.ok = true;
+        } else if (s->mode == CLUE_FILE_OPEN) {
+            /* "Open" pressed with no file selected: return the directory
+             * the user has navigated to. Lets the dialog double as a
+             * folder picker without needing a separate API. */
+            strncpy(s->result.path, s->current_dir, sizeof(s->result.path) - 1);
+            s->result.path[sizeof(s->result.path) - 1] = '\0';
+            s->result.ok = true;
         }
     }
 
