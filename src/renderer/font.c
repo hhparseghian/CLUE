@@ -24,7 +24,12 @@
 #define ATLAS_WIDTH   1024
 #define ATLAS_HEIGHT  1024
 #define GLYPH_PAD     1      /* padding between glyphs in atlas */
-#define MAX_GLYPHS    256    /* ASCII cache (expandable later for UTF-8) */
+
+/* Glyph cache: 2-level page table covering the Unicode BMP (U+0000 - U+FFFF).
+ * Pages are allocated on demand so a typical app pays for ASCII only. */
+#define GLYPH_PAGE_BITS  8
+#define GLYPH_PAGE_SIZE  (1 << GLYPH_PAGE_BITS)
+#define GLYPH_PAGE_COUNT (1 << (16 - GLYPH_PAGE_BITS))
 
 /* Cached glyph info */
 typedef struct {
@@ -38,6 +43,10 @@ typedef struct {
     float    u1, v1;
 } GlyphInfo;
 
+typedef struct {
+    GlyphInfo glyphs[GLYPH_PAGE_SIZE];
+} GlyphPage;
+
 struct ClueFont {
     FT_Face     face;
     int         size_px;
@@ -48,8 +57,33 @@ struct ClueFont {
     int         atlas_x;     /* next free x position in atlas */
     int         atlas_y;     /* current row y */
     int         atlas_row_h; /* tallest glyph in current row */
-    GlyphInfo   glyphs[MAX_GLYPHS];
+    GlyphPage  *pages[GLYPH_PAGE_COUNT];
 };
+
+/* Decode the UTF-8 codepoint starting at *p and advance *p past it.
+ * Returns the codepoint, or 0xFFFD (REPLACEMENT CHARACTER) on malformed input.
+ * Stops cleanly at NUL — caller checks **p before calling. */
+static unsigned int utf8_next(const unsigned char **pp)
+{
+    const unsigned char *p = *pp;
+    unsigned int c = *p;
+
+    if (c < 0x80) { *pp = p + 1; return c; }
+
+    int extra;
+    if      ((c & 0xE0) == 0xC0) { c &= 0x1F; extra = 1; }
+    else if ((c & 0xF0) == 0xE0) { c &= 0x0F; extra = 2; }
+    else if ((c & 0xF8) == 0xF0) { c &= 0x07; extra = 3; }
+    else                          { *pp = p + 1; return 0xFFFD; }
+
+    for (int i = 1; i <= extra; i++) {
+        unsigned char b = p[i];
+        if (b == 0 || (b & 0xC0) != 0x80) { *pp = p + 1; return 0xFFFD; }
+        c = (c << 6) | (b & 0x3F);
+    }
+    *pp = p + extra + 1;
+    return c;
+}
 
 /* Shared FreeType library instance */
 static FT_Library ft_lib = NULL;
@@ -83,9 +117,16 @@ static void ft_shutdown(void)
 
 static GlyphInfo *ensure_glyph(ClueFont *font, unsigned int codepoint)
 {
-    if (codepoint >= MAX_GLYPHS) return NULL;
+    if (codepoint > 0xFFFF) codepoint = 0xFFFD;  /* outside BMP: substitute */
 
-    GlyphInfo *g = &font->glyphs[codepoint];
+    unsigned int page_idx = codepoint >> GLYPH_PAGE_BITS;
+    unsigned int page_off = codepoint & (GLYPH_PAGE_SIZE - 1);
+
+    if (!font->pages[page_idx]) {
+        font->pages[page_idx] = calloc(1, sizeof(GlyphPage));
+        if (!font->pages[page_idx]) return NULL;
+    }
+    GlyphInfo *g = &font->pages[page_idx]->glyphs[page_off];
     if (g->loaded) return g;
 
     if (FT_Load_Char(font->face, codepoint, FT_LOAD_RENDER)) {
@@ -203,6 +244,7 @@ void clue_font_destroy(ClueFont *font)
     if (!font) return;
     if (font->atlas_tex) glDeleteTextures(1, &font->atlas_tex);
     if (font->face) FT_Done_Face(font->face);
+    for (int i = 0; i < GLYPH_PAGE_COUNT; i++) free(font->pages[i]);
     free(font);
     ft_shutdown();
 }
@@ -211,8 +253,10 @@ int clue_font_text_width(ClueFont *font, const char *text)
 {
     if (!font || !text) return 0;
     int width = 0;
-    for (const unsigned char *p = (const unsigned char *)text; *p; p++) {
-        GlyphInfo *g = ensure_glyph(font, *p);
+    const unsigned char *p = (const unsigned char *)text;
+    while (*p) {
+        unsigned int cp = utf8_next(&p);
+        GlyphInfo *g = ensure_glyph(font, cp);
         if (g) width += g->advance_x;
     }
     return width;
@@ -341,8 +385,10 @@ void clue_font_draw_text(int x, int y, const char *text,
     float pen_x = (float)x;
     float baseline = (float)y + (float)font->ascent;
 
-    for (const unsigned char *p = (const unsigned char *)text; *p; p++) {
-        GlyphInfo *g = ensure_glyph(font, *p);
+    const unsigned char *p = (const unsigned char *)text;
+    while (*p) {
+        unsigned int cp = utf8_next(&p);
+        GlyphInfo *g = ensure_glyph(font, cp);
         if (!g) continue;
 
         if (g->bmp_w > 0 && g->bmp_h > 0) {
