@@ -15,7 +15,52 @@
 #define BTN_PAD   10
 #define PANEL_PAD 12
 
+/* Number of frames after show during which mouse-button events are
+ * swallowed. Protects the overlay from being dismissed by a stray click
+ * delivered in the same input batch as the click that opened it
+ * (touchpad taps, synthesized clicks from accessibility tools, etc.). */
+#define SETTLE_FRAMES 6
+
+/* Cached panel rect from the last draw — used by handle_event to reject
+ * mouse events outside the visible panel without routing them to widgets
+ * that might still be at uninitialised positions. */
+typedef struct {
+    int x, y, w, h;
+    int frames_since_show;  /* incremented each draw, reset on show */
+} OverlayInternal;
+
 /* ---- draw ---- */
+
+/* Per-overlay state lives in a parallel structure keyed by overlay pointer.
+ * We can't extend ClueOverlay's public struct without breaking ABI, so this
+ * little map holds the runtime-only fields. Capacity is small because
+ * overlays are usually 1-2 at a time. */
+#define INTERNAL_CAP 16
+static struct { ClueOverlay *ov; OverlayInternal data; } g_internal[INTERNAL_CAP];
+
+static OverlayInternal *internal_for(ClueOverlay *ov)
+{
+    for (int i = 0; i < INTERNAL_CAP; i++)
+        if (g_internal[i].ov == ov) return &g_internal[i].data;
+    for (int i = 0; i < INTERNAL_CAP; i++) {
+        if (g_internal[i].ov == NULL) {
+            g_internal[i].ov = ov;
+            g_internal[i].data = (OverlayInternal){0};
+            return &g_internal[i].data;
+        }
+    }
+    return NULL;
+}
+
+static void internal_drop(ClueOverlay *ov)
+{
+    for (int i = 0; i < INTERNAL_CAP; i++) {
+        if (g_internal[i].ov == ov) {
+            g_internal[i].ov = NULL;
+            return;
+        }
+    }
+}
 
 static void overlay_draw(ClueWidget *w)
 {
@@ -24,6 +69,9 @@ static void overlay_draw(ClueWidget *w)
 
     ClueApp *app = clue_app_get();
     if (!app) return;
+
+    OverlayInternal *oi = internal_for(ov);
+    if (oi) oi->frames_since_show++;
 
     const ClueTheme *th = clue_theme_get();
     ClueFont *font = clue_app_default_font();
@@ -39,6 +87,9 @@ static void overlay_draw(ClueWidget *w)
     int ph = ov->panel_h;
     int px = (win_w - pw) / 2;
     int py = (win_h - ph) / 2;
+
+    /* Stash panel rect for handle_event bounds checking. */
+    if (oi) { oi->x = px; oi->y = py; oi->w = pw; oi->h = ph; }
 
     clue_fill_rounded_rect(px, py, pw, ph, 8.0f, th->surface);
     clue_draw_rounded_rect(px, py, pw, ph, 8.0f, 1.0f, th->surface_border);
@@ -95,6 +146,27 @@ static int overlay_handle_event(ClueWidget *w, ClueEvent *event)
 {
     ClueOverlay *ov = (ClueOverlay *)w;
     if (!ov->visible) return 0;
+
+    OverlayInternal *oi = internal_for(ov);
+
+    /* Mouse-button events get extra scrutiny:
+     *   1. During the first SETTLE_FRAMES draws, ignore them entirely so a
+     *      synthesised click delivered in the same input batch as the click
+     *      that opened the overlay can't dismiss it instantly.
+     *   2. After settling, only route them if they land inside the panel.
+     *      A click on the dim background is consumed but not propagated. */
+    if (event->type == CLUE_EVENT_MOUSE_BUTTON && oi) {
+        if (oi->frames_since_show < SETTLE_FRAMES) {
+            return 1;  /* still settling — swallow */
+        }
+        int mx = event->mouse_button.x;
+        int my = event->mouse_button.y;
+        bool inside_panel = (mx >= oi->x && mx < oi->x + oi->w &&
+                             my >= oi->y && my < oi->y + oi->h);
+        if (!inside_panel) {
+            return 1;  /* click outside panel: consume silently */
+        }
+    }
 
     /* Route events to buttons */
     for (int i = 0; i < ov->button_count; i++) {
@@ -178,8 +250,10 @@ void clue_overlay_destroy(ClueOverlay *ov)
 {
     if (!ov) return;
     if (ov->visible) clue_overlay_dismiss(ov, CLUE_OVERLAY_CANCEL);
+    /* clue_cwidget_destroy frees the widget itself at the end, so no extra
+     * free(ov) here. The vtable destroy (overlay_destroy_impl) handles the
+     * overlay's owned children — content widget, buttons, title. */
     clue_cwidget_destroy((ClueWidget *)ov);
-    free(ov);
 }
 
 void clue_overlay_set_content(ClueOverlay *ov, ClueWidget *content)
@@ -221,6 +295,12 @@ void clue_overlay_show(ClueOverlay *ov)
     ov->visible = true;
     ov->result = CLUE_OVERLAY_NONE;
 
+    /* Start the settle period fresh — the next SETTLE_FRAMES draws will
+     * reject mouse-button events to protect against the click that opened
+     * the overlay also landing on a panel button on the same frame. */
+    OverlayInternal *oi = internal_for(ov);
+    if (oi) *oi = (OverlayInternal){0};
+
     /* Set as modal so only overlay receives events */
     app->modal_widget = (ClueWidget *)ov;
 }
@@ -231,6 +311,7 @@ void clue_overlay_dismiss(ClueOverlay *ov, ClueOverlayResult result)
 
     ov->visible = false;
     ov->result = result;
+    internal_drop(ov);
 
     /* Clear modal */
     ClueApp *app = clue_app_get();
